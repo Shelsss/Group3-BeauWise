@@ -5,6 +5,7 @@ import { Scan } from 'lucide-react-native';
 import { Pressable, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Colors from '../constants/Colors';
 
 export default function CustomTabBar({ state, descriptors, navigation, iconProp }) {
 	const { buildHref } = useLinkBuilder();
@@ -34,6 +35,9 @@ export default function CustomTabBar({ state, descriptors, navigation, iconProp 
 			}
 		};
 
+		const activeColor =
+			route.name === 'learn' || route.name === 'profile' ? '#ffb9ca' : Colors.primary;
+
 		const onLongPress = () => {
 			navigation.emit({
 				type: 'tabLongPress',
@@ -59,12 +63,12 @@ export default function CustomTabBar({ state, descriptors, navigation, iconProp 
 				}}
 			>
 				<View style={{ display: 'flex', alignItems: 'center' }}>
-					<ActiveIndicator isFocused={isFocused} />
+					<ActiveIndicator isFocused={isFocused} activeColor={activeColor} />
 
-					{options.iconProp(isFocused)}
+					{options.iconProp(isFocused, activeColor)}
 					<Animated.Text
 						style={{
-							color: isFocused ? '#a78bfa' : '#bcbcbe',
+							color: isFocused ? activeColor : '#bcbcbe',
 							transitionDuration: 130,
 							fontWeight: isFocused ? 800 : 600,
 							fontSize: 12
@@ -88,27 +92,26 @@ export default function CustomTabBar({ state, descriptors, navigation, iconProp 
 					paddingHorizontal: 10
 				}}
 			>
-				<View
-					style={{
-						width: 56,
-						height: 56,
-						borderRadius: 50,
-						alignItems: 'center',
-						justifyContent: 'center',
-						shadowColor: '#373535',
-						shadowOffset: { width: 0, height: 4 },
-						shadowOpacity: 0.3,
-						shadowRadius: 190,
-						elevation: 8
-					}}
-				>
+				<View>
 					<LinearGradient
-						start={{ x: 0.2, y: 0.5 }}
-						end={{ x: 1, y: 0 }}
-						colors={['#b8a4f5', '#ffafbb']}
-						style={{ padding: 15, borderRadius: 50 }}
+						start={{ x: 0.3, y: 0.7 }}
+						end={{ x: 1, y: 0.2 }}
+						colors={['#b8a4f5', '#ffb9ca']}
+						style={{
+							padding: 16,
+							borderRadius: 40,
+							shadowColor: '#252524',
+							shadowOffset: {
+								width: 0,
+								height: 1
+							},
+							shadowOpacity: 0.8,
+							shadowRadius: 2.22,
+
+							elevation: 3
+						}}
 					>
-						<Scan color='#fffefe' size={25} />
+						<Scan color='#fffefe' size={28} />
 					</LinearGradient>
 				</View>
 			</Pressable>
@@ -126,7 +129,7 @@ export default function CustomTabBar({ state, descriptors, navigation, iconProp 
 			style={{
 				flexDirection: 'row',
 				paddingBottom: bottom,
-				backgroundColor: '#ffffff'
+				backgroundColor: Colors.backgroundColor
 			}}
 		>
 			<ScannerButton />
@@ -135,19 +138,19 @@ export default function CustomTabBar({ state, descriptors, navigation, iconProp 
 	);
 }
 
-function ActiveIndicator({ isFocused }) {
+function ActiveIndicator({ isFocused, activeColor }) {
 	return (
 		<Animated.View
 			style={[
 				{
-					backgroundColor: '#a78bfa',
+					backgroundColor: activeColor,
 					height: 4,
 					width: 50,
-					transform: [{ scaleX: isFocused ? 1 : 0.5 }],
-					borderRadius: 2,
+
+					borderRadius: 1.5,
 					marginBottom: 8,
 					opacity: isFocused ? 1 : 0,
-					transitionDuration: 130
+					transitionDuration: 120
 				}
 			]}
 		/>

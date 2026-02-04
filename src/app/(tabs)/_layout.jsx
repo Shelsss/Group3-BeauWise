@@ -1,6 +1,7 @@
-import { BookOpen, History, House, UserRound } from 'lucide-react-native';
+import { BookOpen, Clock9, House, UserRound } from 'lucide-react-native';
 import CustomTabBar from '../../components/CustomTabBar';
 import { MaterialTopTabs } from '../../components/MaterialTopTabs';
+import Colors from '../../constants/Colors';
 
 export default function TopTabsLayout() {
 	return (
@@ -8,10 +9,6 @@ export default function TopTabsLayout() {
 			tabBar={(props) => <CustomTabBar {...props} />}
 			backBehavior='fullHistory'
 			tabBarPosition='bottom'
-			screenOptions={{
-				tabBarShowIcon: true,
-				tabBarActiveTintColor: 'red'
-			}}
 		>
 			<MaterialTopTabs.Screen
 				name='index'
@@ -22,7 +19,7 @@ export default function TopTabsLayout() {
 			/>
 			<MaterialTopTabs.Screen
 				name='history'
-				options={{ title: 'History', iconProp: TabBarIcon(History) }}
+				options={{ title: 'History', iconProp: TabBarIcon(Clock9) }}
 			/>
 			<MaterialTopTabs.Screen
 				name='learn'
@@ -37,7 +34,7 @@ export default function TopTabsLayout() {
 }
 
 function TabBarIcon(IconNode) {
-	return function iconProp(isFocused) {
-		return <IconNode size={20} color={isFocused ? '#a78bfa' : '#bcbcbe'} />;
+	return function iconProp(isFocused, activeColor) {
+		return <IconNode size={20} color={isFocused ? activeColor : '#bcbcbe'} />;
 	};
 }

@@ -1,7 +1,6 @@
 import { BookOpen, Clock9, House, UserRound } from 'lucide-react-native';
 import CustomTabBar from '../../components/CustomTabBar';
 import { MaterialTopTabs } from '../../components/MaterialTopTabs';
-import Colors from '../../constants/Colors';
 
 export default function TopTabsLayout() {
 	return (
@@ -14,20 +13,37 @@ export default function TopTabsLayout() {
 				name='index'
 				options={{
 					title: 'Home',
-					iconProp: TabBarIcon(House)
+					iconProp: TabBarIcon(House),
+					tabBarButtonTestID: 'home-tab',
+					tabBarAccessibilityLabel: 'Home Tab'
 				}}
 			/>
 			<MaterialTopTabs.Screen
 				name='history'
-				options={{ title: 'History', iconProp: TabBarIcon(Clock9) }}
+				options={{
+					title: 'History',
+					iconProp: TabBarIcon(Clock9),
+					tabBarButtonTestID: 'history-tab',
+					tabBarAccessibilityLabel: 'History Tab'
+				}}
 			/>
 			<MaterialTopTabs.Screen
 				name='learn'
-				options={{ title: 'Learn', iconProp: TabBarIcon(BookOpen) }}
+				options={{
+					title: 'Learn',
+					iconProp: TabBarIcon(BookOpen),
+					tabBarButtonTestID: 'learn-tab',
+					tabBarAccessibilityLabel: 'Learn Tab'
+				}}
 			/>
 			<MaterialTopTabs.Screen
 				name='profile'
-				options={{ title: 'Profile', iconProp: TabBarIcon(UserRound) }}
+				options={{
+					title: 'Profile',
+					iconProp: TabBarIcon(UserRound),
+					tabBarButtonTestID: 'profile-tab',
+					tabBarAccessibilityLabel: 'Profile Tab'
+				}}
 			/>
 		</MaterialTopTabs>
 	);

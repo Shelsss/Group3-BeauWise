@@ -1,13 +1,12 @@
 const { defineConfig } = require('eslint/config');
 const expoConfig = require('eslint-config-expo/flat');
-const reactPlugin = require('eslint-plugin-react');
 
 const reactNativePlugin = require('eslint-plugin-react-native');
 const eslintPluginPrettierRecommended = require('eslint-plugin-prettier/recommended');
+const globals = require('globals');
 
 module.exports = defineConfig([
 	expoConfig,
-	reactPlugin.configs.flat['jsx-runtime'],
 	eslintPluginPrettierRecommended,
 	{
 		files: ['**/*.{js,jsx,ts,tsx}'],
@@ -31,6 +30,9 @@ module.exports = defineConfig([
 
 		plugins: { 'react-native': reactNativePlugin },
 		languageOptions: {
+			globals: {
+				...globals.jest
+			},
 			parserOptions: {
 				ecmaFeatures: {
 					jsx: true

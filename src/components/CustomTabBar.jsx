@@ -7,7 +7,7 @@ import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Colors from '../constants/Colors';
 
-export default function CustomTabBar({ state, descriptors, navigation, iconProp }) {
+export default function CustomTabBar({ state, descriptors, navigation }) {
 	const { buildHref } = useLinkBuilder();
 	const { bottom } = useSafeAreaInsets();
 	const router = useRouter();
@@ -35,9 +35,6 @@ export default function CustomTabBar({ state, descriptors, navigation, iconProp 
 			}
 		};
 
-		const activeColor =
-			route.name === 'learn' || route.name === 'profile' ? '#ffb9ca' : Colors.primary;
-
 		const onLongPress = () => {
 			navigation.emit({
 				type: 'tabLongPress',
@@ -63,12 +60,12 @@ export default function CustomTabBar({ state, descriptors, navigation, iconProp 
 				}}
 			>
 				<View style={{ display: 'flex', alignItems: 'center' }}>
-					<ActiveIndicator isFocused={isFocused} activeColor={activeColor} />
+					<ActiveIndicator isFocused={isFocused} activeColor={Colors.primary} />
 
-					{options.iconProp(isFocused, activeColor)}
+					{options.iconProp(isFocused, Colors.primary)}
 					<Animated.Text
 						style={{
-							color: isFocused ? activeColor : '#bcbcbe',
+							color: isFocused ? Colors.primary : '#bcbcbe',
 							transitionDuration: 130,
 							fontWeight: isFocused ? 800 : 600,
 							fontSize: 12

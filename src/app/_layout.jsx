@@ -2,7 +2,14 @@ import { Stack } from 'expo-router';
 
 export default function RootLayout() {
 	return (
-		<Stack>
+		<Stack initialRouteName='profiling'>
+			<Stack.Screen
+				name='profiling'
+				options={{
+					headerShown: false
+				}}
+			/>
+
 			<Stack.Screen
 				name='(tabs)'
 				options={{
@@ -15,8 +22,7 @@ export default function RootLayout() {
 				name='scanner'
 				options={{
 					headerShown: false,
-					presentation: 'fullScreenModal',
-					animation: 'fade_from_bottom'
+					animation: 'fade'
 				}}
 			/>
 		</Stack>

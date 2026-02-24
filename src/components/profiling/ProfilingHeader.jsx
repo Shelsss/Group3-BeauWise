@@ -1,16 +1,14 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { useGlobalSearchParams } from 'expo-router';
+
 import { View, Text, StyleSheet } from 'react-native';
 import Animated, { FadeIn, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Questionnaire from '@/constants/Questionnaire';
 
-export default function ProfilingHeader() {
-	const params = useGlobalSearchParams();
+export default function ProfilingHeader({ currentStep, isTransition }) {
 	const totalQuestions = Questionnaire.length;
 	const { top } = useSafeAreaInsets();
 
-	const currentStep = parseInt(params.step) || 0;
 	const animatedProgressStyle = useAnimatedStyle(() => ({
 		width: withSpring(`${(currentStep / totalQuestions) * 100}%`, {
 			damping: 20,
@@ -18,11 +16,13 @@ export default function ProfilingHeader() {
 		})
 	}));
 
+	const headerTitle = currentStep < 6 ? 'Skin Profiling' : 'Hair Profiling';
 	return (
-		currentStep > 0 && (
+		currentStep > 0 &&
+		!isTransition && (
 			<Animated.View entering={FadeIn} style={{ paddingTop: top, width: '100%' }}>
 				<View style={STYLES.container}>
-					<Text style={STYLES.headerStyle}>{Questionnaire[currentStep - 1]?.title}</Text>
+					<Text style={STYLES.headerStyle}>{headerTitle}</Text>
 
 					<Text style={STYLES.stepStyle}>
 						Step {currentStep} of {totalQuestions}
@@ -62,9 +62,9 @@ const STYLES = StyleSheet.create({
 	},
 
 	progressTrack: {
-		height: 4,
+		height: 6,
 		backgroundColor: '#e6e6e6',
-		borderRadius: 2,
+		borderRadius: 10,
 		marginTop: 12,
 		width: '100%',
 		overflow: 'hidden'

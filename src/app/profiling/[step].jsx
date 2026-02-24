@@ -19,6 +19,7 @@ export default function ProfilingScreen() {
 				<Questions
 					profilingType={Questionnaire[step - 1]}
 					questions={Questionnaire[step - 1].questions}
+					section={Questionnaire[step - 1].section}
 					step={step}
 				/>
 			)}

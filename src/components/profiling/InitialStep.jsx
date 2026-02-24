@@ -2,7 +2,7 @@ import { View, Text } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Sparkles, Wand, Heart } from 'lucide-react-native';
 import Colors from '../../constants/Colors';
-import Animated, { FadeInUp, FadeOut } from 'react-native-reanimated';
+import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function InitialStep() {
@@ -10,8 +10,7 @@ export default function InitialStep() {
 	return (
 		<>
 			<Animated.View
-				entering={FadeInUp.delay(100).duration(500)}
-				exiting={FadeOut}
+				entering={FadeInUp.delay(100).duration(300)}
 				style={{ display: 'flex', alignItems: 'center', marginTop: top + 50 }}
 			>
 				<LinearGradient
@@ -37,8 +36,7 @@ export default function InitialStep() {
 			</Animated.View>
 
 			<Animated.View
-				entering={FadeInUp.delay(200).duration(500)}
-				exiting={FadeOut}
+				entering={FadeInUp.delay(200).duration(300)}
 				style={{ display: 'flex', alignItems: 'center', rowGap: 14, marginTop: top + 30 }}
 			>
 				<Text style={{ fontWeight: '800', fontSize: 24, color: '#1F2937' }}>
@@ -58,8 +56,7 @@ export default function InitialStep() {
 			</Animated.View>
 
 			<Animated.View
-				entering={FadeInUp.delay(300).duration(500)}
-				exiting={FadeOut}
+				entering={FadeInUp.delay(300).duration(300)}
 				style={{
 					display: 'flex',
 					backgroundColor: '#e7e7ff',

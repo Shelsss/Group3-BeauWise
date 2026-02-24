@@ -11,11 +11,21 @@ module.exports = defineConfig([
 	{
 		files: ['**/*.{js,jsx,ts,tsx}'],
 		ignores: ['dist/*'],
+		settings: {
+			'import/resolver': {
+				alias: {
+					map: [['@', './src']],
+					extensions: ['.js', '.jsx']
+				}
+			}
+		},
 		rules: {
 			'no-console': 'error',
 			'react/boolean-prop-naming': 'warn',
 			'react/hook-use-state': 'error',
+			'react/no-unused-prop-types': 'error',
 			'react/jsx-pascal-case': 'error',
+			'react/no-unescaped-entities': 'off',
 			'react/no-array-index-key': 'warn',
 			'react-native/no-unused-styles': 'error',
 			'react-native/no-raw-text': 'warn',

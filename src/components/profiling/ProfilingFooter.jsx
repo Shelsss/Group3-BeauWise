@@ -1,6 +1,6 @@
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useGlobalSearchParams, useRouter } from 'expo-router';
+import { useRouter, useSegments } from 'expo-router';
 
 import PrimaryButton from '@/components/PrimaryButton';
 import SecondaryButton from '@/components/SecondaryButton';
@@ -8,73 +8,109 @@ import Questionnaire from '@/constants/Questionnaire';
 import { ChevronLeft, WandSparkles, ChevronRight } from 'lucide-react-native';
 
 import { View, Text } from 'react-native';
+import { useProfilingStore } from '@/stores/useProfilingStore';
 
-export default function ProfilingFooter() {
-	const params = useGlobalSearchParams();
+export default function ProfilingFooter({
+	currentStep,
+	isTransition,
+	numberOfCurrentQuestions,
+	currentQuestions,
+	currentSection
+}) {
 	const router = useRouter();
 
-	const step = parseInt(params.step) || 0;
+	const previousButtonVisible = currentStep > 0;
+	const segment = useSegments();
+
+	const profile = useProfilingStore((state) => state.profile);
+
+	const currentAnsweredQuestions = currentQuestions?.filter((question) => {
+		const answer = profile[currentSection][question.identifier];
+
+		return answer !== '';
+	}).length;
 
 	const handleNextStep = (newStep) => () => {
-		if (step === Questionnaire.length) return;
+		if (isTransition) {
+			if (currentStep > Questionnaire.length) {
+				router.push('/profiling/summary');
+				return;
+			}
+			router.push(`/profiling/${currentStep}`);
+			return;
+		}
+
+		if (Questionnaire[currentStep - 1]?.showCheckPointAfter) {
+			router.push(`/profiling/transition?nextStep=${newStep}`);
+			return;
+		}
 
 		router.push(`/profiling/${newStep}`);
 	};
 
 	const handlePreviousStep = () => {
-		if (step > 0) {
+		if (currentStep > 0) {
 			router.back();
 		}
 	};
 	const { bottom } = useSafeAreaInsets();
 	return (
-		<Animated.View
-			style={{
-				marginBottom: bottom,
-				flexDirection: 'row',
-				padding: 20
-			}}
-			entering={FadeIn}
-		>
+		!segment.includes('summary') && (
 			<Animated.View
 				style={{
-					flex: step > 0 ? 1 : 0,
-					maxWidth: step > 0 ? '50%' : 0,
-					marginRight: step > 0 ? 15 : 0,
-					opacity: step > 0 ? 1 : 0
+					marginTop: 'auto',
+					marginBottom: bottom,
+					flexDirection: 'row',
+					padding: 20
 				}}
+				entering={FadeIn}
 			>
-				<SecondaryButton handlePress={handlePreviousStep}>
-					<ChevronLeft size={18} color={'#2e2d2d'} />
-					<Text
-						numberOfLines={1}
-						style={{ color: '#2e2d2d', fontWeight: '700', fontSize: 14 }}
+				<Animated.View
+					style={{
+						flex: previousButtonVisible ? 1 : 0,
+						maxWidth: previousButtonVisible ? '50%' : 0,
+						marginRight: previousButtonVisible ? 15 : 0,
+						opacity: previousButtonVisible ? 1 : 0,
+						transitionDuration: 250
+					}}
+				>
+					<SecondaryButton handlePress={handlePreviousStep}>
+						<ChevronLeft size={18} color={'#2e2d2d'} />
+						<Text
+							numberOfLines={1}
+							style={{ color: '#2e2d2d', fontWeight: '700', fontSize: 14 }}
+						>
+							Previous
+						</Text>
+					</SecondaryButton>
+				</Animated.View>
+
+				<View style={{ flex: 1 }}>
+					<PrimaryButton
+						disabled={currentAnsweredQuestions < numberOfCurrentQuestions}
+						handlePress={handleNextStep(currentStep + 1)}
 					>
-						Previous
-					</Text>
-				</SecondaryButton>
+						<Animated.Text entering={FadeIn} style={STYLES.typography}>
+							{currentStep === 0
+								? 'Get Started'
+								: isTransition
+									? 'Continue'
+									: currentStep === Questionnaire.length
+										? 'Finish'
+										: 'Next'}
+						</Animated.Text>
+
+						<Animated.View entering={FadeIn}>
+							{currentStep === Questionnaire.length ? (
+								<WandSparkles style={{ marginLeft: 4 }} size={18} color={'#ffffff'} />
+							) : (
+								<ChevronRight size={18} color={'#ffffff'} />
+							)}
+						</Animated.View>
+					</PrimaryButton>
+				</View>
 			</Animated.View>
-
-			<View style={{ flex: 1 }}>
-				<PrimaryButton handlePress={handleNextStep(step + 1)}>
-					<Animated.Text entering={FadeIn} style={STYLES.typography}>
-						{step === 0
-							? 'Get Started'
-							: step === Questionnaire.length
-								? 'Finish'
-								: 'Next'}
-					</Animated.Text>
-
-					<Animated.View entering={FadeIn}>
-						{step === Questionnaire.length ? (
-							<WandSparkles style={{ marginLeft: 4 }} size={18} color={'#ffffff'} />
-						) : (
-							<ChevronRight size={18} color={'#ffffff'} />
-						)}
-					</Animated.View>
-				</PrimaryButton>
-			</View>
-		</Animated.View>
+		)
 	);
 }
 
@@ -85,16 +121,3 @@ const STYLES = {
 		fontSize: 14
 	}
 };
-
-// const animatedPreviousStyle = useAnimatedStyle(() => {
-// 	const isVisible = step > 0;
-
-// 	return {
-// 		flex: isVisible ? 1 : 0,
-// 		maxWidth: isVisible ? '50%' : 0,
-// 		marginRight: isVisible ? 15 : 0,
-// 		opacity: isVisible ? 1 : 0,
-// 		overflow: 'hidden',
-// 		width: withTiming(isVisible ? '100%' : '0%', { duration: 200 })
-// 	};
-// });

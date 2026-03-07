@@ -1,4 +1,5 @@
 export default {
-	primary: '#A78BFA',
-	backgroundColor: '#FFFBF8'
+	primary: '#8b78ff',
+	textColor: '#334155',
+	backgroundColor: '#ffffff'
 };

@@ -1,15 +1,21 @@
 import { BookOpen, Clock9, House, UserRound } from 'lucide-react-native';
 import CustomTabBar from '../../components/CustomTabBar';
-import { MaterialTopTabs } from '../../components/MaterialTopTabs';
+import CustomHeader from '@/components/CustomHeader';
+import { SwipeableTabs } from '@/components/SwipeableTabs';
 
 export default function TopTabsLayout() {
 	return (
-		<MaterialTopTabs
+		<SwipeableTabs
 			tabBar={(props) => <CustomTabBar {...props} />}
-			backBehavior='fullHistory'
-			tabBarPosition='bottom'
+			backBehavior='initialRoute'
+			screenOptions={{
+				header: ({ options }) => <CustomHeader title={options.title} />,
+				sceneStyle: {
+					backgroundColor: '#f8fafc'
+				}
+			}}
 		>
-			<MaterialTopTabs.Screen
+			<SwipeableTabs.Screen
 				name='index'
 				options={{
 					title: 'Home',
@@ -18,7 +24,7 @@ export default function TopTabsLayout() {
 					tabBarAccessibilityLabel: 'Home Tab'
 				}}
 			/>
-			<MaterialTopTabs.Screen
+			<SwipeableTabs.Screen
 				name='history'
 				options={{
 					title: 'History',
@@ -27,7 +33,7 @@ export default function TopTabsLayout() {
 					tabBarAccessibilityLabel: 'History Tab'
 				}}
 			/>
-			<MaterialTopTabs.Screen
+			<SwipeableTabs.Screen
 				name='learn'
 				options={{
 					title: 'Learn',
@@ -36,7 +42,7 @@ export default function TopTabsLayout() {
 					tabBarAccessibilityLabel: 'Learn Tab'
 				}}
 			/>
-			<MaterialTopTabs.Screen
+			<SwipeableTabs.Screen
 				name='profile'
 				options={{
 					title: 'Profile',
@@ -45,7 +51,7 @@ export default function TopTabsLayout() {
 					tabBarAccessibilityLabel: 'Profile Tab'
 				}}
 			/>
-		</MaterialTopTabs>
+		</SwipeableTabs>
 	);
 }
 

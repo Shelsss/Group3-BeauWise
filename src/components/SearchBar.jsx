@@ -2,7 +2,7 @@ import { Search, X } from 'lucide-react-native';
 import { StyleSheet, TextInput, View, Pressable } from 'react-native';
 import { useState } from 'react';
 
-export default function SearchBar({ handleQuery, style }) {
+export default function SearchBar({ handleQuery, style, placeholder = 'Search...' }) {
 	const [value, setValue] = useState('');
 
 	const handleChange = (value) => {
@@ -13,7 +13,7 @@ export default function SearchBar({ handleQuery, style }) {
 			<Search size={15} color={'#9a9a9a'} />
 			<TextInput
 				value={value}
-				placeholder='Search products...'
+				placeholder={placeholder}
 				style={{ flex: 1, color: '#181818' }}
 				onChangeText={handleChange}
 				placeholderTextColor={'#9a9a9a'}
@@ -25,7 +25,7 @@ export default function SearchBar({ handleQuery, style }) {
 				<Pressable
 					onPress={() => {
 						handleChange('');
-						handleQuery('').call();
+						handleQuery('')?.call();
 					}}
 				>
 					<X size={18} />

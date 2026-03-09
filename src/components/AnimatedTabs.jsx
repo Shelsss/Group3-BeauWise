@@ -78,7 +78,7 @@ export default function AnimatedTabs({
 								style={{
 									fontSize: 14,
 									fontWeight: '700',
-									color: isActive ? '#191919' : inactiveColor,
+									color: isActive ? activeColor : inactiveColor,
 									transitionDuration: 200
 								}}
 							>

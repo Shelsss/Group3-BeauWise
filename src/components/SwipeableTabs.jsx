@@ -1,12 +1,7 @@
 import { useRef, useEffect, useCallback } from 'react';
 import { View } from 'react-native';
 import PagerView from 'react-native-pager-view';
-import Animated, {
-	useSharedValue,
-	useAnimatedStyle,
-	withTiming,
-	withSequence
-} from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle } from 'react-native-reanimated';
 import {
 	createNavigatorFactory,
 	useNavigationBuilder,
@@ -88,14 +83,9 @@ function SwipeableTabView({ state, descriptors, navigation, tabBar, screenOption
 		opacity: opacity.value
 	}));
 
-	const activeRoute = state.routes[state.index];
-	const activeDescriptor = descriptors[activeRoute.key];
-	const headerOption = activeDescriptor.options.header || screenOptions?.header;
-
 	return (
 		<View style={{ flex: 1 }}>
 			<Animated.View style={[{ flex: 1 }, animatedStyle]}>
-				{headerOption && headerOption({ options: activeDescriptor.options })}
 				<PagerView
 					ref={pagerRef}
 					style={{ flex: 1, zIndex: -20 }}

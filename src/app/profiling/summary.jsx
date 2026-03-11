@@ -1,9 +1,9 @@
 import Animated, { FadeIn } from 'react-native-reanimated';
 
-import ProfileBottomSheet from '@/components/profiling/ProfileBottomSheet';
+import EditBottomSheet from '@/components/EditBottomSheet';
 
 import { useCallback, useRef, useState } from 'react';
-import SummaryCard from '@/components/profiling/SummaryCard';
+import EditCard from '@/components/EditCard';
 import { useProfilingStore } from '@/stores/useProfilingStore';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import formatSnakeToTitle from '@/utility/formatSnaketoTitle';
@@ -112,7 +112,7 @@ export default function ProfilingSummary() {
 				</View>
 
 				{Object.keys(profileData).map((section, index) => (
-					<SummaryCard
+					<EditCard
 						profileData={profileData}
 						label={formatSnakeToTitle(section)}
 						section={section}
@@ -124,7 +124,7 @@ export default function ProfilingSummary() {
 					/>
 				))}
 
-				<ProfileBottomSheet
+				<EditBottomSheet
 					profileData={profileData}
 					profileSheetModalRef={profileSheetModalRef}
 					selectedSection={selectedSection}

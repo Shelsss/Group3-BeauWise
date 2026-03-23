@@ -1,4 +1,5 @@
 import AnimatedTabs from '@/components/AnimatedTabs';
+import CustomHeader from '@/components/CustomHeader';
 import Card from '@/components/history/Card';
 import Disclaimer from '@/components/history/Disclaimer';
 import HistoryBottomSheet from '@/components/history/HistoryBottomSheet';
@@ -82,40 +83,50 @@ export default function HistoryScreen() {
 				onPress={Keyboard.dismiss}
 				accessible={false}
 			>
-				<Shadow distance={3} stretch={true} startColor='#00000010' offset={[0, 0]}>
-					<View
-						style={{
-							backgroundColor: Colors.backgroundColor,
-							paddingHorizontal: PagePadding.config.paddingHorizontal,
-							paddingBottom: 8,
-							borderBottomStartRadius: 16,
-							borderBottomEndRadius: 16,
-							zIndex: 3,
-							paddingTop: 16,
-							rowGap: 16
-						}}
+				<View style={{ zIndex: 2 }}>
+					<CustomHeader title={'History'} disableShadow={true} />
+					<Shadow
+						distance={3}
+						stretch={true}
+						startColor='#00000010'
+						sides={{ top: false }}
+						offset={[0, 0]}
 					>
 						<View
 							style={{
-								flexDirection: 'row',
-								columnGap: 10
+								backgroundColor: Colors.backgroundColor,
+								paddingHorizontal: PagePadding.config.paddingHorizontal,
+								paddingBottom: 8,
+								borderBottomStartRadius: 16,
+								borderBottomEndRadius: 16,
+
+								paddingTop: 16,
+								rowGap: 16
 							}}
 						>
-							<SearchBar style={{ flex: 1 }} handleQuery={handleQuery} />
-							<SearchFilter handlePress={handlePresentModalPress} />
-						</View>
+							<View
+								style={{
+									flexDirection: 'row',
+									columnGap: 10
+								}}
+							>
+								<SearchBar style={{ flex: 1 }} handleQuery={handleQuery} />
+								<SearchFilter handlePress={handlePresentModalPress} />
+							</View>
 
-						<AnimatedTabs
-							style={{ marginTop: 10 }}
-							tabs={['Scans', 'Batch Code', 'FDA']}
-							handleTabChange={handleTabChange}
-							currentIndex={tab}
-						/>
-					</View>
-				</Shadow>
+							<AnimatedTabs
+								style={{ marginTop: 10 }}
+								tabs={['Scans', 'Batch Code', 'FDA']}
+								handleTabChange={handleTabChange}
+								currentIndex={tab}
+							/>
+						</View>
+					</Shadow>
+				</View>
 			</TouchableWithoutFeedback>
 
 			<PagerView
+				offscreenPageLimit={1}
 				onPageSelected={({ nativeEvent: { position } }) => handleTabChange(position)}
 				ref={pageRef}
 				overScrollMode='never'

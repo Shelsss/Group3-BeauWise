@@ -9,6 +9,8 @@ import { useRouter } from 'expo-router';
 import Write from '@/components/icons/Write';
 import Archive from '@/components/icons/ArchiveFill';
 import ShieldCheck from '@/components/icons/ShieldCheckFill';
+import CustomHeader from '@/components/CustomHeader';
+import { useRef } from 'react';
 
 const ICON_SIZE = 25;
 
@@ -93,328 +95,345 @@ const homeSchema = [
 
 export default function HomeScreen() {
 	const route = useRouter();
+	const scrollViewRef = useRef(null);
 
 	const handleNavigate = (routeName) => () => {
 		route.push(routeName);
 	};
 
 	return (
-		<ScrollView
-			showsVerticalScrollIndicator={false}
-			contentContainerStyle={[
-				{
-					rowGap: 35
-				},
-				PagePadding.config
-			]}
-		>
-			<View style={{ rowGap: 15 }}>
+		<>
+			<CustomHeader title={'Beauwise'} />
+			<ScrollView
+				ref={scrollViewRef}
+				showsVerticalScrollIndicator={false}
+				onScroll={({ nativeEvent }) => {
+					if (nativeEvent.contentOffset.y < 0) {
+						scrollViewRef.current?.scrollTo({ x: 0, y: 0 });
+					}
+				}}
+				contentContainerStyle={[
+					{
+						rowGap: 35
+					},
+					PagePadding.config
+				]}
+			>
+				<View style={{ rowGap: 15 }}>
+					<View style={{ rowGap: 12 }}>
+						<View>
+							<Text
+								style={{
+									fontSize: 18,
+									fontWeight: 'bold'
+								}}
+							>
+								{homeSchema[0].sectionTitle}
+							</Text>
+						</View>
+
+						<View style={{ flex: 1, rowGap: 12 }}>
+							<View
+								style={{
+									flex: 1,
+									flexDirection: 'row',
+									columnGap: 12
+								}}
+							>
+								{homeSchema[0].cards.slice(0, 2).map((card, index) => (
+									<Card
+										containerStyle={[
+											{
+												backgroundColor: Colors.backgroundColor
+											}
+										]}
+										key={index}
+									>
+										<View>
+											<Text
+												style={{
+													fontSize: 48,
+													fontWeight: 700,
+													color: card.themeColor,
+													textAlign: 'center'
+												}}
+											>
+												{card.headerContent}
+											</Text>
+
+											<Text
+												style={{
+													fontSize: 10,
+													fontWeight: 600,
+													textTransform: 'capitalize',
+													color: Colors.textColor,
+													textAlign: 'center'
+												}}
+											>
+												{card.footerContent}
+											</Text>
+										</View>
+										<View
+											style={[
+												STYLES.iconStyle,
+												card.iconPosition === 'right'
+													? STYLES.iconRight
+													: STYLES.iconLeft,
+												{
+													position: 'absolute'
+												}
+											]}
+										>
+											{card.icon()}
+										</View>
+									</Card>
+								))}
+							</View>
+
+							<View
+								style={{
+									flexDirection: 'row',
+									columnGap: 12
+								}}
+							>
+								{homeSchema[0].cards.slice(2).map((card, index) => (
+									<Card
+										containerStyle={[
+											{
+												backgroundColor: Colors.backgroundColor,
+												justifyContent: 'center',
+												alignItems: 'center',
+												...STYLES.shadowStyle
+											}
+										]}
+										key={index}
+									>
+										<View>
+											<Text
+												style={{
+													fontSize: card?.specialFontSize ? 24 : 48,
+													fontWeight: 700,
+													textAlign: 'center',
+													color: card.themeColor,
+													paddingTop: card?.isUniquePosition ? 9 : 0,
+													paddingBottom: card?.isUniquePosition ? 9 : 0
+												}}
+											>
+												{card.headerContent}
+											</Text>
+
+											<Text
+												style={{
+													fontSize: 10,
+													fontWeight: 600,
+													textTransform: 'capitalize',
+													textAlign: 'center',
+													color: Colors.textColor
+												}}
+											>
+												{card.footerContent}
+											</Text>
+										</View>
+
+										{card.subHeaderContent && (
+											<Text
+												style={{
+													fontSize: 10,
+													backgroundColor: card.themeColor + '1a',
+													paddingHorizontal: 6,
+													borderRadius: 10,
+													color: card.themeColor + 'cc',
+													position: card?.isUniquePosition ? 'absolute' : 'relative',
+													top: card?.isUniquePosition ? 10 : 0,
+													left: card?.isUniquePosition ? 10 : 0
+												}}
+											>
+												{card.subHeaderContent}
+											</Text>
+										)}
+
+										<View
+											style={[
+												STYLES.iconStyle,
+												card.iconPosition === 'left' ? STYLES.iconLeft : STYLES.iconRight,
+												{
+													position: 'absolute'
+												}
+											]}
+										>
+											{card.icon()}
+										</View>
+									</Card>
+								))}
+							</View>
+						</View>
+					</View>
+
+					<View
+						style={{
+							flexDirection: 'row',
+							columnGap: 12,
+							marginTop: 32,
+							marginBottom: 32
+						}}
+					>
+						{homeSchema[1].cards.map((card, index) => (
+							<Card
+								key={index}
+								handleNavigate={handleNavigate('/scanner')}
+								containerStyle={{
+									alignItems: 'center',
+									backgroundColor: card.themeColor,
+									borderColor: card.hasBorder ? Colors.primary : 'transparent',
+									borderWidth: card.hasBorder ? 2 : 0,
+
+									borderRadius: 16
+								}}
+							>
+								<View
+									style={{
+										backgroundColor:
+											card.themeColor === Colors.backgroundColor
+												? Colors.primary + '1a'
+												: '#ffffff1a',
+										borderColor: '#ffffff9a',
+										borderWidth: 1,
+										borderRadius: 50,
+										padding: 20
+									}}
+								>
+									{card.icon()}
+								</View>
+
+								<View style={{ marginTop: 12 }}>
+									<Text
+										style={{
+											fontSize: 16,
+											fontWeight: '600',
+											color:
+												card.themeColor === Colors.backgroundColor
+													? Colors.primary
+													: '#fff',
+											marginBottom: 4,
+											textAlign: 'center'
+										}}
+									>
+										{card.headerContent}
+									</Text>
+
+									<Text
+										style={{
+											fontSize: 12,
+											color:
+												card.themeColor === Colors.backgroundColor
+													? Colors.primary
+													: '#fff',
+											textAlign: 'center'
+										}}
+									>
+										{card.footerContent}
+									</Text>
+								</View>
+							</Card>
+						))}
+					</View>
+				</View>
+
 				<View style={{ rowGap: 12 }}>
-					<View>
-						<Text
-							style={{
-								fontSize: 18,
-								fontWeight: 'bold'
-							}}
-						>
-							{homeSchema[0].sectionTitle}
-						</Text>
-					</View>
-
-					<View style={{ flex: 1, rowGap: 12 }}>
-						<View
-							style={{
-								flex: 1,
-								flexDirection: 'row',
-								columnGap: 12
-							}}
-						>
-							{homeSchema[0].cards.slice(0, 2).map((card, index) => (
-								<Card
-									containerStyle={[
-										{
-											backgroundColor: Colors.backgroundColor
-										}
-									]}
-									key={index}
+					<Text
+						style={{
+							fontSize: 18,
+							fontWeight: 'bold'
+						}}
+					>
+						{homeSchema[2].sectionTitle}
+					</Text>
+					<View style={{ rowGap: 16 }}>
+						{homeSchema[2].cards.map((card, index) => (
+							<Card
+								handleNavigate={handleNavigate(card.navigationTarget)}
+								key={index}
+								containerStyle={{
+									backgroundColor: '#fff',
+									flexDirection: 'row',
+									alignItems: 'center'
+								}}
+							>
+								<View
+									style={{
+										backgroundColor: card.themeColor + '1a',
+										borderRadius: 10,
+										padding: 16
+									}}
 								>
-									<View>
-										<Text
-											style={{
-												fontSize: 48,
-												fontWeight: 700,
-												color: card.themeColor,
-												textAlign: 'center'
-											}}
-										>
-											{card.headerContent}
-										</Text>
+									{card.icon()}
+								</View>
 
-										<Text
-											style={{
-												fontSize: 10,
-												fontWeight: 600,
-												textTransform: 'capitalize',
-												color: Colors.textColor,
-												textAlign: 'center'
-											}}
-										>
-											{card.footerContent}
-										</Text>
-									</View>
-									<View
-										style={[
-											STYLES.iconStyle,
-											card.iconPosition === 'right' ? STYLES.iconRight : STYLES.iconLeft,
-											{
-												position: 'absolute'
-											}
-										]}
+								<View style={{ marginLeft: 16 }}>
+									<Text
+										style={{
+											fontSize: 16,
+											fontWeight: '600',
+											color: Colors.textColor,
+											marginBottom: 4
+										}}
 									>
-										{card.icon()}
-									</View>
-								</Card>
-							))}
-						</View>
+										{card.headerContent}
+									</Text>
+									<Text
+										style={{
+											fontSize: 12,
+											color: Colors.textColor
+										}}
+									>
+										{card.footerContent}
+									</Text>
+								</View>
 
-						<View
-							style={{
-								flexDirection: 'row',
-								columnGap: 12
-							}}
-						>
-							{homeSchema[0].cards.slice(2).map((card, index) => (
-								<Card
-									containerStyle={[
-										{
-											backgroundColor: Colors.backgroundColor,
-											justifyContent: 'center',
-											alignItems: 'center',
-											...STYLES.shadowStyle
-										}
-									]}
-									key={index}
+								<View
+									style={{
+										marginLeft: 'auto'
+									}}
 								>
-									<View>
-										<Text
-											style={{
-												fontSize: card?.specialFontSize ? 24 : 48,
-												fontWeight: 700,
-												textAlign: 'center',
-												color: card.themeColor,
-												paddingTop: card?.isUniquePosition ? 9 : 0,
-												paddingBottom: card?.isUniquePosition ? 9 : 0
-											}}
-										>
-											{card.headerContent}
-										</Text>
-
-										<Text
-											style={{
-												fontSize: 10,
-												fontWeight: 600,
-												textTransform: 'capitalize',
-												textAlign: 'center',
-												color: Colors.textColor
-											}}
-										>
-											{card.footerContent}
-										</Text>
-									</View>
-
-									{card.subHeaderContent && (
-										<Text
-											style={{
-												fontSize: 10,
-												backgroundColor: card.themeColor + '1a',
-												paddingHorizontal: 6,
-												borderRadius: 10,
-												color: card.themeColor + 'cc',
-												position: card?.isUniquePosition ? 'absolute' : 'relative',
-												top: card?.isUniquePosition ? 10 : 0,
-												left: card?.isUniquePosition ? 10 : 0
-											}}
-										>
-											{card.subHeaderContent}
-										</Text>
-									)}
-
-									<View
-										style={[
-											STYLES.iconStyle,
-											card.iconPosition === 'left' ? STYLES.iconLeft : STYLES.iconRight,
-											{
-												position: 'absolute'
-											}
-										]}
-									>
-										{card.icon()}
-									</View>
-								</Card>
-							))}
-						</View>
+									<ChevronRight />
+								</View>
+							</Card>
+						))}
 					</View>
 				</View>
 
-				<View
-					style={{ flexDirection: 'row', columnGap: 12, marginTop: 32, marginBottom: 32 }}
-				>
-					{homeSchema[1].cards.map((card, index) => (
-						<Card
-							key={index}
-							handleNavigate={handleNavigate('/scanner')}
-							containerStyle={{
-								alignItems: 'center',
-								backgroundColor: card.themeColor,
-								borderColor: card.hasBorder ? Colors.primary : 'transparent',
-								borderWidth: card.hasBorder ? 2 : 0,
+				<View style={{ rowGap: 12 }}>
+					<Text
+						style={{
+							fontSize: 18,
+							fontWeight: 'bold'
+						}}
+					>
+						Recent Scans
+					</Text>
 
-								borderRadius: 16
-							}}
-						>
-							<View
-								style={{
-									backgroundColor:
-										card.themeColor === Colors.backgroundColor
-											? Colors.primary + '1a'
-											: '#ffffff1a',
-									borderColor: '#ffffff9a',
-									borderWidth: 1,
-									borderRadius: 50,
-									padding: 20
-								}}
-							>
-								{card.icon()}
-							</View>
+					<HistoryCard
+						title={'Matte Stick'}
+						description={'bar'}
+						time={'9:05 PM'}
+						status={'safe'}
+					/>
 
-							<View style={{ marginTop: 12 }}>
-								<Text
-									style={{
-										fontSize: 16,
-										fontWeight: '600',
-										color:
-											card.themeColor === Colors.backgroundColor
-												? Colors.primary
-												: '#fff',
-										marginBottom: 4,
-										textAlign: 'center'
-									}}
-								>
-									{card.headerContent}
-								</Text>
-
-								<Text
-									style={{
-										fontSize: 12,
-										color:
-											card.themeColor === Colors.backgroundColor
-												? Colors.primary
-												: '#fff',
-										textAlign: 'center'
-									}}
-								>
-									{card.footerContent}
-								</Text>
-							</View>
-						</Card>
-					))}
+					<HistoryCard
+						title={'Matte Stick'}
+						description={'bar'}
+						time={'9:05 PM'}
+						status={'warn'}
+					/>
+					<HistoryCard
+						title={'Matte Stick'}
+						description={'bar'}
+						time={'9:05 PM'}
+						status={'unsafe'}
+					/>
 				</View>
-			</View>
-
-			<View style={{ rowGap: 12 }}>
-				<Text
-					style={{
-						fontSize: 18,
-						fontWeight: 'bold'
-					}}
-				>
-					{homeSchema[2].sectionTitle}
-				</Text>
-				<View style={{ rowGap: 16 }}>
-					{homeSchema[2].cards.map((card, index) => (
-						<Card
-							handleNavigate={handleNavigate(card.navigationTarget)}
-							key={index}
-							containerStyle={{
-								backgroundColor: '#fff',
-								flexDirection: 'row',
-								alignItems: 'center'
-							}}
-						>
-							<View
-								style={{
-									backgroundColor: card.themeColor + '1a',
-									borderRadius: 10,
-									padding: 16
-								}}
-							>
-								{card.icon()}
-							</View>
-
-							<View style={{ marginLeft: 16 }}>
-								<Text
-									style={{
-										fontSize: 16,
-										fontWeight: '600',
-										color: Colors.textColor,
-										marginBottom: 4
-									}}
-								>
-									{card.headerContent}
-								</Text>
-								<Text
-									style={{
-										fontSize: 12,
-										color: Colors.textColor
-									}}
-								>
-									{card.footerContent}
-								</Text>
-							</View>
-
-							<View
-								style={{
-									marginLeft: 'auto'
-								}}
-							>
-								<ChevronRight />
-							</View>
-						</Card>
-					))}
-				</View>
-			</View>
-
-			<View style={{ rowGap: 12 }}>
-				<Text
-					style={{
-						fontSize: 18,
-						fontWeight: 'bold'
-					}}
-				>
-					Recent Scans
-				</Text>
-
-				<HistoryCard
-					title={'Matte Stick'}
-					description={'bar'}
-					time={'9:05 PM'}
-					status={'safe'}
-				/>
-
-				<HistoryCard
-					title={'Matte Stick'}
-					description={'bar'}
-					time={'9:05 PM'}
-					status={'warn'}
-				/>
-				<HistoryCard
-					title={'Matte Stick'}
-					description={'bar'}
-					time={'9:05 PM'}
-					status={'unsafe'}
-				/>
-			</View>
-		</ScrollView>
+			</ScrollView>
+		</>
 	);
 }
 

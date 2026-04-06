@@ -1,12 +1,15 @@
 import AnimatedTabs from '@/components/AnimatedTabs';
+import CreateAccountButton from '@/components/CreateAccountButton';
 import CustomHeader from '@/components/CustomHeader';
 import Card from '@/components/history/Card';
 import Disclaimer from '@/components/history/Disclaimer';
+import GuestModeView from '@/components/history/GuessModeView';
 import HistoryBottomSheet from '@/components/history/HistoryBottomSheet';
 import SearchBar from '@/components/SearchBar';
 import SearchFilter from '@/components/SearchFilter';
 import Colors from '@/constants/Colors';
 import PagePadding from '@/constants/PagePadding';
+import { useAuthStore } from '@/stores/useAuthStore';
 
 import { useRef, useState } from 'react';
 import {
@@ -56,6 +59,7 @@ const mockData = [
 ];
 
 export default function HistoryScreen() {
+	const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 	const pageRef = useRef(null);
 	const historySheetModalRef = useRef(null);
 
@@ -85,127 +89,145 @@ export default function HistoryScreen() {
 			>
 				<View style={{ zIndex: 2 }}>
 					<CustomHeader title={'History'} disableShadow={true} />
-					<Shadow
-						distance={3}
-						stretch={true}
-						startColor='#00000010'
-						sides={{ top: false }}
-						offset={[0, 0]}
-					>
-						<View
-							style={{
-								backgroundColor: Colors.backgroundColor,
-								paddingHorizontal: PagePadding.config.paddingHorizontal,
-								paddingBottom: 8,
-								borderBottomStartRadius: 16,
-								borderBottomEndRadius: 16,
 
-								paddingTop: 16,
-								rowGap: 16
-							}}
+					{isAuthenticated && (
+						<Shadow
+							distance={3}
+							stretch={true}
+							startColor='#00000010'
+							sides={{ top: false }}
+							offset={[0, 0]}
 						>
 							<View
 								style={{
-									flexDirection: 'row',
-									columnGap: 10
+									backgroundColor: Colors.backgroundColor,
+									paddingHorizontal: PagePadding.config.paddingHorizontal,
+									paddingBottom: 8,
+									borderBottomStartRadius: 16,
+									borderBottomEndRadius: 16,
+
+									paddingTop: 16,
+									rowGap: 16
 								}}
 							>
-								<SearchBar style={{ flex: 1 }} handleQuery={handleQuery} />
-								<SearchFilter handlePress={handlePresentModalPress} />
-							</View>
+								<View
+									style={{
+										flexDirection: 'row',
+										columnGap: 10
+									}}
+								>
+									<SearchBar style={{ flex: 1 }} handleQuery={handleQuery} />
+									<SearchFilter handlePress={handlePresentModalPress} />
+								</View>
 
-							<AnimatedTabs
-								style={{ marginTop: 10 }}
-								tabs={['Scans', 'Batch Code', 'FDA']}
-								handleTabChange={handleTabChange}
-								currentIndex={tab}
-							/>
-						</View>
-					</Shadow>
+								<AnimatedTabs
+									style={{ marginTop: 10 }}
+									tabs={['Scans', 'Batch Code', 'FDA']}
+									handleTabChange={handleTabChange}
+									currentIndex={tab}
+								/>
+							</View>
+						</Shadow>
+					)}
 				</View>
 			</TouchableWithoutFeedback>
 
-			<PagerView
-				offscreenPageLimit={1}
-				onPageSelected={({ nativeEvent: { position } }) => handleTabChange(position)}
-				ref={pageRef}
-				overScrollMode='never'
-				style={{ flex: 1, padding: 50 }}
-				pageMargin={100}
-				initialPage={tab}
-			>
-				<View key={1} style={{ width: '100%', height: '100%', zIndex: 1 }}>
-					<SectionList
-						contentContainerStyle={{
-							rowGap: 15,
-							paddingHorizontal: PagePadding.config.paddingHorizontal,
-							paddingBottom: PagePadding.config.paddingBottom - 15,
-							paddingTop: 15
-						}}
-						sections={mockData}
-						keyExtractor={(item, index) => `${item.title}-${index}`}
-						renderItem={({ item }) => (
-							<Card time={item.time} status={item.status} title={item.title} />
-						)}
-						stickySectionHeadersEnabled={true}
-						showsVerticalScrollIndicator={false}
-						renderSectionHeader={({ section }) => <SectionHeader title={section.title} />}
-					/>
-				</View>
+			{!isAuthenticated && <GuestModeView />}
 
-				<View key={2} style={{ width: '100%', height: '100%' }}>
-					<SectionList
-						contentContainerStyle={{
-							rowGap: 15,
-							paddingHorizontal: PagePadding.config.paddingHorizontal,
-							paddingBottom: PagePadding.config.paddingBottom - 15,
-							paddingTop: 15
-						}}
-						sections={mockData}
-						keyExtractor={(item, index) => `${item.title} + ${index}`}
-						renderItem={({ item }) => (
-							<Card
-								type='batch'
-								time={item.time}
-								status={item.status}
-								title={item.title}
-							/>
-						)}
-						stickySectionHeadersEnabled={true}
-						showsVerticalScrollIndicator={false}
-						renderSectionHeader={({ section }) => <SectionHeader title={section.title} />}
-						ListFooterComponent={
-							<Disclaimer
-								description={`Expiry dates are estimates for unopened products. Once opened, please follow the PAO (Period After Opening) symbol on the packaging, usually marked as 6M, 12M, etc. "Invalid" results may occur if a brand recently updated its batch code format. Always discard products that change in color, smell, or texture.`}
-							/>
-						}
-					/>
-				</View>
+			{isAuthenticated && (
+				<PagerView
+					offscreenPageLimit={1}
+					onPageSelected={({ nativeEvent: { position } }) => handleTabChange(position)}
+					ref={pageRef}
+					overScrollMode='never'
+					style={{ flex: 1, padding: 50 }}
+					pageMargin={100}
+					initialPage={tab}
+				>
+					<View key={1} style={{ width: '100%', height: '100%', zIndex: 1 }}>
+						<SectionList
+							contentContainerStyle={{
+								rowGap: 15,
+								paddingHorizontal: PagePadding.config.paddingHorizontal,
+								paddingBottom: PagePadding.config.paddingBottom - 15,
+								paddingTop: 15
+							}}
+							sections={mockData}
+							keyExtractor={(item, index) => `${item.title}-${index}`}
+							renderItem={({ item }) => (
+								<Card time={item.time} status={item.status} title={item.title} />
+							)}
+							stickySectionHeadersEnabled={true}
+							showsVerticalScrollIndicator={false}
+							renderSectionHeader={({ section }) => (
+								<SectionHeader title={section.title} />
+							)}
+						/>
+					</View>
 
-				<View key={3} style={{ width: '100%', height: '100%' }}>
-					<SectionList
-						contentContainerStyle={{
-							rowGap: 15,
-							paddingHorizontal: PagePadding.config.paddingHorizontal,
-							paddingBottom: PagePadding.config.paddingBottom - 15,
-							paddingTop: 15
-						}}
-						sections={mockData}
-						keyExtractor={(item, index) => `${item.title} + ${index}`}
-						renderItem={({ item }) => (
-							<Card type='fda' time={item.time} status={item.status} title={item.title} />
-						)}
-						stickySectionHeadersEnabled={true}
-						showsVerticalScrollIndicator={false}
-						renderSectionHeader={({ section }) => <SectionHeader title={section.title} />}
-						ListFooterComponent={
-							<Disclaimer
-								description={`The verification statuses displayed in this history log are cached records from your previous searches. FDA product notifications are subject to expiration and revocation. BeauWise recommends running a new verification check for the most up-to-date compliance status.`}
-							/>
-						}
-					/>
-				</View>
-			</PagerView>
+					<View key={2} style={{ width: '100%', height: '100%' }}>
+						<SectionList
+							contentContainerStyle={{
+								rowGap: 15,
+								paddingHorizontal: PagePadding.config.paddingHorizontal,
+								paddingBottom: PagePadding.config.paddingBottom - 15,
+								paddingTop: 15
+							}}
+							sections={mockData}
+							keyExtractor={(item, index) => `${item.title} + ${index}`}
+							renderItem={({ item }) => (
+								<Card
+									type='batch'
+									time={item.time}
+									status={item.status}
+									title={item.title}
+								/>
+							)}
+							stickySectionHeadersEnabled={true}
+							showsVerticalScrollIndicator={false}
+							renderSectionHeader={({ section }) => (
+								<SectionHeader title={section.title} />
+							)}
+							ListFooterComponent={
+								<Disclaimer
+									description={`Expiry dates are estimates for unopened products. Once opened, please follow the PAO (Period After Opening) symbol on the packaging, usually marked as 6M, 12M, etc. "Invalid" results may occur if a brand recently updated its batch code format. Always discard products that change in color, smell, or texture.`}
+								/>
+							}
+						/>
+					</View>
+
+					<View key={3} style={{ width: '100%', height: '100%' }}>
+						<SectionList
+							contentContainerStyle={{
+								rowGap: 15,
+								paddingHorizontal: PagePadding.config.paddingHorizontal,
+								paddingBottom: PagePadding.config.paddingBottom - 15,
+								paddingTop: 15
+							}}
+							sections={mockData}
+							keyExtractor={(item, index) => `${item.title} + ${index}`}
+							renderItem={({ item }) => (
+								<Card
+									type='fda'
+									time={item.time}
+									status={item.status}
+									title={item.title}
+								/>
+							)}
+							stickySectionHeadersEnabled={true}
+							showsVerticalScrollIndicator={false}
+							renderSectionHeader={({ section }) => (
+								<SectionHeader title={section.title} />
+							)}
+							ListFooterComponent={
+								<Disclaimer
+									description={`The verification statuses displayed in this history log are cached records from your previous searches. FDA product notifications are subject to expiration and revocation. BeauWise recommends running a new verification check for the most up-to-date compliance status.`}
+								/>
+							}
+						/>
+					</View>
+				</PagerView>
+			)}
 
 			<HistoryBottomSheet historySheetModalRef={historySheetModalRef} />
 		</View>

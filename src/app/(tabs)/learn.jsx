@@ -82,6 +82,30 @@ export default function LearnScreen() {
 						/>
 					))}
 				</View>
+
+				<View
+					style={{
+						backgroundColor: '#e8f5e9',
+						padding: 16,
+						borderRadius: 16,
+						marginTop: 18
+					}}
+				>
+					<Text style={{ fontWeight: 600, color: Colors.textColor }}>
+						Cosmetic Literacy Notice
+					</Text>
+					<Text
+						style={{
+							fontSize: 12,
+							color: Colors.textColor + '9a'
+						}}
+					>
+						The information in this module is sourced from established cosmetic literature
+						and guidelines. It is strictly for educational purposes and does not replace
+						professional medical advice. For clinical skin concerns or severe reactions,
+						always consult a board-certified dermatologist.
+					</Text>
+				</View>
 			</ScrollView>
 		</View>
 	);

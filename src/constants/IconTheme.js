@@ -12,61 +12,48 @@ import {
 	Droplets
 } from 'lucide-react-native';
 
-import Colors from './Colors';
-
 export const icons = [
 	{
-		color: Colors.primary,
-		icon: (size) => <Face color={Colors.primary} size={size} />
+		icon: (size, color) => <Face color={color} size={size} />
 	},
 
 	{
-		color: '#747eff',
-		icon: (size) => <Droplets color='#747eff' size={size} />
+		icon: (size, color) => <Droplets color={color} size={size} />
 	},
 
 	{
-		color: '#ff6a6a',
-		icon: (size) => <TriangleAlert color='#ff6a6a' size={size} />
+		icon: (size, color) => <TriangleAlert color={color} size={size} />
 	},
 
 	{
-		color: '#ffb26a',
-		icon: (size) => <FingerprintPattern color='#ffb26a' size={size} />
+		icon: (size, color) => <FingerprintPattern color={color} size={size} />
 	},
 
 	{
-		color: '#ebb915',
-		icon: (size) => <SunMoon color='#ebb915' size={size} />
+		icon: (size, color) => <SunMoon color={color} size={size} />
 	},
 
 	{
-		color: '#ff6a6a',
-		icon: (size) => <Heart color='#ff6a6a' size={size} />
+		icon: (size, color) => <Heart color={color} size={size} />
 	},
 
 	{
-		color: Colors.primary,
-		icon: (size) => <Scissors color={Colors.primary} size={size} />
+		icon: (size, color) => <Scissors color={color} size={size} />
 	},
 
 	{
-		color: '#24b67c',
-		icon: (size) => <Wind color='#24b67c' size={size} />
+		icon: (size, color) => <Wind color={color} size={size} />
 	},
 
 	{
-		color: '#3b82f6',
-		icon: (size) => <Droplet color='#3b82f6' size={size} />
+		icon: (size, color) => <Droplet color={color} size={size} />
 	},
 
 	{
-		color: '#a78bfa',
-		icon: (size) => <Shampoo color='#a78bfa' size={size} />
+		icon: (size, color) => <Shampoo color={color} size={size} />
 	},
 
 	{
-		color: '#ff6a6a',
-		icon: (size) => <Heart color='#ff6a6a' size={size} />
+		icon: (size, color) => <Heart color={color} size={size} />
 	}
 ];

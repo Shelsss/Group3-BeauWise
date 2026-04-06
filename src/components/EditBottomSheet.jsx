@@ -10,13 +10,13 @@ import {
 
 import { Pencil, X } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
-import PressableBadge from '../PressableBadge';
+import PressableBadge from '@/components/PressableBadge';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import formatSnakeToTitle from '@/utility/formatSnaketoTitle';
 import Questionnaire from '@/constants/Questionnaire';
 
-const ProfileBottomSheet = ({
-	profileSheetModalRef,
+const EditBottomSheet = ({
+	editSheetModalRef,
 	selectedSection,
 	profileData,
 	handleUpdateProfile
@@ -48,7 +48,7 @@ const ProfileBottomSheet = ({
 
 	return (
 		<>
-			<BottomSheetModal ref={profileSheetModalRef} backdropComponent={renderBackdrop}>
+			<BottomSheetModal ref={editSheetModalRef} backdropComponent={renderBackdrop}>
 				<BottomSheetView
 					style={[styles.contentContainer, { paddingBottom: bottom + 20 }]}
 				>
@@ -74,7 +74,7 @@ const ProfileBottomSheet = ({
 						</View>
 
 						<Pressable
-							onPress={() => profileSheetModalRef.current?.close()}
+							onPress={() => editSheetModalRef.current?.close()}
 							style={{ position: 'absolute', top: 0, right: 4 }}
 						>
 							<X size={24} strokeWidth={2} />
@@ -149,4 +149,4 @@ const styles = StyleSheet.create({
 	}
 });
 
-export default ProfileBottomSheet;
+export default EditBottomSheet;

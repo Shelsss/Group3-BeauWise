@@ -3,9 +3,9 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 
 import { Pencil } from 'lucide-react-native';
 import formatSnakeToTitle from '@/utility/formatSnaketoTitle';
-import React from 'react';
+import { memo } from 'react';
 
-export default function SummaryCard({
+function EditCard({
 	handlePresentModalPress,
 	section,
 	label,
@@ -23,7 +23,7 @@ export default function SummaryCard({
 					alignItems: 'center'
 				}}
 			>
-				<View style={[STYLES.iconStyle, { backgroundColor: iconColor + '40' }]}>
+				<View style={[STYLES.iconStyle, { backgroundColor: iconColor + '2a' }]}>
 					{iconProp}
 				</View>
 
@@ -40,7 +40,7 @@ export default function SummaryCard({
 					}}
 					onPress={handlePresentModalPress(section)}
 				>
-					<Pencil size={20} color={'#2a2a2aee'} />
+					<Pencil size={20} color={Colors.primary} />
 				</Pressable>
 			</View>
 
@@ -134,3 +134,5 @@ const STYLES = StyleSheet.create({
 		letterSpacing: 0.2
 	}
 });
+
+export default memo(EditCard);

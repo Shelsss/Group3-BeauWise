@@ -3,9 +3,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useSegments } from 'expo-router';
 
 import PrimaryButton from '@/components/PrimaryButton';
-import SecondaryButton from '@/components/SecondaryButton';
 import Questionnaire from '@/constants/Questionnaire';
-import { ChevronLeft, WandSparkles, ChevronRight } from 'lucide-react-native';
+import { WandSparkles, ArrowRight } from 'lucide-react-native';
 
 import { View, Text } from 'react-native';
 import { useProfilingStore } from '@/stores/useProfilingStore';
@@ -17,9 +16,12 @@ export default function ProfilingFooter({
 	currentQuestions,
 	currentSection
 }) {
+	const isInitialStepButtonActive = useProfilingStore(
+		(state) => state.isInitialStepButtonActive
+	);
+
 	const router = useRouter();
 
-	const previousButtonVisible = currentStep > 0;
 	const segment = useSegments();
 
 	const profile = useProfilingStore((state) => state.profile);
@@ -30,12 +32,18 @@ export default function ProfilingFooter({
 		return answer !== '';
 	}).length;
 
+	const disabled =
+		currentStep === 0
+			? isInitialStepButtonActive
+			: currentAnsweredQuestions < numberOfCurrentQuestions;
+
 	const handleNextStep = (newStep) => () => {
+		if (currentStep === Questionnaire.length) {
+			router.push('/profiling/summary');
+			return;
+		}
+
 		if (isTransition) {
-			if (currentStep > Questionnaire.length) {
-				router.push('/profiling/summary');
-				return;
-			}
 			router.push(`/profiling/${currentStep}`);
 			return;
 		}
@@ -48,11 +56,6 @@ export default function ProfilingFooter({
 		router.push(`/profiling/${newStep}`);
 	};
 
-	const handlePreviousStep = () => {
-		if (currentStep > 0) {
-			router.back();
-		}
-	};
 	const { bottom } = useSafeAreaInsets();
 	return (
 		!segment.includes('summary') && (
@@ -65,46 +68,40 @@ export default function ProfilingFooter({
 				}}
 				entering={FadeIn}
 			>
-				<Animated.View
-					style={{
-						flex: previousButtonVisible ? 1 : 0,
-						maxWidth: previousButtonVisible ? '50%' : 0,
-						marginRight: previousButtonVisible ? 15 : 0,
-						opacity: previousButtonVisible ? 1 : 0,
-						transitionDuration: 250
-					}}
-				>
-					<SecondaryButton handlePress={handlePreviousStep}>
-						<ChevronLeft size={18} color={'#2e2d2d'} />
-						<Text
-							numberOfLines={1}
-							style={{ color: '#2e2d2d', fontWeight: '700', fontSize: 14 }}
-						>
-							Previous
-						</Text>
-					</SecondaryButton>
-				</Animated.View>
-
 				<View style={{ flex: 1 }}>
 					<PrimaryButton
-						disabled={currentAnsweredQuestions < numberOfCurrentQuestions}
+						disabled={disabled}
+						styles={{
+							columnGap: 6
+						}}
 						handlePress={handleNextStep(currentStep + 1)}
 					>
-						<Animated.Text entering={FadeIn} style={STYLES.typography}>
-							{currentStep === 0
-								? 'Get Started'
-								: isTransition
+						{currentStep === 0 ? (
+							<View>
+								<View>
+									<Text style={[{ fontSize: 16, fontWeight: 600 }, STYLES.typography]}>
+										Start Profiling
+									</Text>
+									<Text style={[STYLES.typography, { fontWeight: 400, fontSize: 10 }]}>
+										Takes about 2-3 minutes
+									</Text>
+								</View>
+							</View>
+						) : (
+							<Animated.Text entering={FadeIn} style={STYLES.typography}>
+								{isTransition
 									? 'Continue'
 									: currentStep === Questionnaire.length
 										? 'Finish'
 										: 'Next'}
-						</Animated.Text>
+							</Animated.Text>
+						)}
 
 						<Animated.View entering={FadeIn}>
 							{currentStep === Questionnaire.length ? (
 								<WandSparkles style={{ marginLeft: 4 }} size={18} color={'#ffffff'} />
 							) : (
-								<ChevronRight size={18} color={'#ffffff'} />
+								<ArrowRight size={18} color={'#ffffff'} />
 							)}
 						</Animated.View>
 					</PrimaryButton>

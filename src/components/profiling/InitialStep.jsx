@@ -1,135 +1,209 @@
-import { View, Text } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Sparkles, Wand, Heart } from 'lucide-react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { Sparkles, Circle } from 'lucide-react-native';
 import Colors from '../../constants/Colors';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import PagePadding from '@/constants/PagePadding';
+import { Checkbox } from 'expo-checkbox';
+import { useRef } from 'react';
+import { useProfilingStore } from '@/stores/useProfilingStore';
+
+const initialStepSchema = [
+	{
+		name: `What We'll Ask`,
+		items: [
+			'Skin type and environmental responses',
+			'Hair pattern, texture, and care routine'
+		]
+	},
+
+	{
+		name: `What We Won't Ask`,
+		items: [
+			'Medical diagnoses or conditions',
+			'Prescription medications or treatments',
+			'Health records or sensitive medical data'
+		]
+	}
+];
 
 export default function InitialStep() {
 	const { top } = useSafeAreaInsets();
-	return (
-		<>
-			<Animated.View
-				entering={FadeInUp.delay(100).duration(300)}
-				style={{ display: 'flex', alignItems: 'center', marginTop: top + 50 }}
-			>
-				<LinearGradient
-					start={{ x: 0.3, y: 0.7 }}
-					end={{ x: 1, y: 0.2 }}
-					colors={['#b8a4f5', '#ffb9ca']}
-					style={{
-						padding: 30,
-						borderRadius: 100,
+	const scrollViewRef = useRef(null);
+	const setIsInitialStepButtonActive = useProfilingStore(
+		(state) => state.setIsInitialStepButtonActive
+	);
 
-						shadowColor: '#0000004f',
-						shadowOffset: {
-							width: 0,
-							height: 18
-						},
-						shadowOpacity: 0.25,
-						shadowRadius: 20.0,
-						elevation: 24
-					}}
-				>
-					<Sparkles fill={'#ffffff'} color={'#ffffff'} size={30} />
-				</LinearGradient>
+	const isInitialStepButtonActive = useProfilingStore(
+		(state) => state.isInitialStepButtonActive
+	);
+
+	return (
+		<ScrollView
+			ref={scrollViewRef}
+			onScroll={({ nativeEvent }) => {
+				if (nativeEvent.contentOffset.y < 0) {
+					scrollViewRef.current?.scrollTo({ x: 0, y: 0 });
+				}
+			}}
+			showsVerticalScrollIndicator={false}
+			contentContainerStyle={{
+				paddingHorizontal: PagePadding.config.paddingHorizontal + 20
+			}}
+		>
+			<Animated.View
+				entering={FadeInUp.delay(100).duration(200)}
+				style={{
+					display: 'flex',
+					alignItems: 'center',
+					marginTop: top + 40,
+					marginBottom: 20
+				}}
+			>
+				<Sparkles fill={'#ffffff'} color={Colors.primary} size={48} />
 			</Animated.View>
 
 			<Animated.View
-				entering={FadeInUp.delay(200).duration(300)}
-				style={{ display: 'flex', alignItems: 'center', rowGap: 14, marginTop: top + 30 }}
+				entering={FadeInUp.delay(200).duration(200)}
+				style={{ display: 'flex', alignItems: 'center', rowGap: 8 }}
 			>
-				<Text style={{ fontWeight: '800', fontSize: 24, color: '#1F2937' }}>
-					Let's Get to Know You!
+				<Text
+					style={{
+						fontWeight: '800',
+						fontSize: 24,
+						color: Colors.primary,
+						textAlign: 'center'
+					}}
+				>
+					Let's Personalize Your Experience
 				</Text>
 				<Text
 					style={{
-						textAlign: 'center',
-						width: '80%',
 						color: '#6B7280',
 						lineHeight: 25
 					}}
 				>
-					Help us personalize your beauty journey by answering a few questions about your
-					skin and hair.
+					Help us understand your unique beauty profile
 				</Text>
 			</Animated.View>
 
-			<Animated.View
-				entering={FadeInUp.delay(300).duration(300)}
+			<Animated.Text
+				entering={FadeInUp.delay(300).duration(200)}
 				style={{
-					display: 'flex',
-					backgroundColor: '#e7e7ff',
-					borderWidth: 1,
-					borderColor: '#d3d3ffae',
-					borderRadius: 18,
-					padding: 18,
-
-					rowGap: 22,
-					marginLeft: 20,
-					marginRight: 20,
 					marginTop: 30,
-					marginBottom: 'auto'
+					color: Colors.textColor,
+					lineHeight: 20
 				}}
 			>
-				<View
+				To provide you with a profile-based ingredient analysis, we need to understand
+				your general skin and hair traits.
+			</Animated.Text>
+
+			<View style={{ rowGap: 20, marginTop: 25 }}>
+				<Animated.View entering={FadeInUp.delay(400).duration(100)} style={STYLES.card}>
+					<Text style={{ fontWeight: 600, fontSize: 16, color: Colors.textColor }}>
+						{initialStepSchema[0].name}
+					</Text>
+					<View style={{ rowGap: 4 }}>
+						{initialStepSchema[0].items.map((item) => (
+							<View key={item} style={STYLES.cardItemStyle}>
+								<Circle size={6} fill={Colors.primary} strokeWidth={0} />
+								<Text style={{ fontSize: 12, color: Colors.textColor }}>{item}</Text>
+							</View>
+						))}
+					</View>
+				</Animated.View>
+
+				<Animated.View entering={FadeInUp.delay(500).duration(200)} style={STYLES.card}>
+					<Text style={{ fontWeight: 600, fontSize: 16, color: Colors.textColor }}>
+						{initialStepSchema[1].name}
+					</Text>
+					<View style={{ rowGap: 4 }}>
+						{initialStepSchema[1].items.map((item) => (
+							<View key={item} style={STYLES.cardItemStyle}>
+								<Text style={{ fontSize: 12, color: Colors.textColor }}>✗ {item}</Text>
+							</View>
+						))}
+					</View>
+				</Animated.View>
+			</View>
+
+			<Animated.View
+				entering={FadeInUp.delay(600).duration(200)}
+				style={{
+					backgroundColor: '#e8f5e9',
+					padding: 16,
+					borderRadius: 16,
+					marginTop: 18
+				}}
+			>
+				<Text style={{ fontWeight: 600, color: Colors.textColor }}>
+					Medical Disclaimer & Consent:
+				</Text>
+				<Text
 					style={{
-						display: 'flex',
-						flexDirection: 'row',
-						alignItems: 'center',
-						columnGap: 8
+						fontSize: 12,
+						color: Colors.textColor + '9a'
 					}}
 				>
-					<View
-						style={{
-							backgroundColor: '#e1e1f7',
-							padding: 8,
-							borderRadius: 100,
-							borderWidth: 0.5,
-							borderColor: '#c8c6e887'
-						}}
-					>
-						<Wand color={Colors.primary} size={18} />
-					</View>
-
-					<View style={{ display: 'flex', rowGap: 4 }}>
-						<Text style={{ fontWeight: '800', color: '#1F2937' }}>
-							Personal Recommendations
-						</Text>
-						<Text style={{ color: '#6B7280', width: '80%', fontSize: 12 }}>
-							Get ingredient analysis tailored to your unique profile.
-						</Text>
-					</View>
-				</View>
-
-				<View
-					style={{
-						display: 'flex',
-						flexDirection: 'row',
-						alignItems: 'center',
-						columnGap: 8
-					}}
-				>
-					<View
-						style={{
-							backgroundColor: '#e1e1f7',
-							padding: 8,
-							borderRadius: 100,
-							borderWidth: 0.5,
-							borderColor: '#c8c6e887'
-						}}
-					>
-						<Heart color={Colors.primary} size={18} />
-					</View>
-
-					<View style={{ display: 'flex', rowGap: 4 }}>
-						<Text style={{ fontWeight: '800', color: '#1F2937' }}>Skip Anytime</Text>
-						<Text style={{ color: '#6B7280', width: '80%', fontSize: 12 }}>
-							You can skip individual questions or the entire sections.
-						</Text>
-					</View>
-				</View>
+					The following questions are designed to estimate general cosmetic compatibility.
+					This is not a medical assessment. If you are pregnant, lactating, or have an
+					existing diagnosed skin or scalp condition (such as severe acne, atopic
+					dermatitis, or psoriasis), please consult your dermatologist before using new
+					cosmetic products. The analysis provided by BeauWise may not apply to
+					specialized medical conditions.
+				</Text>
 			</Animated.View>
-		</>
+
+			<TouchableOpacity
+				onPress={() => setIsInitialStepButtonActive(!isInitialStepButtonActive)}
+				style={{ flexDirection: 'row', columnGap: 6, marginTop: 20 }}
+				activeOpacity={0.5}
+			>
+				<Checkbox
+					value={!isInitialStepButtonActive}
+					color={!isInitialStepButtonActive ? Colors.primary : undefined}
+					style={{
+						aspectRatio: 1,
+						width: 15,
+						pointerEvents: 'none',
+						borderRadius: 4,
+						marginTop: 4,
+						backgroundColor: '#f9f8f8c4'
+					}}
+				/>
+
+				<View>
+					<Text style={{ fontSize: 12, paddingRight: 20 }}>
+						I understand that BeauWise is an educational tool and not a substitute for
+						professional medical advice.
+					</Text>
+				</View>
+			</TouchableOpacity>
+		</ScrollView>
 	);
 }
+
+const STYLES = StyleSheet.create({
+	card: {
+		rowGap: 8,
+		backgroundColor: Colors.backgroundColor,
+		borderRadius: 12,
+		padding: 20,
+		shadowColor: '#000000a0',
+		shadowOffset: {
+			width: 0,
+			height: 2
+		},
+		shadowOpacity: 0.2,
+		shadowRadius: 1.41,
+
+		elevation: 2
+	},
+
+	cardItemStyle: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		columnGap: 6
+	}
+});

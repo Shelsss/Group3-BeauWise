@@ -9,13 +9,7 @@ import { Pressable, StyleSheet } from 'react-native';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-export default function OptionItem({
-	item,
-	isSelected,
-	handlePress,
-	currentSection,
-	selectedGender
-}) {
+export default function OptionItem({ item, isSelected, handlePress, selectedGender }) {
 	const scale = useSharedValue(1);
 
 	const springConfig = {
@@ -43,7 +37,7 @@ export default function OptionItem({
 				STYLES.container,
 				animatedStyle,
 				{
-					backgroundColor: isSelected(item.value) ? '#a78bfa49' : '#f8f4f4',
+					backgroundColor: isSelected(item.value) ? Colors.primary + '2a' : 'transparent',
 					borderColor: isSelected(item.value) ? Colors.primary : '#d0d0d0',
 					height: !item.image ? 'auto' : 220
 				}

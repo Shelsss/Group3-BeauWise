@@ -1,20 +1,27 @@
 import { View, Text } from 'react-native';
 
-import Animated, { FadeIn } from 'react-native-reanimated';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import SingleChoiceQuestion from '@/components/SingleChoiceQuestion';
 import MultiSelectQuestion from '@/components/MultiChoiceQuestion';
 import { useProfilingStore } from '@/stores/useProfilingStore';
 import { icons } from '@/constants/IconTheme';
+import Colors from '@/constants/Colors';
+import { useRef } from 'react';
 export default function Questions({ profilingType, questions, section, step }) {
 	const selectedGender = useProfilingStore((state) => state.profile.about_you.gender);
-
+	const scrollViewRef = useRef(null);
 	return (
 		<Animated.ScrollView
-			key={`scroll-${step}`}
-			entering={FadeIn}
+			ref={scrollViewRef}
+			onScroll={({ nativeEvent }) => {
+				if (nativeEvent.contentOffset.y < 0) {
+					scrollViewRef.current?.scrollTo({ x: 0, y: 0 });
+				}
+			}}
 			showsVerticalScrollIndicator={false}
-			overScrollMode={'never'}
+			key={`scroll-${step}`}
+			entering={FadeInDown}
 			contentContainerStyle={{
 				paddingTop: 30,
 				paddingBottom: 30
@@ -29,15 +36,14 @@ export default function Questions({ profilingType, questions, section, step }) {
 					<View style={{ display: 'flex', alignItems: 'center', rowGap: 4 }}>
 						<View
 							style={{
-								backgroundColor: icons[step - 1].color + '1A',
-								padding: 20,
-								borderRadius: 20,
+								backgroundColor: Colors.primary + '1A',
+								padding: 22,
+								borderRadius: 24,
 								marginBottom: 12,
-								borderWidth: 1,
-								borderColor: icons[step - 1].color + '4D'
+								borderColor: Colors.primary + '4D'
 							}}
 						>
-							{icons[step - 1].icon(24)}
+							{icons[step - 1].icon(24, Colors.primary)}
 						</View>
 
 						<Text style={{ fontSize: 26, fontWeight: '900' }}>{profilingType.title}</Text>

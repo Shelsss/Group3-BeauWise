@@ -1,9 +1,11 @@
 import { LinearGradient } from 'expo-linear-gradient';
-
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Animated, { FadeIn, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Questionnaire from '@/constants/Questionnaire';
+import Colors from '@/constants/Colors';
+import { ArrowLeft } from 'lucide-react-native';
+import { router } from 'expo-router';
 
 export default function ProfilingHeader({ currentStep, isTransition }) {
 	const totalQuestions = Questionnaire.length;
@@ -20,8 +22,23 @@ export default function ProfilingHeader({ currentStep, isTransition }) {
 	return (
 		currentStep > 0 &&
 		!isTransition && (
-			<Animated.View entering={FadeIn} style={{ paddingTop: top, width: '100%' }}>
+			<Animated.View entering={FadeIn} style={{ paddingTop: top + 10, width: '100%' }}>
 				<View style={STYLES.container}>
+					<TouchableOpacity
+						onPress={router.back}
+						style={{
+							position: 'absolute',
+							bottom: 20,
+							left: 2,
+							paddingEnd: 30,
+							paddingLeft: 10,
+							paddingTop: 20,
+							paddingBottom: 12,
+							zIndex: 1
+						}}
+					>
+						<ArrowLeft size={18} />
+					</TouchableOpacity>
 					<Text style={STYLES.headerStyle}>{headerTitle}</Text>
 
 					<Text style={STYLES.stepStyle}>
@@ -30,12 +47,7 @@ export default function ProfilingHeader({ currentStep, isTransition }) {
 
 					<View style={STYLES.progressTrack}>
 						<Animated.View style={[STYLES.progressFillWrapper, animatedProgressStyle]}>
-							<LinearGradient
-								start={{ x: 0, y: 0 }}
-								end={{ x: 1, y: 0 }}
-								colors={['#b8a4f5', '#ffb9ca']}
-								style={STYLES.progressFill}
-							/>
+							<View style={STYLES.progressFill} />
 						</Animated.View>
 					</View>
 				</View>
@@ -47,22 +59,24 @@ export default function ProfilingHeader({ currentStep, isTransition }) {
 const STYLES = StyleSheet.create({
 	container: {
 		display: 'flex',
-		alignItems: 'center',
 		padding: 14
 	},
 
 	headerStyle: {
+		textAlign: 'center',
+		color: Colors.primary,
 		fontSize: 12,
 		fontWeight: '700'
 	},
 
 	stepStyle: {
+		textAlign: 'center',
 		fontSize: 9,
 		color: '#9d9a9a'
 	},
 
 	progressTrack: {
-		height: 6,
+		height: 2,
 		backgroundColor: '#e6e6e6',
 		borderRadius: 10,
 		marginTop: 12,
@@ -76,6 +90,7 @@ const STYLES = StyleSheet.create({
 	},
 
 	progressFill: {
+		backgroundColor: Colors.primary,
 		flex: 1,
 		borderRadius: 2
 	}

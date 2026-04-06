@@ -1,16 +1,24 @@
 import Card from '@/components/home/Card';
 import HistoryCard from '@/components/history/Card';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Focus, Camera, Shield, TriangleAlert, ChevronRight } from 'lucide-react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+	Focus,
+	Camera,
+	Shield,
+	TriangleAlert,
+	ChevronRight,
+	LockKeyhole
+} from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 
 import PagePadding from '@/constants/PagePadding';
-import { useRouter } from 'expo-router';
+import { router, useRouter } from 'expo-router';
 import Write from '@/components/icons/Write';
 import Archive from '@/components/icons/ArchiveFill';
 import ShieldCheck from '@/components/icons/ShieldCheckFill';
 import CustomHeader from '@/components/CustomHeader';
 import { useRef } from 'react';
+import { useAuthStore } from '@/stores/useAuthStore';
 
 const ICON_SIZE = 25;
 
@@ -94,6 +102,7 @@ const homeSchema = [
 ];
 
 export default function HomeScreen() {
+	const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 	const route = useRouter();
 	const scrollViewRef = useRef(null);
 
@@ -120,154 +129,158 @@ export default function HomeScreen() {
 				]}
 			>
 				<View style={{ rowGap: 15 }}>
-					<View style={{ rowGap: 12 }}>
-						<View>
-							<Text
-								style={{
-									fontSize: 18,
-									fontWeight: 'bold'
-								}}
-							>
-								{homeSchema[0].sectionTitle}
-							</Text>
-						</View>
-
-						<View style={{ flex: 1, rowGap: 12 }}>
-							<View
-								style={{
-									flex: 1,
-									flexDirection: 'row',
-									columnGap: 12
-								}}
-							>
-								{homeSchema[0].cards.slice(0, 2).map((card, index) => (
-									<Card
-										containerStyle={[
-											{
-												backgroundColor: Colors.backgroundColor
-											}
-										]}
-										key={index}
-									>
-										<View>
-											<Text
-												style={{
-													fontSize: 48,
-													fontWeight: 700,
-													color: card.themeColor,
-													textAlign: 'center'
-												}}
-											>
-												{card.headerContent}
-											</Text>
-
-											<Text
-												style={{
-													fontSize: 10,
-													fontWeight: 600,
-													textTransform: 'capitalize',
-													color: Colors.textColor,
-													textAlign: 'center'
-												}}
-											>
-												{card.footerContent}
-											</Text>
-										</View>
-										<View
-											style={[
-												STYLES.iconStyle,
-												card.iconPosition === 'right'
-													? STYLES.iconRight
-													: STYLES.iconLeft,
-												{
-													position: 'absolute'
-												}
-											]}
-										>
-											{card.icon()}
-										</View>
-									</Card>
-								))}
+					{isAuthenticated && (
+						<View style={{ rowGap: 12 }}>
+							<View>
+								<Text
+									style={{
+										fontSize: 18,
+										fontWeight: 'bold'
+									}}
+								>
+									{homeSchema[0].sectionTitle}
+								</Text>
 							</View>
 
-							<View
-								style={{
-									flexDirection: 'row',
-									columnGap: 12
-								}}
-							>
-								{homeSchema[0].cards.slice(2).map((card, index) => (
-									<Card
-										containerStyle={[
-											{
-												backgroundColor: Colors.backgroundColor,
-												justifyContent: 'center',
-												alignItems: 'center',
-												...STYLES.shadowStyle
-											}
-										]}
-										key={index}
-									>
-										<View>
-											<Text
-												style={{
-													fontSize: card?.specialFontSize ? 24 : 48,
-													fontWeight: 700,
-													textAlign: 'center',
-													color: card.themeColor,
-													paddingTop: card?.isUniquePosition ? 9 : 0,
-													paddingBottom: card?.isUniquePosition ? 9 : 0
-												}}
-											>
-												{card.headerContent}
-											</Text>
-
-											<Text
-												style={{
-													fontSize: 10,
-													fontWeight: 600,
-													textTransform: 'capitalize',
-													textAlign: 'center',
-													color: Colors.textColor
-												}}
-											>
-												{card.footerContent}
-											</Text>
-										</View>
-
-										{card.subHeaderContent && (
-											<Text
-												style={{
-													fontSize: 10,
-													backgroundColor: card.themeColor + '1a',
-													paddingHorizontal: 6,
-													borderRadius: 10,
-													color: card.themeColor + 'cc',
-													position: card?.isUniquePosition ? 'absolute' : 'relative',
-													top: card?.isUniquePosition ? 10 : 0,
-													left: card?.isUniquePosition ? 10 : 0
-												}}
-											>
-												{card.subHeaderContent}
-											</Text>
-										)}
-
-										<View
-											style={[
-												STYLES.iconStyle,
-												card.iconPosition === 'left' ? STYLES.iconLeft : STYLES.iconRight,
+							<View style={{ flex: 1, rowGap: 12 }}>
+								<View
+									style={{
+										flex: 1,
+										flexDirection: 'row',
+										columnGap: 12
+									}}
+								>
+									{homeSchema[0].cards.slice(0, 2).map((card, index) => (
+										<Card
+											containerStyle={[
 												{
-													position: 'absolute'
+													backgroundColor: Colors.backgroundColor
 												}
 											]}
+											key={index}
 										>
-											{card.icon()}
-										</View>
-									</Card>
-								))}
+											<View>
+												<Text
+													style={{
+														fontSize: 48,
+														fontWeight: 700,
+														color: card.themeColor,
+														textAlign: 'center'
+													}}
+												>
+													{card.headerContent}
+												</Text>
+
+												<Text
+													style={{
+														fontSize: 10,
+														fontWeight: 600,
+														textTransform: 'capitalize',
+														color: Colors.textColor,
+														textAlign: 'center'
+													}}
+												>
+													{card.footerContent}
+												</Text>
+											</View>
+											<View
+												style={[
+													STYLES.iconStyle,
+													card.iconPosition === 'right'
+														? STYLES.iconRight
+														: STYLES.iconLeft,
+													{
+														position: 'absolute'
+													}
+												]}
+											>
+												{card.icon()}
+											</View>
+										</Card>
+									))}
+								</View>
+
+								<View
+									style={{
+										flexDirection: 'row',
+										columnGap: 12
+									}}
+								>
+									{homeSchema[0].cards.slice(2).map((card, index) => (
+										<Card
+											containerStyle={[
+												{
+													backgroundColor: Colors.backgroundColor,
+													justifyContent: 'center',
+													alignItems: 'center',
+													...STYLES.shadowStyle
+												}
+											]}
+											key={index}
+										>
+											<View>
+												<Text
+													style={{
+														fontSize: card?.specialFontSize ? 24 : 48,
+														fontWeight: 700,
+														textAlign: 'center',
+														color: card.themeColor,
+														paddingTop: card?.isUniquePosition ? 9 : 0,
+														paddingBottom: card?.isUniquePosition ? 9 : 0
+													}}
+												>
+													{card.headerContent}
+												</Text>
+
+												<Text
+													style={{
+														fontSize: 10,
+														fontWeight: 600,
+														textTransform: 'capitalize',
+														textAlign: 'center',
+														color: Colors.textColor
+													}}
+												>
+													{card.footerContent}
+												</Text>
+											</View>
+
+											{card.subHeaderContent && (
+												<Text
+													style={{
+														fontSize: 10,
+														backgroundColor: card.themeColor + '1a',
+														paddingHorizontal: 6,
+														borderRadius: 10,
+														color: card.themeColor + 'cc',
+														position: card?.isUniquePosition ? 'absolute' : 'relative',
+														top: card?.isUniquePosition ? 10 : 0,
+														left: card?.isUniquePosition ? 10 : 0
+													}}
+												>
+													{card.subHeaderContent}
+												</Text>
+											)}
+
+											<View
+												style={[
+													STYLES.iconStyle,
+													card.iconPosition === 'left'
+														? STYLES.iconLeft
+														: STYLES.iconRight,
+													{
+														position: 'absolute'
+													}
+												]}
+											>
+												{card.icon()}
+											</View>
+										</Card>
+									))}
+								</View>
 							</View>
 						</View>
-					</View>
+					)}
 
 					<View
 						style={{
@@ -402,42 +415,113 @@ export default function HomeScreen() {
 					</View>
 				</View>
 
-				<View style={{ rowGap: 12 }}>
-					<Text
-						style={{
-							fontSize: 18,
-							fontWeight: 'bold'
-						}}
+				{isAuthenticated && (
+					<View style={{ rowGap: 12 }}>
+						<Text
+							style={{
+								fontSize: 18,
+								fontWeight: 'bold'
+							}}
+						>
+							Recent Scans
+						</Text>
+
+						<HistoryCard
+							title={'Matte Stick'}
+							description={'bar'}
+							time={'9:05 PM'}
+							status={'safe'}
+						/>
+
+						<HistoryCard
+							title={'Matte Stick'}
+							description={'bar'}
+							time={'9:05 PM'}
+							status={'warn'}
+						/>
+						<HistoryCard
+							title={'Matte Stick'}
+							description={'bar'}
+							time={'9:05 PM'}
+							status={'unsafe'}
+						/>
+					</View>
+				)}
+
+				{!isAuthenticated && (
+					<View
+						style={[
+							{
+								alignItems: 'center',
+								backgroundColor: Colors.backgroundColor,
+								borderRadius: 16,
+								padding: 24
+							},
+							STYLES.shadow
+						]}
 					>
-						Recent Scans
-					</Text>
+						<View
+							style={{
+								backgroundColor: Colors.primary + '1a',
+								padding: 16,
+								borderRadius: 100
+							}}
+						>
+							<LockKeyhole color={Colors.primary} size={20} />
+						</View>
 
-					<HistoryCard
-						title={'Matte Stick'}
-						description={'bar'}
-						time={'9:05 PM'}
-						status={'safe'}
-					/>
+						<View style={{ marginTop: 10, rowGap: 8 }}>
+							<Text style={{ fontSize: 18, fontWeight: 600, textAlign: 'center' }}>
+								Personalize Your Experience
+							</Text>
+							<Text style={{ color: Colors.textColor + '9a', textAlign: 'center' }}>
+								Sign up to match ingredients against your unique skin and hair profile,
+								save your daily scan history, and easily track your products.
+							</Text>
 
-					<HistoryCard
-						title={'Matte Stick'}
-						description={'bar'}
-						time={'9:05 PM'}
-						status={'warn'}
-					/>
-					<HistoryCard
-						title={'Matte Stick'}
-						description={'bar'}
-						time={'9:05 PM'}
-						status={'unsafe'}
-					/>
-				</View>
+							<TouchableOpacity
+								onPress={() => router.push('authentication/sign-in')}
+								activeOpacity={0.7}
+								style={{
+									marginTop: 6,
+									justifyContent: 'center',
+									columnGap: 12,
+									flexDirection: 'row',
+									alignItems: 'center',
+									backgroundColor: Colors.primary,
+									padding: 16,
+									borderRadius: 16
+								}}
+							>
+								<Text
+									style={{
+										fontWeight: 600,
+										color: Colors.backgroundColor
+									}}
+								>
+									Create Account
+								</Text>
+							</TouchableOpacity>
+						</View>
+					</View>
+				)}
 			</ScrollView>
 		</>
 	);
 }
 
 const STYLES = StyleSheet.create({
+	shadow: {
+		shadowColor: '#000000a9',
+		shadowOffset: {
+			width: 0,
+			height: 1
+		},
+		shadowOpacity: 0.2,
+		shadowRadius: 1.41,
+
+		elevation: 2
+	},
 	iconStyle: {
 		borderRadius: 13,
 		padding: 10,

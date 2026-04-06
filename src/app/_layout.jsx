@@ -7,33 +7,22 @@ export default function RootLayout() {
 		<GestureHandlerRootView style={{ flex: 1 }}>
 			<BottomSheetModalProvider>
 				<Stack
-					initialRouteName='profiling'
+					initialRouteName='(tabs)'
 					screenOptions={{
 						animation: 'fade',
-						headerBackVisible: false
+						headerBackVisible: false,
+						headerShown: false
 					}}
 				>
-					<Stack.Screen
-						name='profiling'
-						options={{
-							headerShown: false
-						}}
-					/>
+					<Stack.Screen name='profiling' />
 
 					<Stack.Screen
 						name='(tabs)'
 						options={{
-							headerTitle: 'Beauwise',
-							headerShadowVisible: false,
-							headerStyle: { backgroundColor: '#fff' }
+							headerShadowVisible: false
 						}}
 					/>
-					<Stack.Screen
-						name='scanner'
-						options={{
-							headerShown: false
-						}}
-					/>
+					<Stack.Screen name='scanner' />
 				</Stack>
 			</BottomSheetModalProvider>
 		</GestureHandlerRootView>

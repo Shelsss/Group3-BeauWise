@@ -1,15 +1,16 @@
 import { useLinkBuilder } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { Scan } from 'lucide-react-native';
-import { Pressable, View } from 'react-native';
+import { Focus } from 'lucide-react-native';
+import { Pressable, View, Vibration, TouchableOpacity } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Colors from '../constants/Colors';
+import { Shadow } from 'react-native-shadow-2';
 
-export default function CustomTabBar({ state, descriptors, navigation }) {
+export default function CustomTabBar({ state, descriptors, navigation, onTabPress }) {
 	const { buildHref } = useLinkBuilder();
 	const { bottom } = useSafeAreaInsets();
+
 	const router = useRouter();
 
 	const renderTabItem = (route, index) => {
@@ -31,9 +32,17 @@ export default function CustomTabBar({ state, descriptors, navigation }) {
 			});
 
 			if (!isFocused && !event.defaultPrevented) {
-				navigation.navigate(route.name, route.params);
+				if (onTabPress) {
+					onTabPress(route.name);
+				} else {
+					navigation.navigate(route.name, route.params);
+				}
 			}
 		};
+
+		if (isFocused) {
+			Vibration.vibrate(50);
+		}
 
 		const onLongPress = () => {
 			navigation.emit({
@@ -43,7 +52,8 @@ export default function CustomTabBar({ state, descriptors, navigation }) {
 		};
 
 		return (
-			<Pressable
+			<TouchableOpacity
+				activeOpacity={0.5}
 				key={route.key}
 				href={buildHref(route.name, route.params)}
 				aria-label={options.tabBarAccessibilityLabel}
@@ -53,65 +63,74 @@ export default function CustomTabBar({ state, descriptors, navigation }) {
 				onLongPress={onLongPress}
 				style={{
 					flex: 1,
-
-					paddingBottom: 14,
+					paddingTop: 15,
+					paddingBottom: bottom,
 					alignItems: 'center',
-					marginRight: label.toLowerCase() === 'history' && '20%'
+					marginRight: label === 'History' && '20%'
 				}}
 			>
 				<View style={{ display: 'flex', alignItems: 'center' }}>
-					<ActiveIndicator isFocused={isFocused} activeColor={Colors.primary} />
-
 					{options.iconProp(isFocused, Colors.primary)}
+
 					<Animated.Text
 						style={{
-							color: isFocused ? Colors.primary : '#bcbcbe',
-							transitionDuration: 130,
-							fontWeight: isFocused ? 800 : 600,
-							fontSize: 12
+							marginTop: 2,
+							color: isFocused ? Colors.primary : '#000000a6',
+							fontWeight: 900,
+							fontSize: 10,
+							opacity: isFocused ? 1 : 0,
+
+							transform: [
+								{
+									translateY: isFocused ? 0 : 5
+								}
+							],
+							transitionDuration: 150
 						}}
 					>
 						{label}
 					</Animated.Text>
 				</View>
-			</Pressable>
+			</TouchableOpacity>
 		);
 	};
 
 	const ScannerButton = () => (
-		<View style={{ position: 'absolute', width: '100%', bottom: 65 }}>
-			<Pressable
+		<View
+			style={{
+				position: 'absolute',
+				width: '100%',
+				bottom: '55%',
+
+				alignItems: 'center',
+				justifyContent: 'center'
+			}}
+		>
+			<TouchableOpacity
+				activeOpacity={0.7}
 				key='scanner-button'
 				onPress={() => router.push('/scanner')}
 				style={{
 					alignItems: 'center',
 					justifyContent: 'center',
-					paddingHorizontal: 10
+					backgroundColor: Colors.backgroundColor,
+					paddingTop: 5,
+					paddingLeft: 5,
+					paddingRight: 5,
+					borderRadius: 100
 				}}
 			>
-				<View>
-					<LinearGradient
-						start={{ x: 0.3, y: 0.7 }}
-						end={{ x: 1, y: 0.2 }}
-						colors={['#b8a4f5', '#ffb9ca']}
-						style={{
-							padding: 16,
-							borderRadius: 40,
-							shadowColor: '#252524',
-							shadowOffset: {
-								width: 0,
-								height: 1
-							},
-							shadowOpacity: 0.8,
-							shadowRadius: 2.22,
+				<View
+					style={{
+						padding: 16,
+						borderRadius: 40,
 
-							elevation: 3
-						}}
-					>
-						<Scan color='#fffefe' size={28} />
-					</LinearGradient>
+						backgroundColor: Colors.primary
+					}}
+				>
+					<Focus color='#fffefe' size={28} />
 				</View>
-			</Pressable>
+			</TouchableOpacity>
 		</View>
 	);
 
@@ -124,32 +143,32 @@ export default function CustomTabBar({ state, descriptors, navigation }) {
 	return (
 		<View
 			style={{
-				flexDirection: 'row',
-				paddingBottom: bottom,
-				backgroundColor: Colors.backgroundColor
+				backgroundColor: 'transparent',
+				position: 'absolute',
+				bottom: 0,
+				left: 0,
+				right: 0
 			}}
 		>
-			<ScannerButton />
-			{tabItems}
+			<Shadow
+				style={{ flex: 1 }}
+				stretch={true}
+				distance={4}
+				startColor='#00000010'
+				offset={[0, 0]}
+			>
+				<View
+					style={{
+						flexDirection: 'row',
+						borderTopLeftRadius: 20,
+						borderTopRightRadius: 20,
+						backgroundColor: Colors.backgroundColor
+					}}
+				>
+					<ScannerButton />
+					{tabItems}
+				</View>
+			</Shadow>
 		</View>
-	);
-}
-
-function ActiveIndicator({ isFocused, activeColor }) {
-	return (
-		<Animated.View
-			style={[
-				{
-					backgroundColor: activeColor,
-					height: 4,
-					width: 50,
-
-					borderRadius: 1.5,
-					marginBottom: 8,
-					opacity: isFocused ? 1 : 0,
-					transitionDuration: 120
-				}
-			]}
-		/>
 	);
 }

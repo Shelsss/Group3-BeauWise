@@ -89,6 +89,13 @@ export const useProfilingStore = create(
 				state.profile[section][key] = value;
 			}),
 
-		resetProfile: () => set(() => ({ profile: initialProfileState }))
+		resetProfile: () => set(() => ({ profile: initialProfileState })),
+
+		isProfilingComplete: false,
+		setIsProfilingComplete: (isProfilingComplete) => set(() => ({ isProfilingComplete })),
+
+		isInitialStepButtonActive: true,
+		setIsInitialStepButtonActive: (isInitialStepButtonActive) =>
+			set(() => ({ isInitialStepButtonActive }))
 	}))
 );

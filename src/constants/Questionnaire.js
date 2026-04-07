@@ -762,12 +762,6 @@ export default [
 		title: 'Hair Care Routine',
 		section: 'hair_care_routine',
 		description: 'Products and treatments you use',
-		showCheckPointAfter: true,
-		checkpoint: {
-			title: 'Hair Profiling Complete!',
-			description:
-				"Great job! You've finished hair profiling. Let's review your profile summary!"
-		},
 		questions: [
 			{
 				label: 'How often do you wash your hair with shampoo?',

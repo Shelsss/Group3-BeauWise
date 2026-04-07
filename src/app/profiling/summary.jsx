@@ -1,22 +1,23 @@
-import Animated, { FadeIn } from 'react-native-reanimated';
-
-import ProfileBottomSheet from '@/components/profiling/ProfileBottomSheet';
-
+import Animated, { FadeIn, useAnimatedRef } from 'react-native-reanimated';
+import ProfileBottomSheet from '@/components/EditBottomSheet';
 import { useCallback, useRef, useState } from 'react';
-import SummaryCard from '@/components/profiling/SummaryCard';
+import SummaryCard from '@/components/EditCard';
 import { useProfilingStore } from '@/stores/useProfilingStore';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import formatSnakeToTitle from '@/utility/formatSnaketoTitle';
 import Colors from '@/constants/Colors';
 import { Check } from 'lucide-react-native';
-
 import PrimaryButton from '@/components/PrimaryButton';
 import { Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-
 import { icons } from '@/constants/IconTheme';
+import { doc, getFirestore, updateDoc } from '@react-native-firebase/firestore';
+import { auth } from '@/services/auth';
+
+const db = getFirestore();
 
 export default function ProfilingSummary() {
+	const scrollViewRef = useAnimatedRef();
 	const profileSheetModalRef = useRef(null);
 	const { bottom, top } = useSafeAreaInsets();
 	const [selectedSection, setSelectedSection] = useState('');
@@ -53,7 +54,10 @@ export default function ProfilingSummary() {
 					borderRadius: 100,
 					marginBottom: bottom + confirmButtonMargin
 				}}
-				handlePress={() => {
+				handlePress={async () => {
+					await updateDoc(doc(db, 'users', auth.currentUser.uid), {
+						profiling: profileData
+					});
 					router.dismissAll();
 					router.replace('(tabs)');
 				}}
@@ -78,13 +82,18 @@ export default function ProfilingSummary() {
 		<>
 			<Animated.ScrollView
 				entering={FadeIn}
+				ref={scrollViewRef}
+				onScroll={({ nativeEvent }) => {
+					if (nativeEvent.contentOffset.y < 0) {
+						scrollViewRef.current?.scrollTo({ x: 0, y: 0 });
+					}
+				}}
 				showsVerticalScrollIndicator={false}
 				contentContainerStyle={{
 					paddingBottom: bottom + confirmButtonMargin + 80,
 					padding: 20,
 					rowGap: 16
 				}}
-				overScrollMode={'never'}
 			>
 				<View
 					style={{
@@ -119,18 +128,33 @@ export default function ProfilingSummary() {
 						key={section}
 						sectionValue={Object.entries(profileData[section])}
 						handlePresentModalPress={handlePresentModalPress}
-						iconProp={icons[index].icon(20)}
-						iconColor={icons[index].color}
+						iconProp={icons[index].icon(20, Colors.primary)}
+						iconColor={Colors.primary}
 					/>
 				))}
 
 				<ProfileBottomSheet
 					profileData={profileData}
-					profileSheetModalRef={profileSheetModalRef}
+					editSheetModalRef={profileSheetModalRef}
 					selectedSection={selectedSection}
 					setSelectedSection={setSelectedSection}
 					handleUpdateProfile={handleUpdateProfile}
 				/>
+
+				<View
+					style={{
+						backgroundColor: '#e8f5e9',
+						padding: 16,
+						borderRadius: 16,
+						marginTop: 18
+					}}
+				>
+					<Text style={{ color: Colors.textColor }}>
+						<Text style={{ fontWeight: 700 }}>Reminder: </Text>All hair profiling
+						questions are for general cosmetic ingredient matching and not for diagnosing
+						scalp conditions like alopecia or clinical dandruff.
+					</Text>
+				</View>
 			</Animated.ScrollView>
 
 			<ConfirmButton />

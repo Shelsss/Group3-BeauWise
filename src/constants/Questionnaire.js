@@ -45,9 +45,9 @@ export default [
 				id: randomUUID(),
 				options: [
 					{
-						label: 'Tight & Parched',
+						label: 'Tight & Stretched',
 						value: 'tight_and_dry',
-						description: `It feels stretched, as if it is too small for my face. (Dry indicator)`,
+						description: `It feels stretched. (Dry indicator)`,
 						image: {
 							male: require('assets/images/skin/male/tight_and_dry.webp'),
 							female: require('assets/images/skin/female/tight_and_dry.webp'),
@@ -96,7 +96,7 @@ export default [
 				id: randomUUID(),
 				options: [
 					{
-						label: 'Invisible / Very Small',
+						label: 'Very Small',
 						value: 'invisible_very_small',
 						image: {
 							male: require('assets/images/skin/male/invisible_very_small.webp'),
@@ -143,7 +143,7 @@ export default [
 				id: randomUUID(),
 				options: [
 					{
-						label: 'Flaky / Dull',
+						label: 'Dry',
 						value: 'flaky_dull',
 						id: randomUUID(),
 						image: {
@@ -153,7 +153,7 @@ export default [
 						}
 					},
 					{
-						label: 'Radiant / Normal',
+						label: 'Normal',
 						value: 'radiant_normal',
 						id: randomUUID(),
 						image: {
@@ -678,14 +678,14 @@ export default [
 				options: [
 					{
 						label: 'Oily',
-						description: `Needs washing every 1-2 days.`,
+						description: `Gets oily after a few hours of washing.`,
 						value: 'oily',
 						id: randomUUID(),
 						image: require('assets/images/hair/oily_scalp.webp')
 					},
 					{
 						label: 'Normal',
-						description: `Can go 3-4 days without washing.`,
+						description: `Gets oily 24 to 48 hours after washing.`,
 						value: 'normal',
 						id: randomUUID(),
 						image: require('assets/images/hair/normal_scalp.webp')

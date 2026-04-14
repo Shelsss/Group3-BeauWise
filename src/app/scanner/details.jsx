@@ -104,11 +104,12 @@ export default function ScannerDetails() {
 		}
 
 		router.push({
-			pathname: 'scanner/results',
+			pathname: 'scanner/analysis_processing',
 			params: {
 				name: data.productName,
 				brand: data.brand,
-				notes: data.notes
+				notes: data.notes,
+				ingredients: ingredients.map((item) => item.name).join(', ')
 			}
 		});
 	};

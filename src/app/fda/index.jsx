@@ -19,6 +19,11 @@ import { useState } from 'react';
 import Info from '@/components/icons/Info';
 import AnimatedTabs from '@/components/AnimatedTabs';
 
+import { verifyProductByName, verifyProductByNN } from '@/services/fdaApiService';
+import { saveHistory } from '@/services/historyService';
+import { saveFdaHistory } from '@/services/historyService';
+import { useAuthStore } from '@/stores/useAuthStore';
+
 const fdaSchema = [
 	{
 		name: 'Product Name',
@@ -41,16 +46,95 @@ export default function BatchScreen() {
 	const handleTabChange = (index) => {
 		setActiveTab(index);
 	};
-	const handleQuery = (value) => () => {
-		setQuery(value);
-	};
+	const handleQuery = (value) => {
+	setQuery(value);
+};
 
-	const handlePress = () => {
-		const randomNumber = Math.floor(Math.random() * status.length);
-		const test_random_result = status[randomNumber];
+const handlePress = async () => {
+	if (!query || query.trim() === "") return;
 
-		router.push({ pathname: '/fda/results', params: { result: test_random_result } });
-	};
+	let resultData = null;
+	let resultType = 'invalid';
+
+	const cleanQuery = query.trim();
+
+	try {
+		// 🔍 CALL API
+		if (activeTab === 0) {
+			resultData = await verifyProductByName(cleanQuery);
+		} else {
+			resultData = await verifyProductByNN(cleanQuery.toUpperCase());
+		}
+
+		// 🛑 NO RESULT
+		if (!resultData) {
+			console.log("NO RESULT FROM API");
+			resultType = 'invalid';
+		}
+
+	} catch (err) {
+		console.log("API ERROR:", err);
+		resultData = null;
+		resultType = 'invalid';
+	}
+
+	// ✅ HANDLE ARRAY RESPONSE (some APIs return array)
+	if (Array.isArray(resultData)) {
+		resultData = resultData[0];
+	}
+
+	// ✅ DETECT VALID / EXPIRED
+	if (resultData) {
+		const expiry =
+			resultData.NOTIFICATION_VALIDITY ||
+			resultData.expiration_date ||
+			resultData.validityPeriod;
+
+		if (expiry) {
+			const today = new Date();
+			const expiryDate = new Date(expiry);
+
+			resultType = expiryDate < today ? 'expired' : 'valid';
+		} else {
+			resultType = 'valid';
+		}
+	}
+const user = useAuthStore.getState().user;
+
+// ✅ SAVE TO FIRESTORE
+if (user) {
+	await saveFdaHistory(user.uid, {
+		productName: resultData?.productName,
+		notificationNo: resultData?.notificationNumber,
+		result: resultType
+	});
+}
+
+// 👉 THEN NAVIGATE
+router.push({
+	pathname: '/fda/results',
+	params: {
+		result: resultType,
+		data: JSON.stringify(resultData)
+	}
+});
+	// ✅ SAFE FIRESTORE SAVE (NO undefined)
+	await saveHistory({
+		query: cleanQuery,
+		type: activeTab === 0 ? 'name' : 'nn',
+		resultType: resultType || 'invalid',
+		resultData: resultData ?? {}
+	});
+
+	// 🚀 NAVIGATE
+	router.push({
+		pathname: '/fda/results',
+		params: {
+			result: resultType || 'invalid',
+			data: resultData ? JSON.stringify(resultData) : null
+		}
+	});
+};
 
 	return (
 		<TouchableWithoutFeedback
@@ -114,9 +198,9 @@ export default function BatchScreen() {
 							/>
 
 							<SearchBar
-								handleQuery={handleQuery}
-								placeholder={fdaSchema[activeTab].placeholder}
-							/>
+	handleQuery={handleQuery}
+	placeholder={fdaSchema[activeTab].placeholder}
+/>
 							<View style={{ flexDirection: 'row' }}>
 								<View style={{ marginTop: 3, marginRight: 4 }}>
 									<Info size={11} color={Colors.primary} />

@@ -1,0 +1,15 @@
+import { db } from '@/firebaseConfig';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+
+export const saveFdaHistory = async (userId, data) => {
+	try {
+		await addDoc(collection(db, 'users', userId, 'fdaHistory'), {
+			productName: data.productName || 'UNKNOWN',
+			notificationNo: data.notificationNo || '',
+			result: data.result, // 'valid' | 'invalid'
+			createdAt: serverTimestamp()
+		});
+	} catch (error) {
+		console.log('🔥 Firestore Save Error:', error);
+	}
+};

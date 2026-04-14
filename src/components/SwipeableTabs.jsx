@@ -87,6 +87,7 @@ function SwipeableTabView({ state, descriptors, navigation, tabBar, screenOption
 		<View style={{ flex: 1 }}>
 			<Animated.View style={[{ flex: 1 }, animatedStyle]}>
 				<PagerView
+					offscreenPageLimit={1}
 					ref={pagerRef}
 					style={{ flex: 1, zIndex: -20 }}
 					initialPage={state.index}

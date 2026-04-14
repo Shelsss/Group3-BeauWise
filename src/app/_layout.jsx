@@ -11,16 +11,30 @@ import { auth } from '@/services/auth';
 import * as SplashScreen from 'expo-splash-screen';
 import { useProfilingStore } from '@/stores/useProfilingStore';
 import { checkProfilingCompletion } from '@/utility/checkProfilingCompletion';
+import { useCameraPermission } from 'react-native-vision-camera';
+import { usePermissions } from 'expo-media-library';
 const queryClient = new QueryClient();
 
 SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
+	const { hasPermission, requestPermission } = useCameraPermission();
+	const [writePermission, requestWritePermission] = usePermissions({ writeOnly: true });
 	const setIsAuthenticated = useAuthStore((state) => state.setIsAuthenticated);
 	const setIsProfilingComplete = useProfilingStore(
 		(state) => state.setIsProfilingComplete
 	);
 
 	const [isReady, setIsReady] = useState(false);
+	useEffect(() => {
+		const requestPermissions = async () => {
+			if (!hasPermission || !writePermission?.status !== 'granted') {
+				await requestPermission();
+				await requestWritePermission();
+			}
+		};
+
+		requestPermissions();
+	}, []);
 
 	useEffect(() => {
 		const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -56,7 +70,7 @@ export default function RootLayout() {
 						initialRouteName='authentication/sign-in'
 						screenOptions={{
 							contentStyle: { backgroundColor: '#f8fafc' },
-							animation: 'fade',
+							animation: 'flip',
 							headerBackVisible: false,
 							headerShown: false
 						}}
@@ -73,10 +87,16 @@ export default function RootLayout() {
 						<Stack.Screen
 							name='(tabs)'
 							options={{
+								animation: 'fade',
 								headerShadowVisible: false
 							}}
 						/>
-						<Stack.Screen name='scanner' />
+						<Stack.Screen
+							name='scanner/index'
+							options={{
+								animation: 'fade_from_bottom'
+							}}
+						/>
 					</Stack>
 					<Toast />
 				</BottomSheetModalProvider>

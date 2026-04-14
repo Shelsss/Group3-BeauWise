@@ -10,6 +10,7 @@ import Animated, {
 	withTiming
 } from 'react-native-reanimated';
 export default function Input({
+	ref,
 	children,
 	isPassword = false,
 	contentType,
@@ -69,6 +70,7 @@ export default function Input({
 			>
 				{children}
 				<TextInput
+					ref={ref}
 					value={value}
 					onChangeText={onChangeText}
 					style={{ flex: 1 }}

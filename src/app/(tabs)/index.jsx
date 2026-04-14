@@ -19,6 +19,15 @@ import ShieldCheck from '@/components/icons/ShieldCheckFill';
 import CustomHeader from '@/components/CustomHeader';
 import { useRef } from 'react';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { useQuery } from '@tanstack/react-query';
+import {
+	count,
+	doc,
+	getDoc,
+	getFirestore,
+	query
+} from '@react-native-firebase/firestore';
+import { auth } from '@/services/auth';
 
 const ICON_SIZE = 25;
 
@@ -27,7 +36,7 @@ const homeSchema = [
 		sectionTitle: 'Dashboard',
 		cards: [
 			{
-				headerContent: 24,
+				headerContent: (count = 0) => count,
 				footerContent: 'total scans',
 				themeColor: Colors.primary,
 				icon: () => <Camera color={Colors.primary} size={15} />
@@ -41,7 +50,7 @@ const homeSchema = [
 			},
 
 			{
-				headerContent: 12,
+				headerContent: (count = 0) => count,
 				footerContent: 'Legally verfied products',
 				themeColor: '#20C997',
 				icon: () => <ShieldCheck color={'#20C997'} size={15} />,
@@ -67,7 +76,7 @@ const homeSchema = [
 				footerContent: 'Quick OCR Capture',
 				themeColor: Colors.primary,
 				icon: () => <Focus color={'#fff'} size={24} />,
-				navigationTarget: '/scanner'
+				navigationTarget: 'scanner/scan'
 			},
 			{
 				headerContent: 'Manual Input',
@@ -75,7 +84,7 @@ const homeSchema = [
 				themeColor: Colors.backgroundColor,
 				icon: () => <Write color={Colors.primary} size={24} />,
 				hasBorder: true,
-				navigationTarget: '/scanner'
+				navigationTarget: 'scanner/details'
 			}
 		]
 	},
@@ -101,6 +110,16 @@ const homeSchema = [
 	}
 ];
 
+const db = getFirestore();
+
+const fetchData = async () => {
+	const queryOption = query(doc(db, 'users', auth.currentUser.uid, 'scanCount'));
+
+	const documentSnapshot = await getDoc(queryOption);
+
+	return documentSnapshot.data();
+};
+
 export default function HomeScreen() {
 	const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 	const route = useRouter();
@@ -109,6 +128,15 @@ export default function HomeScreen() {
 	const handleNavigate = (routeName) => () => {
 		route.push(routeName);
 	};
+
+	const { data, refetch } = useQuery({
+		queryKey: [auth.currentUser?.uid],
+		queryFn: fetchData,
+		enabled: !!isAuthenticated,
+		onError: (error) => {
+			console.log('Error fetching profile data:', error);
+		}
+	});
 
 	return (
 		<>
@@ -168,7 +196,9 @@ export default function HomeScreen() {
 														textAlign: 'center'
 													}}
 												>
-													{card.headerContent}
+													{typeof card.headerContent === 'function'
+														? card.headerContent(data?.scanHistory?.length)
+														: card.headerContent}
 												</Text>
 
 												<Text
@@ -229,7 +259,9 @@ export default function HomeScreen() {
 														paddingBottom: card?.isUniquePosition ? 9 : 0
 													}}
 												>
-													{card.headerContent}
+													{typeof card.headerContent === 'function'
+														? card.headerContent()
+														: card.headerContent}
 												</Text>
 
 												<Text

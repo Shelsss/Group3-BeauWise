@@ -11,7 +11,7 @@ import PrimaryButton from '@/components/PrimaryButton';
 import { Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { icons } from '@/constants/IconTheme';
-import { doc, getFirestore, updateDoc } from '@react-native-firebase/firestore';
+import { doc, getFirestore, setDoc, updateDoc } from '@react-native-firebase/firestore';
 import { auth } from '@/services/auth';
 
 const db = getFirestore();
@@ -23,6 +23,8 @@ export default function ProfilingSummary() {
 	const [selectedSection, setSelectedSection] = useState('');
 	const profileData = useProfilingStore((state) => state.profile);
 	const updateProfile = useProfilingStore((state) => state.setProfile);
+
+	const [isSaving, setIsSaving] = useState(false);
 
 	const router = useRouter();
 
@@ -42,6 +44,7 @@ export default function ProfilingSummary() {
 	const ConfirmButton = () => (
 		<Animated.View entering={FadeIn.duration(200).delay(800)}>
 			<PrimaryButton
+				disabled={isSaving}
 				styles={{
 					columnGap: 8
 				}}
@@ -55,9 +58,12 @@ export default function ProfilingSummary() {
 					marginBottom: bottom + confirmButtonMargin
 				}}
 				handlePress={async () => {
+					setIsSaving((prev) => !prev);
+
 					await updateDoc(doc(db, 'users', auth.currentUser.uid), {
 						profiling: profileData
 					});
+
 					router.dismissAll();
 					router.replace('(tabs)');
 				}}

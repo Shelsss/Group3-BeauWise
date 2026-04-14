@@ -25,7 +25,7 @@ export default function PrimaryButton({
 					shadowOpacity: 0.17,
 					shadowRadius: 3.05,
 					elevation: 4,
-					opacity: disabled ? 0.3 : 1
+					opacity: disabled ? 0.6 : 1
 				},
 				{ ...containerStyle }
 			]}

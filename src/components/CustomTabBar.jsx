@@ -109,7 +109,7 @@ export default function CustomTabBar({ state, descriptors, navigation, onTabPres
 			<TouchableOpacity
 				activeOpacity={0.7}
 				key='scanner-button'
-				onPress={() => router.push('/scanner')}
+				onPress={() => router.push('scanner')}
 				style={{
 					alignItems: 'center',
 					justifyContent: 'center',

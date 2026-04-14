@@ -1,6 +1,11 @@
 /* eslint-disable react-native/no-unused-styles */
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { CircleCheckBig, CircleAlert, TriangleAlert } from 'lucide-react-native';
+import {
+	CircleCheckBig,
+	CircleAlert,
+	TriangleAlert,
+	ChevronRight
+} from 'lucide-react-native';
 import { createAnimatedComponent, FadeIn } from 'react-native-reanimated';
 import Archive from '@/components/icons/ArchiveFill';
 import ShieldCheck from '@/components/icons/ShieldCheckFill';
@@ -9,9 +14,10 @@ import Camera from '@/components/icons/CameraFill';
 const AnimatedPressable = createAnimatedComponent(Pressable);
 const ICON_SIZE = 20;
 
-export default function Card({ title, time, status, type = 'default' }) {
+export default function Card({ title, time, status, type = 'default', onPress }) {
 	return (
 		<AnimatedPressable
+			onPress={onPress}
 			entering={FadeIn}
 			android_ripple={{ color: '#9797976a', foreground: true }}
 			style={[
@@ -35,6 +41,16 @@ export default function Card({ title, time, status, type = 'default' }) {
 					}}
 				>
 					<Archive size={20} color='#00ACC1' />
+				</View>
+			) : type === 'arrow' ? (
+				<View
+					style={{
+						backgroundColor: '#20C9971a',
+						padding: 15,
+						borderRadius: 100
+					}}
+				>
+					<ChevronRight size={20} color={Colors.textColor} />
 				</View>
 			) : type === 'fda' ? (
 				<View

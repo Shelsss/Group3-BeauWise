@@ -13,18 +13,19 @@ const schema = [
 			'It is recommended to use products with active notifications.'
 		]
 	},
-
 	{
 		type: 'invalid',
 		notes: [
 			'We could not verify a valid Certificate of Product Notification (CPN) or registered brand name matching your input in the FDA Philippines Database.',
-			`Please verify the spelling or try searching via the specific Notification Number (e.g., NN-10000...) found on the packaging. `,
+			`Please verify the spelling or try searching via the specific Notification Number (e.g., NN-10000...) found on the packaging.`,
 			'Exercise caution, as unverified products may be unregistered, counterfeit, or non-compliant with safety standards.'
 		]
 	}
 ];
 
 export default function CardResult({ result, resultType }) {
+	if (!result) return null;
+
 	return (
 		<Shadow stretch={true} distance={0.5} startColor='#4a4a4a2f' offset={[0, 0.5]}>
 			<View
@@ -35,9 +36,12 @@ export default function CardResult({ result, resultType }) {
 					padding: 24
 				}}
 			>
+				{/* PRODUCT NAME */}
 				<View>
 					<Text style={STYLES.cardHeaderTitle}>product name</Text>
-					<Text style={STYLES.cardDescription}>{result.productName}</Text>
+					<Text style={STYLES.cardDescription}>
+						{(result?.productName || 'No product data found').toUpperCase()}
+					</Text>
 				</View>
 
 				{resultType === 'valid' ? (
@@ -51,19 +55,16 @@ export default function CardResult({ result, resultType }) {
 }
 
 function CardResultCommon({ resultType }) {
-	const schemaResult = schema.find((item) => item.type === resultType);
+	const selected =
+		schema.find((item) => item.type === resultType) ||
+		schema.find((item) => item.type === 'invalid');
 
 	return (
 		<View style={{ rowGap: 12 }}>
-			{schemaResult.notes.map((note, index) => (
+			{selected.notes.map((note, index) => (
 				<View key={index} style={{ flexDirection: 'row', columnGap: 8 }}>
 					<Circle fill={'#000'} size={5} style={{ marginTop: 8 }} />
-					<Text
-						style={{
-							color: Colors.textColor,
-							lineHeight: 20
-						}}
-					>
+					<Text style={{ color: Colors.textColor, lineHeight: 20 }}>
 						{note}
 					</Text>
 				</View>
@@ -75,20 +76,29 @@ function CardResultCommon({ resultType }) {
 function CardResultValid({ result }) {
 	return (
 		<>
+			{/* COMPANY */}
 			<View>
 				<Text style={STYLES.cardHeaderTitle}>company</Text>
-				<Text style={STYLES.cardDescription}>{result.companyName}</Text>
+				<Text style={STYLES.cardDescription}>
+					{(result.company || '—').toUpperCase()}
+				</Text>
 			</View>
 
+			{/* VALIDITY */}
 			<View>
 				<Text style={STYLES.cardHeaderTitle}>validity period</Text>
-				<Text style={STYLES.cardDescription}>{result.validityPeriod}</Text>
+				<Text style={STYLES.cardDescription}>
+					{(result.validity || '—').toUpperCase()}
+				</Text>
 			</View>
 
+			{/* NOTIFICATION */}
 			<View style={{ borderTopWidth: 1, borderTopColor: Colors.textColor + '1a' }}>
 				<View style={{ paddingTop: 10 }}>
 					<Text style={STYLES.cardHeaderTitle}>notification no.</Text>
-					<Text style={STYLES.cardDescription}>{result.notificationNumber}</Text>
+					<Text style={STYLES.cardDescription}>
+						{(result.notificationNo || '—').toUpperCase()}
+					</Text>
 				</View>
 			</View>
 		</>
@@ -99,7 +109,10 @@ const STYLES = StyleSheet.create({
 	cardHeaderTitle: {
 		textTransform: 'uppercase',
 		color: Colors.textColor + '7a',
-		fontWeight: 600
+		fontWeight: '600'
 	},
-	cardDescription: { color: Colors.textColor, fontWeight: 600 }
+	cardDescription: {
+		color: Colors.textColor,
+		fontWeight: '600'
+	}
 });

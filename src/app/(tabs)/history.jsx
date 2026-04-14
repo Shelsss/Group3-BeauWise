@@ -10,6 +10,7 @@ import SearchFilter from '@/components/SearchFilter';
 import Colors from '@/constants/Colors';
 import PagePadding from '@/constants/PagePadding';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { router } from 'expo-router';
 
 import { useRef, useState } from 'react';
 import {
@@ -80,6 +81,10 @@ export default function HistoryScreen() {
 		Vibration.vibrate(50);
 	};
 
+	const handleScanHistory = () => {
+		router.push('scanner/results');
+		Vibration.vibrate(50);
+	};
 	return (
 		<View style={{ flex: 1 }}>
 			<TouchableWithoutFeedback
@@ -155,7 +160,12 @@ export default function HistoryScreen() {
 							sections={mockData}
 							keyExtractor={(item, index) => `${item.title}-${index}`}
 							renderItem={({ item }) => (
-								<Card time={item.time} status={item.status} title={item.title} />
+								<Card
+									onPress={handleScanHistory}
+									time={item.time}
+									status={item.status}
+									title={item.title}
+								/>
 							)}
 							stickySectionHeadersEnabled={true}
 							showsVerticalScrollIndicator={false}

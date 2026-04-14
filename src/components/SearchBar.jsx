@@ -2,10 +2,19 @@ import { Search, X } from 'lucide-react-native';
 import { StyleSheet, TextInput, View, Pressable } from 'react-native';
 import { useState } from 'react';
 
-export default function SearchBar({ handleQuery, style, placeholder = 'Search...' }) {
+export default function SearchBar({
+	handleQuery,
+	style,
+	placeholder = 'Search...',
+	closeQueryResults = null
+}) {
 	const [value, setValue] = useState('');
 
 	const handleChange = (value) => {
+		if (value.length <= 0 && closeQueryResults) {
+			closeQueryResults();
+		}
+
 		setValue(value);
 	};
 	return (

@@ -58,7 +58,9 @@ export const googleSignIn =
 				}
 
 				if (isSigningUp) {
-					await setDoc(doc(db, 'users', auth.currentUser.uid), {});
+					await setDoc(doc(db, 'users', auth.currentUser.uid), {
+						scanHistory: []
+					});
 					return true;
 				}
 
@@ -90,6 +92,8 @@ export const googleSignIn =
 				}
 			}
 
+			console.log(errorMessage);
+
 			Toast.show({
 				text1: errorMessage,
 				type: 'error'
@@ -107,7 +111,9 @@ export const signUp = async (email, password, userName) => {
 			displayName: userName
 		});
 
-		await setDoc(doc(db, 'users', user.user.uid), {});
+		await setDoc(doc(db, 'users', user.user.uid), {
+			scanHistory: []
+		});
 
 		return true;
 	} catch (error) {

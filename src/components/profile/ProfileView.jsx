@@ -41,7 +41,11 @@ export default function ProfileView({ isVisible }) {
 
 	const { data, refetch } = useQuery({
 		queryKey: [auth.currentUser?.uid],
-		queryFn: fetchData
+		queryFn: fetchData,
+		enabled: !!isAuthenticated,
+		onError: (error) => {
+			console.log('Error fetching profile data:', error);
+		}
 	});
 
 	const handlePresentModalPress = (section) => () => {
@@ -84,7 +88,7 @@ export default function ProfileView({ isVisible }) {
 								alignItems: 'center'
 							}}
 						>
-							{auth.currentUser.photoURL ? (
+							{auth?.currentUser?.photoURL ? (
 								<Image
 									cachePolicy='disk'
 									style={{
@@ -93,7 +97,7 @@ export default function ProfileView({ isVisible }) {
 										marginBottom: 16,
 										borderRadius: 30
 									}}
-									source={auth.currentUser.photoURL}
+									source={auth?.currentUser?.photoURL}
 								/>
 							) : (
 								<View
@@ -110,15 +114,15 @@ export default function ProfileView({ isVisible }) {
 							)}
 
 							<Text style={{ fontSize: 20, fontWeight: 600, color: Colors.textColor }}>
-								{auth.currentUser?.displayName}
+								{auth?.currentUser?.displayName}
 							</Text>
 							<Text style={{ fontSize: 14, color: Colors.textColor + '7a' }}>
-								{auth.currentUser?.email}
+								{auth?.currentUser?.email}
 							</Text>
 						</View>
 					</Shadow>
 
-					{data &&
+					{data?.profiling &&
 						Object.keys(profileData).map((section, index) => (
 							<EditCard
 								profileData={profileData}
@@ -156,7 +160,7 @@ export default function ProfileView({ isVisible }) {
 				</View>
 			)}
 
-			{data && (
+			{data?.profiling && (
 				<EditBottomSheet
 					profileData={data?.profiling}
 					editSheetModalRef={editSheetModalRef}

@@ -6,7 +6,7 @@ export default function Index() {
 	const isSignedIn = getAuth().currentUser;
 	const isProfilingComplete = useProfilingStore((state) => state.isProfilingComplete);
 	const path = !isSignedIn
-		? '/authentication/sign-in'
+		? '(tabs)'
 		: isProfilingComplete
 			? '(tabs)'
 			: 'profiling/index';

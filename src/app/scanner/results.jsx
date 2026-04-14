@@ -16,48 +16,10 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const mockData = [
+const ingredientsData = [
 	{
 		title: 'Restricted / Regulatory Warning',
-		data: [
-			{
-				status: 'restricted',
-				ingredientName: 'Hydroquinone',
-				ingredientDescription:
-					'According to the ASEAN Cosmetic Directive and FDA guidelines, this ingredient is restricted in cosmetics and should only be used under strict dermatological prescription and supervision.'
-			},
-			{
-				status: 'restricted',
-				ingredientName: 'Triclosan',
-				ingredientDescription:
-					'Restricted in many regions for use in leave-on cosmetic products due to potential regulatory safety concerns.'
-			},
-			{
-				status: 'restricted',
-				ingredientName: 'Hydroquinone',
-				ingredientDescription:
-					'According to the ASEAN Cosmetic Directive and FDA guidelines, this ingredient is restricted in cosmetics and should only be used under strict dermatological prescription and supervision.'
-			},
-			{
-				status: 'restricted',
-				ingredientName: 'Triclosan',
-				ingredientDescription:
-					'Restricted in many regions for use in leave-on cosmetic products due to potential regulatory safety concerns.'
-			},
-
-			{
-				status: 'restricted',
-				ingredientName: 'Hydroquinone',
-				ingredientDescription:
-					'According to the ASEAN Cosmetic Directive and FDA guidelines, this ingredient is restricted in cosmetics and should only be used under strict dermatological prescription and supervision.'
-			},
-			{
-				status: 'restricted',
-				ingredientName: 'Triclosan',
-				ingredientDescription:
-					'Restricted in many regions for use in leave-on cosmetic products due to potential regulatory safety concerns.'
-			}
-		]
+		data: []
 	},
 	{
 		title: 'Aligned with Your Profile',
@@ -79,57 +41,24 @@ const mockData = [
 		},
 		data: []
 	},
-
 	{
 		title: 'Unrecognized / Pending Verification',
 		data: []
 	},
-
 	{
 		title: 'Other Base Ingredients',
 		alternativeTitle: 'Component Overview',
 		alternativeDescription:
 			'Standard functions of the detected ingredients based on established cosmetic literature:',
-		data: [
-			{
-				status: 'other_based',
-				ingredientName: 'Water',
-				ingredientDescription: 'The primary solvent and base of the formula.'
-			},
-			{
-				status: 'other_based',
-				ingredientName: 'Propylene Glycol',
-				ingredientDescription: 'A common humectant and delivery agent.'
-			}
-		]
+		data: []
 	},
 	{
 		title: 'Suggested Ingredients to Explore',
 		description:
 			'Based on the preferences and concerns you selected during your profiling, here are some ingredients generally known in cosmetic literature to be beneficial:',
-		data: [
-			{
-				status: 'suggested',
-				ingredientName: 'Salicylic Acid',
-				ingredientDescription:
-					'Known to help manage breakouts by exfoliating inside the pore lining.'
-			},
-			{
-				status: 'suggested',
-				ingredientName: 'Niacinamide',
-				ingredientDescription:
-					'Has properties that support skin barrier health and help regulate the appearance of sebum.'
-			},
-
-			{
-				status: 'suggested',
-				ingredientName: 'Zinc PCA',
-				ingredientDescription:
-					'Frequently used in cosmetic formulations to help control excess oil and reduce redness.'
-			}
-		]
+		data: []
 	}
-];
+]
 
 const AnimatedSectionItem = ({ isVisible, children }) => {
 	const opacity = useSharedValue(0);
@@ -152,8 +81,14 @@ const AnimatedSectionItem = ({ isVisible, children }) => {
 
 // eslint-disable-next-line react/display-name
 const renderHeader = memo(() => {
-	const { name, brand, notes } = useGlobalSearchParams();
+	const { name, brand, notes, flaggedIngredients } = useGlobalSearchParams();
 	const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+	const flagged_ingredients = JSON.parse(flaggedIngredients);
+	ingredientsData[0].data = flagged_ingredients.filter((ingredient) => ingredient.status === 'restricted') || [];
+	ingredientsData[1].data = flagged_ingredients.filter((ingredient) => ingredient.status === 'aligned') || [];
+	ingredientsData[2].data = flagged_ingredients.filter((ingredient) => ingredient.status === 'attention') || [];
+	ingredientsData[3].data = flagged_ingredients.filter((ingredient) => ingredient.status === 'unrecognized') || [];
+	ingredientsData[4].data = flagged_ingredients.filter((ingredient) => ingredient.status === 'base') || [];
 
 	return (
 		<View style={{ paddingBottom: 20 }}>
@@ -270,7 +205,7 @@ export default function Results() {
 			<SectionList
 				ref={scrollViewRef}
 				showsVerticalScrollIndicator={false}
-				sections={mockData}
+				sections={ingredientsData}
 				keyExtractor={(item, index) => item.ingredientName + index}
 				onViewableItemsChanged={onViewableItemsChanged}
 				viewabilityConfig={viewabilityConfig}
@@ -349,7 +284,7 @@ export default function Results() {
 
 					const firstThreeItemsOnly = index < 3;
 					const succeedingItems = index >= 3;
-					const indexOfSection = mockData.indexOf(section);
+					const indexOfSection = ingredientsData.indexOf(section);
 					const showOnLastItem = numberOfItems - 1 === index;
 
 					const isActive = activeIndexSection === indexOfSection;

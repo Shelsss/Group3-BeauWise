@@ -12,9 +12,19 @@ import { X } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const brands = ['Brand 1', 'Brand 2', 'Brand 3', 'Brand 4', 'Brand 5'];
+// TODO: Add other brands from cosmeticcheck.app
+const brands = [
+    {
+        "value": "sunsilk",
+        "text": "Sunsilk"
+    },
+    {
+        "value": "head-shoulders",
+        "text": "Head and Shoulders"
+    }
+]
 
-const BatchBottomSheet = ({ batchSheetModalRef }) => {
+const BatchBottomSheet = ({ batchSheetModalRef, onBrandValueChanged }) => {
 	const [filter, setFilter] = useState(() => brands[0]);
 	const { bottom } = useSafeAreaInsets();
 	const { dismiss } = useBottomSheetModal();
@@ -36,6 +46,7 @@ const BatchBottomSheet = ({ batchSheetModalRef }) => {
 
 	const handlePress = (value) => () => {
 		setFilter(value);
+        onBrandValueChanged(value);
 	};
 
 	return (
@@ -73,7 +84,7 @@ const BatchBottomSheet = ({ batchSheetModalRef }) => {
 					>
 						{brands.map((item, index) => (
 							<Pressable
-								key={`${item.toLowerCase()}`}
+								key={`${item.value}`}
 								onPress={handlePress(item)}
 								style={{
 									borderRadius: 14,
@@ -91,7 +102,7 @@ const BatchBottomSheet = ({ batchSheetModalRef }) => {
 										textAlign: 'center'
 									}}
 								>
-									{item}
+									{item.text}
 								</Text>
 							</Pressable>
 						))}

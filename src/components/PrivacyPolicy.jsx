@@ -11,7 +11,8 @@ export default function Policy({ handleAgree }) {
 		<View style={{ overflow: 'hidden', zIndex: -1, paddingBottom: bottom + 10 }}>
 			<Text
 				style={{
-					fontSize: 22,
+					fontFamily: 'Outfit',
+					fontSize: 18,
 					color: Colors.textColor,
 					fontWeight: 700,
 					borderBottomWidth: 0.5,
@@ -32,13 +33,24 @@ export default function Policy({ handleAgree }) {
 			>
 				{PrivacyPolicy.map((item, index) => (
 					<View key={item.title}>
-						<Text style={{ fontWeight: 700, fontSize: 16, color: Colors.textColor }}>
+						<Text
+							style={{
+								fontFamily: 'Outfit',
+								fontWeight: 700,
+								fontSize: 16,
+								color: Colors.textColor
+							}}
+						>
 							{index + 1}. {item.title}
 						</Text>
 
 						<View style={{ rowGap: 20 }}>
 							<Text
-								style={{ color: Colors.textColor + '9a', lineHeight: 20 }}
+								style={{
+									fontFamily: 'Outfit',
+									color: Colors.textColor + '9a',
+									lineHeight: 20
+								}}
 								key={index}
 							>
 								{item.content}
@@ -63,7 +75,13 @@ export default function Policy({ handleAgree }) {
 											style={{ marginTop: 7 }}
 											size={6}
 										/>
-										<Text style={{ color: Colors.textColor + '9a', lineHeight: 20 }}>
+										<Text
+											style={{
+												fontFamily: 'Outfit',
+												color: Colors.textColor + '9a',
+												lineHeight: 20
+											}}
+										>
 											{content}
 										</Text>
 									</View>
@@ -74,7 +92,11 @@ export default function Policy({ handleAgree }) {
 						{item.additional_content && (
 							<View style={{ rowGap: 20, marginTop: 20 }}>
 								<Text
-									style={{ color: Colors.textColor + '9a', lineHeight: 20 }}
+									style={{
+										fontFamily: 'Outfit',
+										color: Colors.textColor + '9a',
+										lineHeight: 20
+									}}
 									key={index}
 								>
 									{item.additional_content}
@@ -85,10 +107,16 @@ export default function Policy({ handleAgree }) {
 				))}
 
 				<TouchableOpacity onPress={handleAgree} activeOpacity={0.5} style={STYLES.button}>
-					<Text style={{ fontSize: 16, fontWeight: 600, color: '#fff' }}>I Agree</Text>
+					<Text style={{ fontFamily: 'Outfit', color: '#fff' }}>I Agree</Text>
 				</TouchableOpacity>
 
-				<Text style={{ color: Colors.textColor + '7a', textAlign: 'center' }}>
+				<Text
+					style={{
+						fontFamily: 'Outfit',
+						color: Colors.textColor + '7a',
+						textAlign: 'center'
+					}}
+				>
 					By clicking "I Agree", you acknowledge that you have read and understood our
 					terms.
 				</Text>
@@ -106,6 +134,6 @@ const STYLES = StyleSheet.create({
 		justifyContent: 'center',
 		flexDirection: 'row',
 		backgroundColor: Colors.primary,
-		borderRadius: 16
+		borderRadius: 10
 	}
 });

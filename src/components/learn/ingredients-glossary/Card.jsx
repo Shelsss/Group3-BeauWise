@@ -11,51 +11,67 @@ export default function Card({
 	categories = ['Emollient', 'Antioxidant', 'Moisturizer']
 }) {
 	return (
-		<Shadow distance={1} stretch={true} startColor='#00000010' offset={[0, 1]}>
-			<TouchableOpacity
-				onPress={() => {
-					router.push({
-						pathname: `/learn/${category}/details`,
-						params: {
-							selectedItem: id
-						}
-					});
-				}}
-				activeOpacity={0.8}
-				style={{
-					borderRadius: 16,
-					padding: 20,
-					flexDirection: 'row',
-					alignItems: 'center',
-					flex: 1,
-					columnGap: 12,
-					backgroundColor: Colors.backgroundColor
-				}}
-			>
-				<View>
-					<Text style={{ color: Colors.textColor, fontSize: 16, fontWeight: 600 }}>
-						{title}
-					</Text>
-					<View style={{ flexDirection: 'row', alignItems: 'center' }}>
-						<>
-							<Text
-								numberOfLines={1}
-								ellipsizeMode='tail'
-								style={{
-									width: 250,
-									fontSize: 10,
-									color: Colors.textColor + '7a',
-									fontWeight: 500
-								}}
-							>
-								{categories.join('  •  ')}
-							</Text>
-						</>
-					</View>
-				</View>
+		<TouchableOpacity
+			onPress={() => {
+				router.push({
+					pathname: `/learn/${category}/details`,
+					params: {
+						selectedItem: id
+					}
+				});
+			}}
+			activeOpacity={0.8}
+			style={{
+				borderRadius: 16,
+				padding: 20,
+				flexDirection: 'row',
+				alignItems: 'center',
+				flex: 1,
+				columnGap: 12,
+				backgroundColor: Colors.backgroundColor,
 
-				<ChevronRight size={18} color={Colors.textColor} style={{ marginLeft: 'auto' }} />
-			</TouchableOpacity>
-		</Shadow>
+				shadowColor: '#00000042',
+				shadowOffset: {
+					width: 0,
+					height: 1
+				},
+				shadowOpacity: 0.2,
+				shadowRadius: 1.41,
+
+				elevation: 2
+			}}
+		>
+			<View>
+				<Text
+					style={{
+						fontFamily: 'Outfit',
+						color: Colors.textColor,
+						fontSize: 16,
+						fontWeight: 600
+					}}
+				>
+					{title}
+				</Text>
+				<View style={{ flexDirection: 'row', alignItems: 'center' }}>
+					<>
+						<Text
+							numberOfLines={1}
+							ellipsizeMode='tail'
+							style={{
+								fontFamily: 'Outfit',
+								width: 250,
+								fontSize: 10,
+								color: Colors.textColor + '7a',
+								fontWeight: 500
+							}}
+						>
+							{categories.join('  •  ')}
+						</Text>
+					</>
+				</View>
+			</View>
+
+			<ChevronRight size={18} color={Colors.textColor} style={{ marginLeft: 'auto' }} />
+		</TouchableOpacity>
 	);
 }

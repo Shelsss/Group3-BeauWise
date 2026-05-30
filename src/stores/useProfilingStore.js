@@ -1,13 +1,8 @@
+import Questionnaire from '@/constants/Questionnaire';
 import { create } from 'zustand';
-// import { persist, createJSONStorage } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 
 const initialProfileState = {
-	about_you: {
-		gender: '',
-		age: ''
-	},
-
 	the_wash_test: {
 		post_wash_feel: '',
 		pore_size: '',
@@ -21,7 +16,7 @@ const initialProfileState = {
 
 	acne_texture: {
 		breakout_frequency: '',
-		texture_concern: ''
+		texture_concern: []
 	},
 
 	environmental_factors: {
@@ -44,8 +39,8 @@ const initialProfileState = {
 	},
 
 	scalp_health: {
-		scalp_condition: '',
-		primary_concern: ''
+		scalp_condition: [],
+		primary_concern: []
 	},
 
 	hair_care_routine: {
@@ -58,10 +53,20 @@ const initialProfileState = {
 export const useProfilingStore = create(
 	immer((set) => ({
 		profile: initialProfileState,
-		setProfile: (section, key, value) =>
+		setProfile: (section, key, value, onSavingDB = false) =>
 			set((state) => {
 				if (Array.isArray(state.profile[section][key])) {
+					if (Array.isArray(value)) {
+						state.profile[section][key] = [...value];
+						return;
+					}
+
+					console.log(value);
+
 					const currentArray = state.profile[section][key];
+					const foo = Questionnaire.find((item) => item.section === section)
+						.questions.find(({ identifier }) => identifier === key)
+						.options.find(({ label }) => label.includes('None'));
 
 					if (currentArray.includes(value)) {
 						const updatedArray = currentArray.filter((item) => item !== value);
@@ -71,13 +76,13 @@ export const useProfilingStore = create(
 						return;
 					}
 
-					if (currentArray.includes('none_virgin_hair')) {
+					if (currentArray.includes(foo?.value)) {
 						state.profile[section][key] = currentArray.filter(
-							(item) => item !== 'none_virgin_hair'
+							(item) => item !== foo?.value
 						);
 					}
 
-					if (value === 'none_virgin_hair') {
+					if (value === foo?.value) {
 						state.profile[section][key] = [value];
 						return;
 					}
@@ -89,6 +94,9 @@ export const useProfilingStore = create(
 				state.profile[section][key] = value;
 			}),
 
+		// This will only be use if it already has a profiling data in db.
+		populateProfile: (data) => set(() => ({ profile: data })),
+
 		resetProfile: () => set(() => ({ profile: initialProfileState })),
 
 		isProfilingComplete: false,
@@ -96,6 +104,12 @@ export const useProfilingStore = create(
 
 		isInitialStepButtonActive: true,
 		setIsInitialStepButtonActive: (isInitialStepButtonActive) =>
-			set(() => ({ isInitialStepButtonActive }))
+			set(() => ({ isInitialStepButtonActive })),
+
+		showProfileZoom: false,
+		setShowProfileZoom: (showProfileZoom) => set(() => ({ showProfileZoom })),
+
+		imageZoomSrc: null,
+		setImageZoomSrc: (value) => set(() => ({ imageZoomSrc: value }))
 	}))
 );

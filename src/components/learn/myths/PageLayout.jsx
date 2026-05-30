@@ -5,10 +5,15 @@ import Accordion from './Accordion';
 
 export default function PageLayout({ item }) {
 	return (
-		<View>
+		<View
+			style={{
+				paddingTop: 28
+			}}
+		>
 			<View style={{ rowGap: 8 }}>
 				<Text
 					style={{
+						fontFamily: 'Outfit',
 						fontSize: 30,
 						fontWeight: 700,
 						color: Colors.primary,
@@ -18,7 +23,13 @@ export default function PageLayout({ item }) {
 				>
 					{item?.section_title}
 				</Text>
-				<Text style={{ color: Colors.textColor + '7a', textAlign: 'center' }}>
+				<Text
+					style={{
+						fontFamily: 'Outfit',
+						color: Colors.textColor + '7a',
+						textAlign: 'center'
+					}}
+				>
 					Tap a myth to reveal the scientific fact.
 				</Text>
 			</View>
@@ -37,23 +48,22 @@ export default function PageLayout({ item }) {
 
 const STYLES = StyleSheet.create({
 	tag: {
+		fontFamily: 'Outfit',
 		marginLeft: 20,
 		color: '#ff7a7c',
 		backgroundColor: Colors.backgroundColor,
 		paddingHorizontal: 8,
-		letterSpacing: 0.9,
 		paddingVertical: 2,
 		fontSize: 9,
 		textTransform: 'uppercase'
 	},
 
 	myth: {
+		fontFamily: 'Outfit',
 		marginLeft: 12,
 		marginVertical: 20,
 		width: 200,
 		color: Colors.textColor,
-
-		letterSpacing: 0.9,
 		fontSize: 12
 	}
 });

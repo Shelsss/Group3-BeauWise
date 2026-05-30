@@ -9,6 +9,7 @@ import {
 	Pressable,
 	StyleSheet,
 	Text,
+	TouchableOpacity,
 	TouchableWithoutFeedback,
 	View
 } from 'react-native';
@@ -20,9 +21,12 @@ import Info from '@/components/icons/Info';
 import AnimatedTabs from '@/components/AnimatedTabs';
 
 import { verifyProductByName, verifyProductByNN } from '@/services/fdaApiService';
-import { saveHistory } from '@/services/historyService';
-import { saveFdaHistory } from '@/services/historyService';
+import { saveHistory, saveFdaHistory } from '@/services/historyService';
+
 import { useAuthStore } from '@/stores/useAuthStore';
+import { fdaVerification } from '@/services/cloudFunctions';
+import Toast from 'react-native-toast-message';
+import { ActivityIndicator } from 'react-native-paper';
 
 const fdaSchema = [
 	{
@@ -42,99 +46,141 @@ export default function BatchScreen() {
 	const [query, setQuery] = useState('');
 	const router = useRouter();
 	const { bottom, top } = useSafeAreaInsets();
+	const [activeStatus, setActiveStatus] = useState(false);
 
 	const handleTabChange = (index) => {
 		setActiveTab(index);
 	};
-	const handleQuery = (value) => {
-	setQuery(value);
-};
+	const handleQuery = (value) => () => {
+		setQuery(value);
+	};
 
-const handlePress = async () => {
-	if (!query || query.trim() === "") return;
+	const handlePress = async () => {
+		const parsedQuery = query.trim();
 
-	let resultData = null;
-	let resultType = 'invalid';
+		if (!parsedQuery.length) {
+			Toast.show({
+				type: 'error',
+				position: 'bottom',
+				text1: 'This field cannot be left blank.'
+			});
 
-	const cleanQuery = query.trim();
-
-	try {
-		// 🔍 CALL API
-		if (activeTab === 0) {
-			resultData = await verifyProductByName(cleanQuery);
-		} else {
-			resultData = await verifyProductByNN(cleanQuery.toUpperCase());
+			return;
 		}
 
-		// 🛑 NO RESULT
-		if (!resultData) {
-			console.log("NO RESULT FROM API");
-			resultType = 'invalid';
+		if (parsedQuery[0].toLowerCase().startsWith('n') && activeTab === 0) {
+			Toast.show({
+				type: 'error',
+				position: 'bottom',
+				text1: 'Please enter a product name.'
+			});
+
+			return;
 		}
 
-	} catch (err) {
-		console.log("API ERROR:", err);
-		resultData = null;
-		resultType = 'invalid';
-	}
+		if (!parsedQuery[0].toLowerCase().startsWith('n') && activeTab === 1) {
+			Toast.show({
+				type: 'error',
+				position: 'bottom',
+				text1: 'Please enter valid notification number.'
+			});
 
-	// ✅ HANDLE ARRAY RESPONSE (some APIs return array)
-	if (Array.isArray(resultData)) {
-		resultData = resultData[0];
-	}
-
-	// ✅ DETECT VALID / EXPIRED
-	if (resultData) {
-		const expiry =
-			resultData.NOTIFICATION_VALIDITY ||
-			resultData.expiration_date ||
-			resultData.validityPeriod;
-
-		if (expiry) {
-			const today = new Date();
-			const expiryDate = new Date(expiry);
-
-			resultType = expiryDate < today ? 'expired' : 'valid';
-		} else {
-			resultType = 'valid';
+			return;
 		}
-	}
-const user = useAuthStore.getState().user;
 
-// ✅ SAVE TO FIRESTORE
-if (user) {
-	await saveFdaHistory(user.uid, {
-		productName: resultData?.productName,
-		notificationNo: resultData?.notificationNumber,
-		result: resultType
-	});
-}
+		let resultData = null;
+		let resultType = 'invalid';
 
-// 👉 THEN NAVIGATE
-router.push({
-	pathname: '/fda/results',
-	params: {
-		result: resultType,
-		data: JSON.stringify(resultData)
-	}
-});
-	// ✅ SAFE FIRESTORE SAVE (NO undefined)
-	await saveHistory({
-		query: cleanQuery,
-		type: activeTab === 0 ? 'name' : 'nn',
-		resultType: resultType || 'invalid',
-		resultData: resultData ?? {}
-	});
+		// setQuery((prev) => {
+		// 	if (parsedQuery[0].toLowerCase().startsWith('n')) {
+		// 		console.log('lol');
 
-	// 🚀 NAVIGATE
-	router.push({
-		pathname: '/fda/results',
-		params: {
-			result: resultType || 'invalid',
-			data: resultData ? JSON.stringify(resultData) : null
+		// 		return prev
+		// 			.trim()
+		// 			.toUpperCase()
+		// 			.split('')
+		// 			.filter((item) => item.trim() !== '')
+		// 			.join('');
+		// 	}
+
+		// 	return prev.trim();
+		// });
+
+		setActiveStatus((prev) => !prev);
+		try {
+			resultData = await fdaVerification(parsedQuery);
+
+			if (resultData?.error) {
+				throw new Error('FDA_SERVER_ERROR');
+			}
+			if (!resultData) {
+				console.log('NO RESULT FROM API');
+				resultType = 'invalid';
+			}
+		} catch (err) {
+			setActiveStatus(false);
+
+			if (err.message === 'FDA_SERVER_ERROR') {
+				Toast.show({
+					type: 'error',
+					text1: resultData.error,
+					position: 'bottom'
+				});
+			}
+
+			// console.log('API ERROR:', err);
+			// resultData = null;
+			// resultType = 'invalid';
+
+			return;
 		}
-	});
-};
+
+		if (Array.isArray(resultData)) {
+			resultData = resultData[0];
+		}
+
+		if (resultData) {
+			const expiry =
+				resultData.NOTIFICATION_VALIDITY ||
+				resultData.expiration_date ||
+				resultData.validityPeriod;
+
+			if (expiry) {
+				const today = new Date();
+				const expiryDate = new Date(expiry);
+
+				resultType = expiryDate < today ? 'expired' : 'valid';
+			} else {
+				resultType = 'valid';
+			}
+		}
+		const user = useAuthStore.getState().user;
+
+		if (user) {
+			await saveFdaHistory(user.uid, {
+				productName: resultData?.productName,
+				notificationNo: resultData?.notificationNumber,
+				result: resultType
+			});
+		}
+
+		router.push({
+			pathname: '/fda/results',
+			params: {
+				result: resultType,
+				data: JSON.stringify(resultData)
+			}
+		});
+
+		await saveHistory({
+			query: parsedQuery,
+			type: activeTab === 0 ? 'name' : 'nn',
+			resultType: resultType || 'invalid',
+			resultData: resultData ?? {}
+		});
+
+		setActiveStatus(false);
+	};
 
 	return (
 		<TouchableWithoutFeedback
@@ -152,12 +198,12 @@ router.push({
 						flex: 1,
 						rowGap: 40,
 
-						paddingHorizontal: 24,
-						marginBottom: bottom + 20
+						marginBottom: bottom + 60
 					}}
 				>
 					<Text
 						style={{
+							fontFamily: 'Outfit',
 							paddingTop: top + 10,
 							color: Colors.textColor + '7a',
 							fontWeight: 400,
@@ -174,67 +220,81 @@ router.push({
 						<Fda size={250} />
 					</View>
 
-					<Shadow
-						stretch={true}
-						distance={2}
-						startColor='#00000010'
-						offset={[0, 1]}
-						containerStyle={{
-							width: '100%'
+					<View
+						style={{
+							backgroundColor: Colors.backgroundColor,
+							paddingTop: 14,
+							paddingHorizontal: 20,
+							paddingBottom: 20,
+							borderRadius: 24,
+							rowGap: 24,
+
+							shadowColor: '#000000a1',
+							shadowOffset: {
+								width: 0,
+								height: 1
+							},
+							shadowOpacity: 0.18,
+							shadowRadius: 1.0,
+
+							elevation: 1
 						}}
 					>
-						<View
-							style={{
-								backgroundColor: Colors.backgroundColor,
-								padding: 16,
-								borderRadius: 24,
-								rowGap: 24
-							}}
-						>
-							<AnimatedTabs
-								tabs={[fdaSchema[0].name, fdaSchema[1].name]}
-								currentIndex={activeTab}
-								handleTabChange={handleTabChange}
-							/>
+						<AnimatedTabs
+							tabs={[fdaSchema[0].name, fdaSchema[1].name]}
+							currentIndex={activeTab}
+							handleTabChange={handleTabChange}
+						/>
 
-							<SearchBar
-	handleQuery={handleQuery}
-	placeholder={fdaSchema[activeTab].placeholder}
-/>
-							<View style={{ flexDirection: 'row' }}>
-								<View style={{ marginTop: 3, marginRight: 4 }}>
-									<Info size={11} color={Colors.primary} />
-								</View>
+						<SearchBar
+							handleQuery={handleQuery}
+							placeholder={fdaSchema[activeTab].placeholder}
+						/>
 
-								<Text
-									style={{
-										fontSize: 12,
-										color: Colors.textColor + '7a',
-										width: 260
-									}}
-								>
-									Tip: Enter the exact product name as it appears on the packaging for
-									better results.
-								</Text>
+						<View style={{ flexDirection: 'row' }}>
+							<View style={{ marginTop: 3, marginRight: 4 }}>
+								<Info size={11} color={Colors.primary} />
 							</View>
 
-							{/* This should be a primary button component */}
+							<Text
+								style={{
+									fontFamily: 'Outfit',
+									fontSize: 12,
+									color: Colors.textColor + '7a',
+									width: 260
+								}}
+							>
+								Tip:{' '}
+								{activeTab === 0
+									? 'Enter the exact product name as it appears on the packaging for better results.'
+									: `Enter the exact code including the 'NN-' prefix usually found on the back label.`}
+							</Text>
+						</View>
 
-							<Shadow stretch={true} distance={1} startColor='#0000002f' offset={[0, 1]}>
-								<Pressable
-									onPress={handlePress}
-									style={{
-										columnGap: 12,
-										flexDirection: 'row',
-										justifyContent: 'center',
-										alignItems: 'center',
-										backgroundColor: Colors.primary,
-										padding: 16,
-										borderRadius: 16
-									}}
-								>
+						{/* This should be a primary button component */}
+
+						<TouchableOpacity
+							activeOpacity={0.5}
+							disabled={activeStatus}
+							onPress={handlePress}
+							style={{
+								columnGap: 6,
+								flexDirection: 'row',
+								justifyContent: 'center',
+								alignItems: 'center',
+								backgroundColor: Colors.primary,
+								padding: 16,
+								borderRadius: 8,
+								opacity: activeStatus ? 0.6 : 1
+							}}
+						>
+							{activeStatus ? (
+								<ActivityIndicator animating={true} color={'#fff'} />
+							) : (
+								<>
 									<Text
 										style={{
+											fontFamily: 'Outfit',
 											fontSize: 16,
 											fontWeight: 600,
 											color: Colors.backgroundColor
@@ -243,10 +303,10 @@ router.push({
 										Verify Product
 									</Text>
 									<CircleCheck size={16} color={Colors.backgroundColor} />
-								</Pressable>
-							</Shadow>
-						</View>
-					</Shadow>
+								</>
+							)}
+						</TouchableOpacity>
+					</View>
 				</View>
 			</View>
 		</TouchableWithoutFeedback>

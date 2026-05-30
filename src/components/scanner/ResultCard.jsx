@@ -32,8 +32,8 @@ export default function ResultCard({ status, name, description }) {
 		>
 			<View style={{ marginTop: 4 }}>
 				{status === 'restricted' && <AlertFill size={iconSize} color='#ff8183' />}
-				{status === 'other_based' && <Flask size={iconSize} color={Colors.primary} />}
-				{status === 'needs_attention' && <WarnFill size={iconSize} color='#ffc53d' />}
+				{status === 'based' && <Flask size={iconSize} color={Colors.primary} />}
+				{status === 'attention' && <WarnFill size={iconSize} color='#ffc53d' />}
 				{status === 'unrecognized' && (
 					<Question size={iconSize} color={Colors.textColor} />
 				)}

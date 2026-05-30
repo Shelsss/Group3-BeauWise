@@ -143,32 +143,24 @@ export default function CustomTabBar({ state, descriptors, navigation, onTabPres
 	return (
 		<View
 			style={{
-				backgroundColor: 'transparent',
-				position: 'absolute',
-				bottom: 0,
-				left: 0,
-				right: 0
+				backgroundColor: 'transparent'
+				// position: 'absolute',
+				// bottom: 0,
+				// left: 0,
+				// right: 0
 			}}
 		>
-			<Shadow
-				style={{ flex: 1 }}
-				stretch={true}
-				distance={4}
-				startColor='#00000010'
-				offset={[0, 0]}
+			<View
+				style={{
+					flexDirection: 'row',
+					borderTopLeftRadius: 20,
+					borderTopRightRadius: 20,
+					backgroundColor: Colors.backgroundColor
+				}}
 			>
-				<View
-					style={{
-						flexDirection: 'row',
-						borderTopLeftRadius: 20,
-						borderTopRightRadius: 20,
-						backgroundColor: Colors.backgroundColor
-					}}
-				>
-					<ScannerButton />
-					{tabItems}
-				</View>
-			</Shadow>
+				<ScannerButton />
+				{tabItems}
+			</View>
 		</View>
 	);
 }

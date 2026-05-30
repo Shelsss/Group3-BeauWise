@@ -2,15 +2,19 @@ import { View, Text } from 'react-native';
 
 import { useProfilingStore } from '@/stores/useProfilingStore';
 import OptionItem from './profiling/OptionItem';
+
 export default function SingleChoiceQuestion({
 	options,
 	choiceLabel,
 	section,
 	questionIdentifier,
-	selectedGender,
-	questionId,
-	questionCount
+
+	questionId
 }) {
+	const profoo = useProfilingStore((state) => state.profile);
+
+	console.log(profoo);
+
 	const updateProfile = useProfilingStore((state) => state.setProfile);
 
 	const currentChoice = useProfilingStore(
@@ -34,9 +38,9 @@ export default function SingleChoiceQuestion({
 		>
 			<Text
 				style={{
-					textTransform: 'uppercase',
-					fontSize: 13,
-					fontWeight: '800'
+					fontFamily: 'Outfit',
+					fontSize: 12,
+					fontWeight: '600'
 				}}
 			>
 				{choiceLabel}
@@ -61,7 +65,6 @@ export default function SingleChoiceQuestion({
 							isSelected={isSelected}
 							handlePress={handlePress}
 							currentSection={section}
-							selectedGender={selectedGender}
 							questionId={questionId}
 						/>
 					);

@@ -15,20 +15,18 @@ export default function CreateAccountButton() {
 				alignItems: 'center',
 				backgroundColor: Colors.primary,
 				padding: 16,
-				borderRadius: 16
+				borderRadius: 10
 			}}
 		>
 			<View>
 				<Text
-					style={{
-						fontWeight: 600,
-						color: Colors.backgroundColor
-					}}
+					style={{ fontFamily: 'Outfit', fontWeight: 600, color: Colors.backgroundColor }}
 				>
 					Create Your Account
 				</Text>
 				<Text
 					style={{
+						fontFamily: 'Outfit',
 						fontSize: 12,
 						color: Colors.backgroundColor,
 						marginLeft: 'auto'

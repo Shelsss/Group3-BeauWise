@@ -2,24 +2,15 @@ import Colors from '@/constants/Colors';
 import PagePadding from '@/constants/PagePadding';
 import { logOut } from '@/services/auth';
 import { useAuthStore } from '@/stores/useAuthStore';
-import {
-	BottomSheetBackdrop,
-	BottomSheetModal,
-	BottomSheetView,
-	useBottomSheetModal
-} from '@gorhom/bottom-sheet';
+
 import { router } from 'expo-router';
 import { ChevronRight, LockKeyhole, LogOut } from 'lucide-react-native';
-import { useCallback, useEffect, useRef } from 'react';
+import { useState } from 'react';
 
-import {
-	View,
-	Text,
-	StyleSheet,
-	TouchableOpacity,
-	BackHandler,
-	useWindowDimensions
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Modal, Portal } from 'react-native-paper';
+import Lock2 from '../icons/hugeicons/Lock2';
+import { useProfilingStore } from '@/stores/useProfilingStore';
 
 const settingSchema = [
 	{
@@ -88,14 +79,16 @@ const settingSchema = [
 ];
 
 export default function SettingsView({ isVisible }) {
-	const { height } = useWindowDimensions();
 	const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-	const modalRef = useRef(null);
-	const { dismiss } = useBottomSheetModal();
+	const resetProfile = useProfilingStore((state) => state.resetProfile);
+	const [visible, setVisible] = useState(false);
+
+	const showModal = () => setVisible(true);
+	const hideModal = () => setVisible(false);
 
 	const handlePress = (name, action) => () => {
 		if (name === 'Log Out') {
-			modalRef.current.present();
+			showModal();
 			return;
 		}
 
@@ -104,30 +97,9 @@ export default function SettingsView({ isVisible }) {
 
 	const handleSignOut = async () => {
 		await logOut();
-		dismiss();
+		resetProfile();
+		hideModal();
 	};
-
-	useEffect(() => {
-		const backAction = () => {
-			return dismiss();
-		};
-
-		const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
-
-		return () => backHandler.remove();
-	}, []);
-
-	const renderBackdrop = useCallback(
-		(props) => (
-			<BottomSheetBackdrop
-				pressBehavior={'none'}
-				{...props}
-				opacity={0.7}
-				disappearsOnIndex={-1}
-			/>
-		),
-		[]
-	);
 
 	return (
 		<>
@@ -151,11 +123,10 @@ export default function SettingsView({ isVisible }) {
 									onPress={() => router.push('authentication/sign-in')}
 									style={[STYLES.itemStyle]}
 								>
-									<LockKeyhole
-										color={Colors.textColor}
-										size={14}
-										style={{ marginRight: 8 }}
-									/>
+									<View style={{ marginRight: 8 }}>
+										<Lock2 color={Colors.textColor} size={14} />
+									</View>
+
 									<Text style={[STYLES.itemTextStyle]}>Sign In / Create Account</Text>
 									<ChevronRight size={14} />
 								</TouchableOpacity>
@@ -195,112 +166,122 @@ export default function SettingsView({ isVisible }) {
 					);
 				})}
 
-				<Text style={{ color: Colors.textColor + '7a', textAlign: 'center' }}>
+				<Text
+					style={{
+						color: Colors.textColor + '7a',
+						textAlign: 'center',
+						fontFamily: 'Outfit'
+					}}
+				>
 					BeauWise Version 1.0.0 {!isAuthenticated && '(Guest Mode)'}
 				</Text>
 			</View>
 
-			<BottomSheetModal
-				backdropComponent={renderBackdrop}
-				containerStyle={{ marginHorizontal: PagePadding.config.paddingHorizontal }}
-				backgroundStyle={{
-					borderRadius: 20
-				}}
-				detached={true}
-				bottomInset={height - 550}
-				enableDynamicSizing={true}
-				ref={modalRef}
-				handleIndicatorStyle={{
-					display: 'none'
-				}}
-				enableOverDrag={false}
-				enablePanDownToClose={false}
-			>
-				<BottomSheetView
+			<Portal>
+				<Modal
 					style={{
-						paddingHorizontal: 12,
-						paddingBottom: 14,
-						rowGap: 20
+						marginHorizontal: PagePadding.config.paddingHorizontal
 					}}
+					visible={visible}
+					onDismiss={hideModal}
+					dismissable={false}
+					dismissableBackButton={true}
 				>
 					<View
 						style={{
-							backgroundColor: '#ff4D4f1a',
+							borderRadius: 20,
 							padding: 20,
-							borderRadius: 40,
-							alignSelf: 'center'
+							rowGap: 20,
+							backgroundColor: Colors.backgroundColor
 						}}
 					>
-						<LogOut size={28} color={'#ff4D4f'} />
-					</View>
-
-					<View
-						style={{
-							justifyContent: 'center',
-							alignItems: 'center'
-						}}
-					>
-						<Text style={{ color: '#000', fontWeight: 700, fontSize: 24 }}>
-							Log Out of BeauWise?
-						</Text>
-						<Text
+						<View
 							style={{
-								lineHeight: 24,
-
-								width: '80%',
-								textAlign: 'center',
-								fontSize: 12,
-								color: Colors.textColor + '7a'
+								backgroundColor: '#ff4D4f1a',
+								padding: 20,
+								borderRadius: 40,
+								alignSelf: 'center'
 							}}
 						>
-							Are you sure you want to end your current session? You will need to enter
-							your email and password to access your profile, scan history, and
-							personalized recommendations again.
-						</Text>
-					</View>
+							<LogOut size={28} color={'#ff4D4f'} />
+						</View>
 
-					<View style={{ rowGap: 10 }}>
-						<TouchableOpacity
-							onPress={handleSignOut}
+						<View
 							style={{
-								backgroundColor: '#ff4D4f',
-								paddingVertical: 16,
-								borderRadius: 10
+								justifyContent: 'center',
+								alignItems: 'center'
 							}}
 						>
 							<Text
 								style={{
-									color: '#fff',
-									textAlign: 'center',
-									fontWeight: 600
-								}}
-							>
-								Log Out
-							</Text>
-						</TouchableOpacity>
-
-						<TouchableOpacity
-							onPress={() => dismiss()}
-							style={{
-								backgroundColor: '#3e3579' + '1a',
-								paddingVertical: 16,
-								borderRadius: 10
-							}}
-						>
-							<Text
-								style={{
+									fontFamily: 'Outfit',
 									color: '#000',
-									fontWeight: 600,
-
-									textAlign: 'center'
+									fontWeight: 700,
+									fontSize: 24
 								}}
 							>
-								Cancel
+								Log Out of BeauWise?
 							</Text>
-						</TouchableOpacity>
+							<Text
+								style={{
+									lineHeight: 22,
+									fontFamily: 'Outfit',
+									width: '80%',
+									textAlign: 'center',
+									fontSize: 12,
+									color: Colors.textColor + '7a'
+								}}
+							>
+								Are you sure you want to end your current session? You will need to enter
+								your email and password again.
+							</Text>
+						</View>
+
+						<View style={{ rowGap: 10 }}>
+							<TouchableOpacity
+								onPress={handleSignOut}
+								style={{
+									backgroundColor: '#ff4D4f',
+									paddingVertical: 16,
+									borderRadius: 10
+								}}
+							>
+								<Text
+									style={{
+										fontFamily: 'Outfit',
+										color: '#fff',
+										textAlign: 'center',
+										fontWeight: 600
+									}}
+								>
+									Log Out
+								</Text>
+							</TouchableOpacity>
+
+							<TouchableOpacity
+								onPress={hideModal}
+								style={{
+									backgroundColor: '#3e3579' + '1a',
+									paddingVertical: 16,
+									borderRadius: 10
+								}}
+							>
+								<Text
+									style={{
+										fontFamily: 'Outfit',
+										color: '#000',
+										fontWeight: 600,
+
+										textAlign: 'center'
+									}}
+								>
+									Cancel
+								</Text>
+							</TouchableOpacity>
+						</View>
 					</View>
-				</BottomSheetView>
-			</BottomSheetModal>
+				</Modal>
+			</Portal>
 		</>
 	);
 }
@@ -315,6 +296,7 @@ const STYLES = StyleSheet.create({
 	},
 
 	titleStyle: {
+		fontFamily: 'Outfit',
 		fontSize: 18,
 		fontWeight: '600',
 		color: Colors.textColor
@@ -341,6 +323,7 @@ const STYLES = StyleSheet.create({
 	},
 
 	itemTextStyle: {
+		fontFamily: 'Outfit',
 		fontSize: 16,
 		fontWeight: '400',
 		color: Colors.textColor,

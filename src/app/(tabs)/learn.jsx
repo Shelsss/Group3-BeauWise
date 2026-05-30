@@ -8,6 +8,8 @@ import { useRef } from 'react';
 import Card from '@/components/learn/index/Card';
 import { useQuery } from '@tanstack/react-query';
 import { getFirestore, collection, getDocs } from '@react-native-firebase/firestore';
+import { Swing } from 'react-native-animated-spinkit';
+import Retry from '@/components/Retry';
 
 const db = getFirestore();
 const collectionRef = collection(db, 'learn_metadata');
@@ -20,10 +22,15 @@ const fetchLearnData = async () => {
 export default function LearnScreen() {
 	const scrollViewRef = useRef(null);
 
-	const { data, isLoading, error } = useQuery({
+	const { data, isLoading, isError, isRefetchError, refetch, isRefetching } = useQuery({
 		queryKey: ['learn_metadata'],
 		queryFn: fetchLearnData
 	});
+
+	const retry = () =>
+		refetch({
+			throwOnError: true
+		});
 
 	return (
 		<View style={{ flex: 1 }}>
@@ -31,82 +38,115 @@ export default function LearnScreen() {
 				<CustomHeader title={'Learn'} />
 			</View>
 
-			<ScrollView
-				ref={scrollViewRef}
-				onScroll={({ nativeEvent }) => {
-					if (nativeEvent.contentOffset.y < 0) {
-						scrollViewRef.current?.scrollTo({ x: 0, y: 0 });
-					}
-				}}
-				showsVerticalScrollIndicator={false}
-				contentContainerStyle={{
-					paddingHorizontal: PagePadding.config.paddingHorizontal,
-					paddingBottom: PagePadding.config.paddingBottom,
-					paddingTop: PagePadding.config.paddingTop
-				}}
-			>
-				<View style={{ marginBottom: 20 }}>
-					<Text
-						style={{
-							fontSize: 24,
-							fontWeight: 700,
-							color: Colors.textColor
-						}}
-					>
-						The BeauWise Library
-					</Text>
-					<Text
-						style={{
-							lineHeight: 22,
-							letterSpacing: 0.9,
-							color: Colors.textColor + '7a'
-						}}
-					>
-						Understand your cosmetic ingredients backed by dermatological data.
-					</Text>
+			{(isError || isRefetchError) && (
+				<View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+					<Retry refetch={retry} />
 				</View>
-
+			)}
+			{isLoading || isRefetching ? (
 				<View
 					style={{
-						rowGap: 26
-					}}
-				>
-					{data?.map((item) => (
-						<Card
-							key={item.tag}
-							title={item.label}
-							description={item.description}
-							tag={item.tag}
-							routeTarget={item.route_target}
-							buttonLabel={item.button_label}
-						/>
-					))}
-				</View>
+						flex: 1,
+						padding: 18,
+						borderRadius: 10,
 
-				<View
-					style={{
-						backgroundColor: '#e8f5e9',
-						padding: 16,
-						borderRadius: 16,
-						marginTop: 18
+						justifyContent: 'center',
+						alignItems: 'center',
+						rowGap: 8
 					}}
 				>
-					<Text style={{ fontWeight: 600, color: Colors.textColor }}>
-						Cosmetic Literacy Notice
-					</Text>
+					<Swing size={28} color={Colors.primary} />
 					<Text
 						style={{
-							fontSize: 12,
-							color: Colors.textColor + '9a'
+							fontFamily: 'Outfit',
+							fontWeight: 500
 						}}
 					>
-						The information in this module is sourced from established cosmetic literature
-						and guidelines. It is strictly for educational purposes and does not replace
-						professional medical advice. For clinical skin concerns or severe reactions,
-						always consult a board-certified dermatologist.
+						Loading...
 					</Text>
 				</View>
-			</ScrollView>
+			) : (
+				<ScrollView
+					ref={scrollViewRef}
+					onScroll={({ nativeEvent }) => {
+						if (nativeEvent.contentOffset.y < 0) {
+							scrollViewRef.current?.scrollTo({ x: 0, y: 0 });
+						}
+					}}
+					showsVerticalScrollIndicator={false}
+					contentContainerStyle={{
+						paddingHorizontal: PagePadding.config.paddingHorizontal,
+						paddingBottom: 40,
+						paddingTop: PagePadding.config.paddingTop
+					}}
+				>
+					<View style={{ marginBottom: 20 }}>
+						<Text
+							style={{
+								fontFamily: 'Outfit',
+								fontSize: 18,
+								fontWeight: 700,
+								color: Colors.textColor
+							}}
+						>
+							The BeauWise Library
+						</Text>
+						<Text
+							style={{
+								lineHeight: 20,
+								fontFamily: 'Outfit',
+								color: Colors.textColor + '7a'
+							}}
+						>
+							Understand your cosmetic ingredients backed by dermatological data.
+						</Text>
+					</View>
+
+					<View
+						style={{
+							rowGap: 26
+						}}
+					>
+						{data?.map((item) => (
+							<Card
+								key={item.tag}
+								title={item.label}
+								description={item.description}
+								tag={item.tag}
+								routeTarget={item.route_target}
+								buttonLabel={item.button_label}
+							/>
+						))}
+					</View>
+
+					<View
+						style={{
+							backgroundColor: '#e8f5e9',
+							padding: 16,
+							borderRadius: 16,
+							marginTop: 18
+						}}
+					>
+						<Text
+							style={{ fontWeight: 600, color: Colors.textColor, fontFamily: 'Outfit' }}
+						>
+							Cosmetic Literacy Notice
+						</Text>
+						<Text
+							style={{
+								fontFamily: 'Outfit',
+								fontSize: 12,
+								color: Colors.textColor + '9a'
+							}}
+						>
+							The information in this module is sourced from established cosmetic
+							literature and guidelines. It is strictly for educational purposes and does
+							not replace professional medical advice. For clinical skin concerns or
+							severe reactions, always consult a board-certified dermatologist.
+						</Text>
+					</View>
+				</ScrollView>
+			)}
 		</View>
 	);
 }

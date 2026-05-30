@@ -24,8 +24,9 @@ export default function PressableBadge({ label, handlePress, activeCondition }) 
 		>
 			<Animated.Text
 				style={{
+					fontFamily: 'Outfit',
 					color: activeCondition ? Colors.primary : '#646464',
-					fontSize: 14,
+					fontSize: 12,
 					fontWeight: activeCondition ? '600' : '500',
 					transitionDuration: 200
 				}}

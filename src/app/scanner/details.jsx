@@ -152,8 +152,19 @@ export default function ScannerDetails() {
 						marginVertical: 20
 					}}
 				>
-					<Text style={{ fontSize: 12, color: Colors.textColor, lineHeight: 18 }}>
-						<Text style={{ fontWeight: 600, color: Colors.textColor }}>Tip: </Text>
+					<Text
+						style={{
+							fontFamily: 'Outfit',
+							fontSize: 12,
+							color: Colors.textColor,
+							lineHeight: 18
+						}}
+					>
+						<Text
+							style={{ fontFamily: 'Outfit', fontWeight: 600, color: Colors.textColor }}
+						>
+							Tip:{' '}
+						</Text>
 						Search and add ingredients exactly as they appear on the product label. Press
 						'Enter' or select from the list to add each ingredient as a tag.
 					</Text>
@@ -186,7 +197,7 @@ export default function ScannerDetails() {
 						]}
 					>
 						{queryResult?.length <= 0 && (
-							<Text style={{ textAlign: 'center', fontSize: 10 }}>
+							<Text style={{ fontFamily: 'Outfit', textAlign: 'center', fontSize: 10 }}>
 								No results found. Please try a different search term.
 							</Text>
 						)}
@@ -203,11 +214,15 @@ export default function ScannerDetails() {
 								key={item}
 								style={{ flexDirection: 'row', alignItems: 'center' }}
 							>
-								<Text style={{ color: Colors.textColor, fontWeight: 800, width: 180 }}>
+								<Text
+									style={{
+										fontFamily: 'Outfit',
+										color: Colors.textColor,
+										fontWeight: 800,
+										width: 180
+									}}
+								>
 									{item}
-								</Text>
-								<Text style={{ fontStyle: 'italic', marginLeft: 'auto', fontSize: 10 }}>
-									Tap to add ingredient
 								</Text>
 							</TouchableOpacity>
 						))}
@@ -215,7 +230,9 @@ export default function ScannerDetails() {
 				</View>
 
 				<View style={{ rowGap: 6 }}>
-					<Text style={{ fontSize: 18, fontWeight: 700 }}>Ingredients</Text>
+					<Text style={{ fontFamily: 'Outfit', fontSize: 18, fontWeight: 700 }}>
+						Ingredients
+					</Text>
 					<View
 						style={{
 							alignItems: 'flex-start',
@@ -227,7 +244,7 @@ export default function ScannerDetails() {
 						}}
 					>
 						{ingredients.length === 0 && (
-							<Text style={{ color: Colors.textColor + '7a' }}>
+							<Text style={{ fontFamily: 'Outfit', color: Colors.textColor + '7a' }}>
 								No ingredients listed. Search to add.
 							</Text>
 						)}
@@ -246,6 +263,7 @@ export default function ScannerDetails() {
 				<View style={{ marginTop: 25 }}>
 					<Text
 						style={{
+							fontFamily: 'Outfit',
 							fontSize: 18,
 							fontWeight: 700
 						}}
@@ -258,13 +276,14 @@ export default function ScannerDetails() {
 							<View style={STYLES.field}>
 								<Text
 									style={{
+										fontFamily: 'Outfit',
 										fontWeight: 500
 									}}
 									onPress={() => productNameRef.current.focus()}
 								>
 									Product Name
 								</Text>
-								<Text style={{ color: 'red' }}>*</Text>
+								<Text style={{ fontFamily: 'Outfit', color: 'red' }}>*</Text>
 							</View>
 
 							<Controller
@@ -289,13 +308,16 @@ export default function ScannerDetails() {
 							<View style={STYLES.field}>
 								<Text
 									style={{
+										fontFamily: 'Outfit',
 										fontWeight: 500
 									}}
 									onPress={() => brandRef.current.focus()}
 								>
 									Brand
 								</Text>
-								<Text style={{ color: Colors.textColor + '7a' }}>(Optional)</Text>
+								<Text style={{ fontFamily: 'Outfit', color: Colors.textColor + '7a' }}>
+									(Optional)
+								</Text>
 							</View>
 
 							<Controller
@@ -316,6 +338,7 @@ export default function ScannerDetails() {
 							<View style={STYLES.field}>
 								<Text
 									style={{
+										fontFamily: 'Outfit',
 										fontWeight: 500
 									}}
 									onPress={() => notesRef.current.focus()}
@@ -354,6 +377,7 @@ export default function ScannerDetails() {
 					>
 						<Text
 							style={{
+								fontFamily: 'Outfit',
 								fontSize: 16,
 								fontWeight: 600,
 								color: Colors.backgroundColor
@@ -386,6 +410,7 @@ export default function ScannerDetails() {
 						<View style={{ paddingBottom: 18 }}>
 							<Text
 								style={{
+									fontFamily: 'Outfit',
 									textAlign: 'center',
 									fontSize: 18,
 									fontWeight: 700,
@@ -394,7 +419,13 @@ export default function ScannerDetails() {
 							>
 								No ingredients are listed
 							</Text>
-							<Text style={{ textAlign: 'center', color: Colors.textColor + '9a' }}>
+							<Text
+								style={{
+									fontFamily: 'Outfit',
+									textAlign: 'center',
+									color: Colors.textColor + '9a'
+								}}
+							>
 								Please add some ingredients to analyze
 							</Text>
 						</View>
@@ -403,7 +434,16 @@ export default function ScannerDetails() {
 							onPress={() => dismiss()}
 							style={{ alignItems: 'center', paddingVertical: 10 }}
 						>
-							<Text style={{ fontSize: 12, fontWeight: 900, color: '#000' }}>CLOSE</Text>
+							<Text
+								style={{
+									fontFamily: 'Outfit',
+									fontSize: 12,
+									fontWeight: 700,
+									color: '#000'
+								}}
+							>
+								CLOSE
+							</Text>
 						</TouchableOpacity>
 					</View>
 				</BottomSheetView>

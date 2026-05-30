@@ -1,40 +1,38 @@
 import Colors from '@/constants/Colors';
-import {
-	Bot,
-	ChartColumnIncreasing,
-	ChartNoAxesCombined,
-	Circle,
-	ClipboardClock,
-	UserRound
-} from 'lucide-react-native';
+import { Circle, UserRound } from 'lucide-react-native';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import CreateAccountButton from '../CreateAccountButton';
 import { router } from 'expo-router';
+import Analysis from '@/components/icons/hugeicons/Analysis';
+import Transaction from '@/components/icons/hugeicons/Transaction';
+import Dashboard from '@/components/icons/hugeicons/Dashboard';
+import Robot from '@/components/icons/hugeicons/Robot';
+import User from '../icons/hugeicons/User';
 
 const guessModeSchema = {
 	accountFeatures: [
 		{
 			title: 'Personalized Analysis',
 			description: 'Tailored skin reports based on your unique profile.',
-			icon: (color, size) => <ChartColumnIncreasing color={color} size={size} />
+			icon: (color, size) => <Analysis color={color} size={size} />
 		},
 
 		{
 			title: 'Full Scan History',
 			description: 'Review every analysis and see your progress over time.',
-			icon: (color, size) => <ClipboardClock color={color} size={size} />
+			icon: (color, size) => <Transaction color={color} size={size} />
 		},
 
 		{
 			title: 'Progress Dashboard',
 			description: 'Visualize your skin health improvement trends.',
-			icon: (color, size) => <ChartNoAxesCombined color={color} size={size} />
+			icon: (color, size) => <Dashboard color={color} size={size} />
 		},
 
 		{
 			title: 'Smart Ingredient Matching',
 			description: 'AI-powered checks for ingredient compatibility.',
-			icon: (color, size) => <Bot color={color} size={size} />
+			icon: (color, size) => <Robot color={color} size={size} />
 		}
 	],
 
@@ -65,12 +63,13 @@ export default function GuessModeView() {
 					borderRadius: 100
 				}}
 			>
-				<UserRound size={40} color={Colors.textColor + '5a'} />
+				<User size={50} color={Colors.textColor} />
 			</View>
 
 			<View>
 				<Text
 					style={{
+						fontFamily: 'Outfit',
 						fontSize: 24,
 						fontWeight: 700,
 						color: Colors.textColor,
@@ -79,7 +78,13 @@ export default function GuessModeView() {
 				>
 					Guest Mode
 				</Text>
-				<Text style={{ color: Colors.textColor + '9a', textAlign: 'center' }}>
+				<Text
+					style={{
+						fontFamily: 'Outfit',
+						color: Colors.textColor + '9a',
+						textAlign: 'center'
+					}}
+				>
 					You're currently using BeauWise as a guest.
 				</Text>
 			</View>
@@ -95,7 +100,12 @@ export default function GuessModeView() {
 					STYLES.shadow
 				]}
 			>
-				<Text style={{ fontSize: 18, fontWeight: 600, color: Colors.primary }}>
+				<Text
+					style={{
+						fontFamily: 'Outfit',
+						fontWeight: 600
+					}}
+				>
 					Unlock Full Features
 				</Text>
 
@@ -105,19 +115,28 @@ export default function GuessModeView() {
 							<View
 								style={{
 									marginTop: 4,
-									backgroundColor: '#64748B1a',
 									padding: 4,
 									borderRadius: 100,
 									alignSelf: 'flex-start'
 								}}
 							>
-								{icon('#64748B', 12)}
+								{icon('#64748B', 18)}
 							</View>
 
 							<View>
-								<Text style={{ fontWeight: 500, color: Colors.textColor }}>{title}</Text>
 								<Text
 									style={{
+										fontFamily: 'Outfit',
+										fontSize: 12,
+										fontWeight: 500,
+										color: Colors.textColor
+									}}
+								>
+									{title}
+								</Text>
+								<Text
+									style={{
+										fontFamily: 'Outfit',
 										fontSize: 12,
 										color: Colors.textColor + '7a',
 										paddingRight: 30
@@ -133,12 +152,14 @@ export default function GuessModeView() {
 			<CreateAccountButton />
 
 			<TouchableOpacity onPress={() => router.push('authentication/sign-in')}>
-				<Text style={{ color: Colors.primary, textAlign: 'center' }}>
+				<Text
+					style={{ fontFamily: 'Outfit', color: Colors.primary, textAlign: 'center' }}
+				>
 					Already have an account? Sign In
 				</Text>
 			</TouchableOpacity>
 
-			<View
+			{/* <View
 				style={[
 					{
 						backgroundColor: Colors.backgroundColor,
@@ -149,7 +170,14 @@ export default function GuessModeView() {
 					STYLES.shadow
 				]}
 			>
-				<Text style={{ fontSize: 16, fontWeight: 600, color: Colors.textColor }}>
+				<Text
+					style={{
+						fontFamily: 'Outfit',
+						fontSize: 16,
+						fontWeight: 600,
+						color: Colors.textColor
+					}}
+				>
 					What We Never Ask For
 				</Text>
 				{guessModeSchema.notAskedFor.map((item) => (
@@ -158,14 +186,25 @@ export default function GuessModeView() {
 						style={{ flexDirection: 'row', columnGap: 6, alignItems: 'center' }}
 					>
 						<Circle size={6} fill={Colors.textColor + '7a'} strokeWidth={0} />
-						<Text style={{ color: Colors.textColor + '7a' }}>{item}</Text>
+						<Text style={{ fontFamily: 'Outfit', color: Colors.textColor + '7a' }}>
+							{item}
+						</Text>
 					</View>
 				))}
-			</View>
+			</View> */}
 
 			<View style={{ backgroundColor: '#E8F5E9', padding: 20, borderRadius: 16 }}>
-				<Text style={{ fontSize: 12, color: Colors.textColor + '7a', lineHeight: 18 }}>
-					<Text style={{ fontWeight: 600, color: Colors.textColor }}>
+				<Text
+					style={{
+						fontFamily: 'Outfit',
+						fontSize: 12,
+						color: Colors.textColor + '7a',
+						lineHeight: 18
+					}}
+				>
+					<Text
+						style={{ fontFamily: 'Outfit', fontWeight: 600, color: Colors.textColor }}
+					>
 						Safety Reminder:{' '}
 					</Text>
 					{guessModeSchema.note}

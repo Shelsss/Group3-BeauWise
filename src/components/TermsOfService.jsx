@@ -14,7 +14,8 @@ export default function ToS({ handleClose, handleAgree }) {
 		<View style={{ overflow: 'hidden', zIndex: -1, paddingBottom: bottom + 10 }}>
 			<Text
 				style={{
-					fontSize: 22,
+					fontFamily: 'Outfit',
+					fontSize: 18,
 					color: Colors.textColor,
 					fontWeight: 700,
 					borderBottomWidth: 0.5,
@@ -35,14 +36,25 @@ export default function ToS({ handleClose, handleAgree }) {
 			>
 				{TermsOfService.map((item, index) => (
 					<View key={item.title}>
-						<Text style={{ fontWeight: 700, fontSize: 16, color: Colors.textColor }}>
+						<Text
+							style={{
+								fontFamily: 'Outfit',
+								fontWeight: 700,
+								fontSize: 16,
+								color: Colors.textColor
+							}}
+						>
 							{index + 1}. {item.title}
 						</Text>
 
 						<View style={{ rowGap: 20 }}>
 							{item.content.map((content, index) => (
 								<Text
-									style={{ color: Colors.textColor + '9a', lineHeight: 20 }}
+									style={{
+										fontFamily: 'Outfit',
+										color: Colors.textColor + '9a',
+										lineHeight: 20
+									}}
 									key={index}
 								>
 									{content}
@@ -56,6 +68,7 @@ export default function ToS({ handleClose, handleAgree }) {
 									<View
 										key={index}
 										style={{
+											fontFamily: 'Outfit',
 											flexDirection: 'row',
 											columnGap: 8,
 											marginLeft: 8,
@@ -68,7 +81,13 @@ export default function ToS({ handleClose, handleAgree }) {
 											style={{ marginTop: 7 }}
 											size={6}
 										/>
-										<Text style={{ color: Colors.textColor + '9a', lineHeight: 20 }}>
+										<Text
+											style={{
+												fontFamily: 'Outfit',
+												color: Colors.textColor + '9a',
+												lineHeight: 20
+											}}
+										>
 											{content}
 										</Text>
 									</View>
@@ -80,7 +99,11 @@ export default function ToS({ handleClose, handleAgree }) {
 							<View style={{ rowGap: 20, marginTop: 20 }}>
 								{item.additional_content.map((content, index) => (
 									<Text
-										style={{ color: Colors.textColor + '9a', lineHeight: 20 }}
+										style={{
+											fontFamily: 'Outfit',
+											color: Colors.textColor + '9a',
+											lineHeight: 20
+										}}
 										key={index}
 									>
 										{content}
@@ -94,11 +117,20 @@ export default function ToS({ handleClose, handleAgree }) {
 								{item.subsections.map(
 									({ title, content, list_items, additional_content }, index) => (
 										<View style={{ rowGap: 4 }} key={index}>
-											<Text style={{ color: Colors.textColor, fontWeight: 700 }}>
+											<Text
+												style={{
+													fontFamily: 'Outfit',
+													color: Colors.textColor,
+													fontWeight: 700
+												}}
+											>
 												{title}
 											</Text>
 
-											<Text style={{ color: Colors.textColor }} key={index}>
+											<Text
+												style={{ fontFamily: 'Outfit', color: Colors.textColor }}
+												key={index}
+											>
 												{content}
 											</Text>
 
@@ -119,7 +151,11 @@ export default function ToS({ handleClose, handleAgree }) {
 														size={6}
 													/>
 													<Text
-														style={{ color: Colors.textColor + '9a', lineHeight: 20 }}
+														style={{
+															fontFamily: 'Outfit',
+															color: Colors.textColor + '9a',
+															lineHeight: 20
+														}}
 													>
 														{item}
 													</Text>
@@ -127,7 +163,9 @@ export default function ToS({ handleClose, handleAgree }) {
 											))}
 
 											{additional_content && (
-												<Text style={{ color: Colors.textColor + '9a' }}>
+												<Text
+													style={{ fontFamily: 'Outfit', color: Colors.textColor + '9a' }}
+												>
 													{additional_content}
 												</Text>
 											)}
@@ -159,7 +197,9 @@ export default function ToS({ handleClose, handleAgree }) {
 							/>
 
 							<View>
-								<Text style={{ fontSize: 12 }}>I have read the full document</Text>
+								<Text style={{ fontFamily: 'Outfit', fontSize: 12 }}>
+									I have read the full document
+								</Text>
 							</View>
 						</TouchableOpacity>
 					</View>
@@ -170,7 +210,14 @@ export default function ToS({ handleClose, handleAgree }) {
 							activeOpacity={0.5}
 							style={[STYLES.button, { backgroundColor: 'transparent' }]}
 						>
-							<Text style={{ fontSize: 16, fontWeight: 600, color: Colors.textColor }}>
+							<Text
+								style={{
+									fontFamily: 'Outfit',
+
+									fontWeight: 400,
+									color: Colors.textColor
+								}}
+							>
 								Decline
 							</Text>
 						</TouchableOpacity>
@@ -185,7 +232,13 @@ export default function ToS({ handleClose, handleAgree }) {
 								}
 							]}
 						>
-							<Text style={{ fontSize: 16, fontWeight: 600, color: '#fff' }}>
+							<Text
+								style={{
+									fontFamily: 'Outfit',
+									fontWeight: 400,
+									color: '#fff'
+								}}
+							>
 								I Agree
 							</Text>
 						</TouchableOpacity>
@@ -205,6 +258,6 @@ const STYLES = StyleSheet.create({
 		justifyContent: 'center',
 		flexDirection: 'row',
 		backgroundColor: Colors.primary,
-		borderRadius: 16
+		borderRadius: 10
 	}
 });

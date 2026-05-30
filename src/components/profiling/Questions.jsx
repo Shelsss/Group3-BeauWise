@@ -8,9 +8,11 @@ import { useProfilingStore } from '@/stores/useProfilingStore';
 import { icons } from '@/constants/IconTheme';
 import Colors from '@/constants/Colors';
 import { useRef } from 'react';
+import SliderQuestion from '@/components/SliderQuestion';
+
 export default function Questions({ profilingType, questions, section, step }) {
-	const selectedGender = useProfilingStore((state) => state.profile.about_you.gender);
 	const scrollViewRef = useRef(null);
+
 	return (
 		<Animated.ScrollView
 			ref={scrollViewRef}
@@ -36,18 +38,16 @@ export default function Questions({ profilingType, questions, section, step }) {
 					<View style={{ display: 'flex', alignItems: 'center', rowGap: 4 }}>
 						<View
 							style={{
-								backgroundColor: Colors.primary + '1A',
-								padding: 22,
-								borderRadius: 24,
-								marginBottom: 12,
-								borderColor: Colors.primary + '4D'
+								padding: 14
 							}}
 						>
-							{icons[step - 1].icon(24, Colors.primary)}
+							{icons[step - 1].icon(50, Colors.primary)}
 						</View>
 
-						<Text style={{ fontSize: 26, fontWeight: '900' }}>{profilingType.title}</Text>
-						<Text style={{ color: '#6B7280', textAlign: 'center' }}>
+						<Text style={{ fontFamily: 'Outfit', fontSize: 18, fontWeight: '600' }}>
+							{profilingType.title}
+						</Text>
+						<Text style={{ fontFamily: 'Outfit', color: '#6B7280', textAlign: 'center' }}>
 							{profilingType.description}
 						</Text>
 					</View>
@@ -61,7 +61,16 @@ export default function Questions({ profilingType, questions, section, step }) {
 							section={section}
 							questionIdentifier={question.identifier}
 							options={question.options}
-							selectedGender={selectedGender}
+						/>
+					) : question?.isRange ? (
+						<SliderQuestion
+							key={question.id}
+							choiceLabel={question.label}
+							section={section}
+							questionIdentifier={question.identifier}
+							options={question.options}
+							questionId={question.id}
+							questionCount={questions.length}
 						/>
 					) : (
 						<SingleChoiceQuestion
@@ -70,7 +79,6 @@ export default function Questions({ profilingType, questions, section, step }) {
 							section={section}
 							questionIdentifier={question.identifier}
 							options={question.options}
-							selectedGender={selectedGender}
 							questionId={question.id}
 							questionCount={questions.length}
 						/>

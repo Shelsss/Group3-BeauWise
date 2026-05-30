@@ -1,9 +1,9 @@
 {
 	"compilerOptions": {
-		"baseUrl": ".",
+		"skipLibCheck": true,
 		"paths": {
-			"@/*": ["src/*"],
-			"assets/*": ["assets/*"]
+			"@/*": ["./src/*"],
+			"assets/*": ["./assets/*"]
 		},
 		"jsx": "react-native"
 	},

@@ -55,6 +55,7 @@ export default function BatchScreen() {
 				>
 					<Text
 						style={{
+							fontFamily: 'Outfit',
 							paddingTop: top + 10,
 							color: Colors.textColor + '7a',
 							fontWeight: 400,
@@ -67,90 +68,92 @@ export default function BatchScreen() {
 						expired.
 					</Text>
 
-					<View>
+					{/* <View>
 						<Batch size={250} />
-					</View>
+					</View> */}
 
-					<Shadow
-						stretch={true}
-						distance={2}
-						startColor='#00000010'
-						offset={[0, 1]}
-						containerStyle={{
-							width: '100%'
+					<View
+						style={{
+							backgroundColor: Colors.backgroundColor,
+							padding: 16,
+							borderRadius: 24,
+							rowGap: 24,
+
+							shadowColor: '#000000a1',
+							shadowOffset: {
+								width: 0,
+								height: 1
+							},
+							shadowOpacity: 0.18,
+							shadowRadius: 1.0,
+
+							elevation: 1
 						}}
 					>
-						<View
+						<View>
+							<Text
+								style={{
+									fontFamily: 'Outfit',
+									color: Colors.textColor,
+									fontWeight: 500
+								}}
+							>
+								Brand
+							</Text>
+							<BatchSelect handleSelect={handlePresentModalPress} />
+						</View>
+
+						<View>
+							<Text
+								style={{
+									fontFamily: 'Outfit',
+									color: Colors.textColor,
+									fontWeight: 500
+								}}
+							>
+								Batch Code
+							</Text>
+							<BatchInput />
+							<Text
+								style={{
+									fontFamily: 'Outfit',
+									marginTop: 8,
+									marginLeft: 2,
+									fontSize: 12,
+									color: Colors.textColor + '7a'
+								}}
+							>
+								Usually found on the bottom of the container.
+							</Text>
+						</View>
+
+						{/* This should be a primary button component */}
+
+						<Pressable
+							onPress={handlePress}
 							style={{
-								backgroundColor: Colors.backgroundColor,
+								columnGap: 12,
+								flexDirection: 'row',
+								justifyContent: 'center',
+								alignItems: 'center',
+								backgroundColor: Colors.primary,
 								padding: 16,
-								borderRadius: 24,
-								rowGap: 24
+								borderRadius: 16
 							}}
 						>
-							<View>
-								<Text
-									style={{
-										color: Colors.textColor,
-										fontWeight: 500
-									}}
-								>
-									Brand
-								</Text>
-								<BatchSelect handleSelect={handlePresentModalPress} />
-							</View>
-
-							<View>
-								<Text
-									style={{
-										color: Colors.textColor,
-										fontWeight: 500
-									}}
-								>
-									Batch Code
-								</Text>
-								<BatchInput />
-								<Text
-									style={{
-										marginTop: 8,
-										marginLeft: 2,
-										fontSize: 12,
-										color: Colors.textColor + '7a'
-									}}
-								>
-									Usually found on the bottom of the container.
-								</Text>
-							</View>
-
-							{/* This should be a primary button component */}
-
-							<Shadow stretch={true} distance={1} startColor='#0000002f' offset={[0, 1]}>
-								<Pressable
-									onPress={handlePress}
-									style={{
-										columnGap: 12,
-										flexDirection: 'row',
-										justifyContent: 'center',
-										alignItems: 'center',
-										backgroundColor: Colors.primary,
-										padding: 16,
-										borderRadius: 16
-									}}
-								>
-									<Text
-										style={{
-											fontSize: 16,
-											fontWeight: 600,
-											color: Colors.backgroundColor
-										}}
-									>
-										Check Freshness
-									</Text>
-									<CircleCheck size={16} color={Colors.backgroundColor} />
-								</Pressable>
-							</Shadow>
-						</View>
-					</Shadow>
+							<Text
+								style={{
+									fontFamily: 'Outfit',
+									fontSize: 16,
+									fontWeight: 600,
+									color: Colors.backgroundColor
+								}}
+							>
+								Check Freshness
+							</Text>
+							<CircleCheck size={16} color={Colors.backgroundColor} />
+						</Pressable>
+					</View>
 				</View>
 
 				<BatchBottomSheet batchSheetModalRef={batchSheetModalRef} />

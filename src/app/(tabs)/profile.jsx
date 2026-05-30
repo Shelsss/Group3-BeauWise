@@ -6,6 +6,7 @@ import Animated, { FadeIn } from 'react-native-reanimated';
 import { Shadow } from 'react-native-shadow-2';
 import ProfileView from '@/components/profile/ProfileView';
 import SettingsView from '@/components/profile/SettingsView';
+import SingleSidedShadow from '@/components/SingleSidedShadow';
 
 export default function ProfileScreen() {
 	const scrollViewRef = useRef(null);
@@ -19,16 +20,21 @@ export default function ProfileScreen() {
 	const resetScroll = () => {
 		scrollViewRef.current?.scrollTo({ x: 0, y: 0 });
 	};
-
 	return (
 		<View style={{ flex: 1 }}>
-			<Shadow distance={4} stretch={true} startColor='#00000016' offset={[0, 0]}>
+			<SingleSidedShadow hasDefaultStyle={true}>
 				<View
 					style={{
 						backgroundColor: Colors.backgroundColor,
 						flexDirection: 'row',
 						borderBottomStartRadius: 16,
-						borderBottomEndRadius: 16
+						borderBottomEndRadius: 16,
+
+						shadowColor: '#000',
+						shadowOffset: { width: 1, height: 1 },
+						shadowOpacity: 0.4,
+						shadowRadius: 3,
+						elevation: 8
 					}}
 				>
 					<TouchableOpacity style={STYLES.container} onPress={handlePress(0)}>
@@ -50,7 +56,8 @@ export default function ProfileScreen() {
 						{activeTab === 1 && <ActiveIndicator />}
 					</TouchableOpacity>
 				</View>
-			</Shadow>
+			</SingleSidedShadow>
+
 			<ScrollView
 				ref={scrollViewRef}
 				showsVerticalScrollIndicator={false}
@@ -91,6 +98,7 @@ const STYLES = StyleSheet.create({
 	},
 
 	buttonText: {
+		fontFamily: 'Outfit',
 		fontSize: 16,
 		fontWeight: 500,
 		color: Colors.textColor,

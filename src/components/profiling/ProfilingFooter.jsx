@@ -14,7 +14,8 @@ export default function ProfilingFooter({
 	isTransition,
 	numberOfCurrentQuestions,
 	currentQuestions,
-	currentSection
+	currentSection,
+	showModal
 }) {
 	const isInitialStepButtonActive = useProfilingStore(
 		(state) => state.isInitialStepButtonActive
@@ -29,7 +30,14 @@ export default function ProfilingFooter({
 	const currentAnsweredQuestions = currentQuestions?.filter((question) => {
 		const answer = profile[currentSection][question.identifier];
 
-		return answer !== '';
+		let status;
+
+		if (Array.isArray(answer)) {
+			status = answer.length > 0;
+		} else {
+			status = answer !== '';
+		}
+		return status;
 	}).length;
 
 	const disabled =
@@ -38,6 +46,10 @@ export default function ProfilingFooter({
 			: currentAnsweredQuestions < numberOfCurrentQuestions;
 
 	const handleNextStep = (newStep) => () => {
+		if (newStep === 1) {
+			showModal();
+		}
+
 		if (currentStep === Questionnaire.length) {
 			router.push('/profiling/summary');
 			return;
@@ -113,6 +125,7 @@ export default function ProfilingFooter({
 
 const STYLES = {
 	typography: {
+		fontFamily: 'Outfit',
 		color: '#ffffff',
 		fontWeight: '700',
 		fontSize: 14

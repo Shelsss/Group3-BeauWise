@@ -11,13 +11,21 @@ export default function SearchBar({
 	const [value, setValue] = useState('');
 
 	const handleChange = (text) => {
+		if (text.length === 0 && closeQueryResults) {
+			closeQueryResults();
+		}
+
+		handleQuery(text).call();
 		setValue(text);
-		handleQuery(text); // ✅ send value to parent
 	};
 
 	const clearInput = () => {
 		setValue('');
-		handleQuery(''); // ✅ clear parent query
+		handleQuery('').call();
+
+		if (closeQueryResults) {
+			closeQueryResults();
+		}
 	};
 
 	return (
@@ -27,9 +35,10 @@ export default function SearchBar({
 			<TextInput
 				value={value}
 				placeholder={placeholder}
-				style={{ flex: 1, color: '#181818' }}
-				onChangeText={handleChange} // ✅ correct
+				style={{ flex: 1, color: '#181818', fontFamily: 'Outfit' }}
+				onChangeText={handleChange}
 				placeholderTextColor={'#9a9a9a'}
+				onSubmitEditing={({ nativeEvent: { text } }) => handleQuery(text).call()}
 				cursorColor={'#303030'}
 			/>
 

@@ -3,28 +3,30 @@ import { Shadow } from 'react-native-shadow-2';
 
 export default function Card({ handleNavigate, children, containerStyle }) {
 	return (
-		<Shadow
-			stretch={true}
-			distance={0.5}
-			offset={[0, 1]}
-			containerStyle={{ flex: 1 }}
-			style={{ flex: 1 }}
-		>
-			<Pressable
-				onPress={handleNavigate}
-				android_ripple={{ color: '#9797976a', foreground: true }}
-				style={[
-					{
-						flex: 1,
-						borderRadius: 16,
-						padding: 16,
-						overflow: 'hidden'
+		<Pressable
+			onPress={handleNavigate}
+			android_ripple={{ color: '#e3e3e36a', foreground: true }}
+			style={[
+				{
+					flex: 1,
+					borderRadius: 16,
+					padding: 16,
+					overflow: 'hidden',
+
+					shadowColor: '#00000023',
+					shadowOffset: {
+						width: 0,
+						height: 1
 					},
-					containerStyle
-				]}
-			>
-				{children}
-			</Pressable>
-		</Shadow>
+					shadowOpacity: 0.2,
+					shadowRadius: 1.41,
+
+					elevation: 2
+				},
+				containerStyle
+			]}
+		>
+			{children}
+		</Pressable>
 	);
 }

@@ -76,6 +76,7 @@ export default function AnimatedTabs({
 						>
 							<Animated.Text
 								style={{
+									fontFamily: 'Outfit',
 									fontSize: 14,
 									fontWeight: '700',
 									color: isActive ? activeColor : inactiveColor,

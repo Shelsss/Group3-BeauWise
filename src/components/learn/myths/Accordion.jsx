@@ -97,7 +97,7 @@ export default function Accordion({ children, viewKey, hiddenContent, duration =
 					<View>
 						<Text
 							style={{
-								letterSpacing: 2,
+								fontFamily: 'Outfit',
 								textTransform: 'uppercase',
 								fontSize: 10,
 								fontWeight: 900,
@@ -106,7 +106,9 @@ export default function Accordion({ children, viewKey, hiddenContent, duration =
 						>
 							fact
 						</Text>
-						<Text style={{ lineHeight: 30, width: 270 }}>{hiddenContent}</Text>
+						<Text style={{ fontFamily: 'Outfit', lineHeight: 30, width: 270 }}>
+							{hiddenContent}
+						</Text>
 					</View>
 				</View>
 			</Animated.View>

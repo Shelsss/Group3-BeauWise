@@ -28,6 +28,7 @@ export default function BatchInput() {
 				value={value}
 				placeholder='Enter Batch Code'
 				style={{
+					fontFamily: 'Outfit',
 					fontSize: 16,
 					flex: 1,
 					color: Colors.textColor

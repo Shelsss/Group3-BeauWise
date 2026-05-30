@@ -18,7 +18,7 @@ export default function ProfilingHeader({ currentStep, isTransition }) {
 		})
 	}));
 
-	const headerTitle = currentStep < 6 ? 'Skin Profiling' : 'Hair Profiling';
+	const headerTitle = currentStep < 5 ? 'Skin Profiling' : 'Hair Profiling';
 	return (
 		currentStep > 0 &&
 		!isTransition && (
@@ -63,6 +63,7 @@ const STYLES = StyleSheet.create({
 	},
 
 	headerStyle: {
+		fontFamily: 'Outfit',
 		textAlign: 'center',
 		color: Colors.primary,
 		fontSize: 12,
@@ -70,6 +71,7 @@ const STYLES = StyleSheet.create({
 	},
 
 	stepStyle: {
+		fontFamily: 'Outfit',
 		textAlign: 'center',
 		fontSize: 9,
 		color: '#9d9a9a'

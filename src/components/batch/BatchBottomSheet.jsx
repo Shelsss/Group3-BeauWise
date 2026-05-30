@@ -52,7 +52,14 @@ const BatchBottomSheet = ({ batchSheetModalRef }) => {
 							marginBottom: 30
 						}}
 					>
-						<Text style={{ fontSize: 18, fontWeight: 700, color: '#1E293B' }}>
+						<Text
+							style={{
+								fontSize: 18,
+								fontWeight: 700,
+								color: '#1E293B',
+								fontFamily: 'Outfit'
+							}}
+						>
 							Brands
 						</Text>
 
@@ -85,6 +92,7 @@ const BatchBottomSheet = ({ batchSheetModalRef }) => {
 							>
 								<Text
 									style={{
+										fontFamily: 'Outfit',
 										fontSize: 14,
 										color: filter === item ? '#fff' : '#1E293B',
 										fontWeight: 500,

@@ -8,13 +8,23 @@ import {
 } from 'lucide-react-native';
 import { createAnimatedComponent, FadeIn } from 'react-native-reanimated';
 import Archive from '@/components/icons/ArchiveFill';
-import ShieldCheck from '@/components/icons/ShieldCheckFill';
 import Colors from '@/constants/Colors';
-import Camera from '@/components/icons/CameraFill';
+import Camera from '@/components/icons/hugeicons/Camera';
+import InputNumeric from '@/components/icons/hugeicons/InputNumeric';
+import ShieldCheck from '@/components/icons/hugeicons/ShieldCheck';
+import Alert from '../icons/hugeicons/Alert';
+import Warn from '../icons/hugeicons/Warn';
+import Check from '../icons/hugeicons/Check';
 const AnimatedPressable = createAnimatedComponent(Pressable);
-const ICON_SIZE = 20;
+const ICON_SIZE = 16;
 
-export default function Card({ title, time, status, type = 'default', onPress }) {
+export default function Card({
+	title,
+	time,
+	status = 'default',
+	type = 'default',
+	onPress
+}) {
 	return (
 		<AnimatedPressable
 			onPress={onPress}
@@ -23,8 +33,8 @@ export default function Card({ title, time, status, type = 'default', onPress })
 			style={[
 				{
 					backgroundColor: '#fff',
-					padding: 15,
-					borderRadius: 10,
+					padding: 12,
+					borderRadius: 16,
 					flexDirection: 'row',
 					alignItems: 'center',
 					columnGap: 10,
@@ -35,42 +45,36 @@ export default function Card({ title, time, status, type = 'default', onPress })
 			{type === 'batch' ? (
 				<View
 					style={{
-						backgroundColor: '#00ACC11a',
-						padding: 15,
-						borderRadius: 100
+						marginHorizontal: 8,
+						borderRadius: 12
 					}}
 				>
-					<Archive size={20} color='#00ACC1' />
+					<InputNumeric size={22} color='#00ACC1' />
 				</View>
 			) : type === 'arrow' ? (
 				<View
 					style={{
 						backgroundColor: '#20C9971a',
-						padding: 15,
-						borderRadius: 100
+						borderRadius: 12,
+						marginHorizontal: 8
 					}}
 				>
-					<ChevronRight size={20} color={Colors.textColor} />
+					<ChevronRight size={22} color={Colors.textColor} />
 				</View>
 			) : type === 'fda' ? (
 				<View
 					style={{
+						marginHorizontal: 8,
 						backgroundColor: '#20C9971a',
-						padding: 15,
-						borderRadius: 100
+
+						borderRadius: 12
 					}}
 				>
-					<ShieldCheck size={20} color='#20C997' />
+					<ShieldCheck size={22} color='#20C997' />
 				</View>
 			) : (
-				<View
-					style={{
-						backgroundColor: Colors.primary + '1a',
-						padding: 15,
-						borderRadius: 100
-					}}
-				>
-					<Camera size={20} color={Colors.primary} />
+				<View style={{ marginHorizontal: 8, borderRadius: 12 }}>
+					<Camera size={22} color={Colors.primary} />
 				</View>
 			)}
 			<View>
@@ -78,32 +82,34 @@ export default function Card({ title, time, status, type = 'default', onPress })
 					numberOfLines={1}
 					ellipsizeMode='tail'
 					style={{
-						fontWeight: 'bold',
-						fontSize: 16,
+						fontFamily: 'Outfit',
+						fontWeight: 700,
+						fontSize: 14,
 						width: 150,
 						color: Colors.textColor
 					}}
 				>
 					{title}
 				</Text>
-				<Text style={{ fontSize: 12, color: '#666' }}>{time}</Text>
+				<Text style={{ fontFamily: 'Outfit', fontSize: 12, color: '#666' }}>{time}</Text>
 			</View>
 			<View style={{ marginLeft: 'auto' }}>
 				<View
 					style={[
 						{
-							padding: 10,
-							borderRadius: 100
-						},
-						STYLES[status]
+							padding: 8,
+							borderRadius: 10
+						}
 					]}
 				>
 					{status === 'safe' ? (
-						<CircleCheckBig size={ICON_SIZE} color={'#20c997'} />
+						<Check size={ICON_SIZE} color={'#20c997'} />
 					) : status === 'unsafe' ? (
-						<TriangleAlert size={ICON_SIZE} color={'#ff7a7c'} />
+						<Alert size={ICON_SIZE} color={'#ff7a7c'} />
+					) : status === 'warn' ? (
+						<Warn size={ICON_SIZE} color={'#ffc53d'} />
 					) : (
-						<CircleAlert size={ICON_SIZE} color={'#ffc53d'} />
+						<ChevronRight size={ICON_SIZE} color={'#334155ad'} />
 					)}
 				</View>
 			</View>
@@ -122,5 +128,9 @@ const STYLES = StyleSheet.create({
 
 	warn: {
 		backgroundColor: '#ffc53d1a'
+	},
+
+	default: {
+		backgroundColor: 'none'
 	}
 });

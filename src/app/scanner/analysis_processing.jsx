@@ -162,14 +162,11 @@ export default function Processing() {
         const userProfile = await fetchData();
         let profileWeights = {};
         let userProfileTags = [];
-        // console.log("LOG: " + userProfile);
         for (const section in userProfile) {
-            // console.log("LOG: " + section);
             if (section === 'about_you') {
                 continue;
             }
             for (const question in userProfile[section]) {
-                // console.log("LOG: " + question);
                 if (Array.isArray(userProfile[section][question]) && userProfile[section][question].length < 1) {
                     continue;
                 }
@@ -179,16 +176,12 @@ export default function Processing() {
                     }
                 } else {
                     const answer = userProfile[section][question];
-                    // console.log("LOG: Answer: " + answer);
                     userProfileTags = userProfileTags.concat(profileTags[section][question][answer]);
                 }
-                // console.log("LOG: " + userProfileTags)
             }
         }
 
-        // console.log("LOG: " + userProfileTags);
         for (const tag of userProfileTags) {
-            // console.log("LOG: " + tag);
             if (tag === 'Exfoliant') {
                 const removeIndex = userProfileTags.indexOf(tag)
                 if (removeIndex > -1) {
@@ -240,12 +233,7 @@ export default function Processing() {
             }
         }
 
-        // for (const i of userProfileTags) {
-        //     console.log("LOG: " + i);
-        // }
-
         for (const tag of userProfileTags) {
-            // console.log("LOG: " + tag);
             if (profileWeights[tag]) {
                 profileWeights[tag] += 1
             } else {
@@ -253,7 +241,6 @@ export default function Processing() {
             }
         }
 
-        // console.log("LOG: " + JSON.stringify(profileWeights));
 
         return profileWeights;
 
@@ -270,11 +257,11 @@ export default function Processing() {
 
         collectionSnapshot.forEach((doc) => {
             let ranking = 0;
-            if(doc.data().ingredient_name === "Chemical X") {
+            if (doc.data().ingredient_name === "Chemical X") {
                 return; //NOTE: Skip chemical X from recommendations, its in DB
             }
             for (const category of doc.data().category) {
-                if(profileWeights[category]) {
+                if (profileWeights[category]) {
                     ranking += profileWeights[category]
                 }
             }
@@ -286,26 +273,11 @@ export default function Processing() {
             rankedIngredients = [...rankedIngredients, rankedIngredient];
         })
 
-
-        // for (const i of rankedIngredients) {
-        //     console.log("-LOG: " + JSON.stringify(i));
-        //     console.log("LOG: " + i.ingredient);
-        //     console.log("    LOG: " + i.ranking);
-        // }
-
-        // console.log("LOG: NNNNNNNNNNNNNNNNNNNN");
-       
         rankedIngredients.sort((a, b) => {
             if (a.ranking < b.ranking) return 1;
             if (a.ranking > b.ranking) return -1;
             return 0;
         });
-
-        // for (const i of rankedIngredients) {
-        //     console.log("-LOG: " + JSON.stringify(i));
-        //     console.log("LOG: " + i.ingredient);
-        //     console.log("    LOG: " + i.ranking);
-        // }
 
         return rankedIngredients;
     }

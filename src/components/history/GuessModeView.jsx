@@ -1,9 +1,10 @@
 import Colors from '@/constants/Colors';
 import { ScrollView, Text, View } from 'react-native';
 import CreateAccountButton from '../CreateAccountButton';
-import { Check, FolderLock } from 'lucide-react-native';
+import { Check } from 'lucide-react-native';
 import PagePadding from '@/constants/PagePadding';
 import { useRef } from 'react';
+import FolderLock from '@/components/icons/hugeicons/FolderLock';
 
 const guessModeSchema = {
 	title: 'No Scan History Yet',
@@ -47,21 +48,28 @@ export default function GuestModeView() {
 		>
 			<View
 				style={{
-					backgroundColor: Colors.primary + '2a',
 					alignSelf: 'center',
-					padding: 30,
+					padding: 20,
 					borderRadius: 100
 				}}
 			>
-				<FolderLock size={50} strokeWidth={1.5} color={Colors.primary} />
+				<FolderLock size={100} color={Colors.textColor} />
 			</View>
 
 			<View style={{ alignItems: 'center', marginTop: 20 }}>
-				<Text style={{ fontSize: 20, fontWeight: 600, color: Colors.textColor }}>
+				<Text
+					style={{
+						fontFamily: 'Outfit',
+						fontSize: 20,
+						fontWeight: 600,
+						color: Colors.textColor
+					}}
+				>
 					{guessModeSchema.title}
 				</Text>
 				<Text
 					style={{
+						fontFamily: 'Outfit',
 						color: Colors.textColor + '9a',
 						textAlign: 'center',
 						lineHeight: 22,
@@ -93,9 +101,18 @@ export default function GuestModeView() {
 						</View>
 
 						<View>
-							<Text style={{ fontWeight: 600, color: Colors.textColor }}>{title}</Text>
 							<Text
-								style={{ fontSize: 12, color: Colors.textColor + '7a', paddingRight: 30 }}
+								style={{ fontFamily: 'Outfit', fontWeight: 600, color: Colors.textColor }}
+							>
+								{title}
+							</Text>
+							<Text
+								style={{
+									fontFamily: 'Outfit',
+									fontSize: 12,
+									color: Colors.textColor + '7a',
+									paddingRight: 30
+								}}
 							>
 								{description}
 							</Text>
@@ -114,14 +131,11 @@ export default function GuestModeView() {
 					marginTop: 18
 				}}
 			>
-				<Text style={{ fontWeight: 600, color: Colors.textColor }}>
+				<Text style={{ fontFamily: 'Outfit', fontWeight: 600, color: Colors.textColor }}>
 					Guess Mode Limitations
 				</Text>
 				<Text
-					style={{
-						fontSize: 12,
-						color: Colors.textColor + '9a'
-					}}
+					style={{ fontFamily: 'Outfit', fontSize: 12, color: Colors.textColor + '9a' }}
 				>
 					{guessModeSchema.limitation}
 				</Text>

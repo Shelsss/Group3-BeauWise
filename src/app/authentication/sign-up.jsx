@@ -12,7 +12,7 @@ import {
 } from '@gorhom/bottom-sheet';
 import Checkbox from 'expo-checkbox';
 import { router } from 'expo-router';
-import { ArrowRight, Info, Lock, Mail, UserRound } from 'lucide-react-native';
+import { UserRound } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
 	View,
@@ -30,8 +30,14 @@ import { googleSignIn, signUp } from '@/services/auth';
 import Toast from 'react-native-toast-message';
 import { Image } from 'expo-image';
 import { checkProfilingCompletion } from '@/utility/checkProfilingCompletion';
+import Lock from '@/components/icons/hugeicons/Lock';
+import Mail from '@/components/icons/hugeicons/Mail';
+import Logo from '@/components/icons/Logo';
+import User from '@/components/icons/hugeicons/User';
+import { Swing } from 'react-native-animated-spinkit';
+import { Modal, Portal } from 'react-native-paper';
 
-const size = 16;
+const size = 18;
 
 const safetyNoticeSchema = [
 	{
@@ -56,32 +62,26 @@ const safetyNoticeSchema = [
 		description: 'Your data is handled securely and kept private.'
 	}
 ];
-const formSchema = z
-	.object({
-		userName: z.string().min(2, { error: 'Name is required' }),
-		email: z.email({ error: 'Invalid email' }),
-		password: z
-			.string()
-			.min(8, { error: 'Password must be at least 8 characters long' })
-			.max(20, { error: 'Password must be at most 20 characters long' })
-			.refine((password) => /[A-Z]/.test(password), {
-				error: 'Password must contain at least one uppercase letter'
-			})
-			.refine((password) => /[a-z]/.test(password), {
-				error: 'Password must contain at least one lowercase letter'
-			})
-			.refine((password) => /[0-9]/.test(password), {
-				error: 'Password must contain at least one number'
-			})
-			.refine((password) => /[!@#$%^&*]/.test(password), {
-				error: 'Password must contain at least one special character'
-			}),
-		confirmPassword: z.string()
-	})
-	.refine((data) => data.password === data.confirmPassword, {
-		error: 'Passwords do not match',
-		path: ['confirmPassword']
-	});
+const formSchema = z.object({
+	userName: z.string().min(2, { error: 'Name is required' }),
+	email: z.email({ error: 'Invalid email' }),
+	password: z
+		.string()
+		.min(8, { error: 'Password must be at least 8 characters long' })
+		.max(20, { error: 'Password must be at most 20 characters long' })
+		.refine((password) => /[A-Z]/.test(password), {
+			error: 'Password must contain at least one uppercase letter'
+		})
+		.refine((password) => /[a-z]/.test(password), {
+			error: 'Password must contain at least one lowercase letter'
+		})
+		.refine((password) => /[0-9]/.test(password), {
+			error: 'Password must contain at least one number'
+		})
+		.refine((password) => /[!@#$%^&*]/.test(password), {
+			error: 'Password must contain at least one special character'
+		})
+});
 
 export default function SignIn() {
 	const { control, handleSubmit } = useForm({
@@ -91,8 +91,7 @@ export default function SignIn() {
 		defaultValues: {
 			email: '',
 			userName: '',
-			password: '',
-			confirmPassword: ''
+			password: ''
 		}
 	});
 
@@ -107,6 +106,11 @@ export default function SignIn() {
 	const handleValueChange = (isModal, value, setter) => () => {
 		setter(!value);
 	};
+
+	const [visible, setVisible] = useState(false);
+
+	const showModal = () => setVisible(true);
+	const hideModal = () => setVisible(false);
 
 	const handleOpenModal = () => {
 		if (isAgreeOnPrivacy && isAgreeOnTerms) {
@@ -140,21 +144,22 @@ export default function SignIn() {
 	}, []);
 
 	const onSubmit = async (data) => {
-		const isSuccess = await signUp(data.email, data.confirmPassword, data.userName);
+		const isSuccess = await signUp(
+			data.email,
+			data.password,
+			data.userName,
+			showModal,
+			hideModal
+		);
 
 		if (!isSuccess) return;
-
-		Toast.show({
-			type: 'success',
-			text1: 'Account created!'
-		});
 
 		router.dismissAll();
 		router.replace('profiling');
 	};
 
 	const handleGoogleSignIn = async () => {
-		const isSignIn = await googleSignIn(true).call();
+		const isSignIn = await googleSignIn(true, showModal, hideModal).call();
 
 		const isProfilingCompleted = await checkProfilingCompletion();
 
@@ -171,6 +176,7 @@ export default function SignIn() {
 			x: 0,
 			y: 0
 		});
+
 		handleSubmit(onSubmit).call();
 	};
 
@@ -185,26 +191,32 @@ export default function SignIn() {
 				}}
 				showsVerticalScrollIndicator={false}
 				contentContainerStyle={{
-					paddingTop: top,
+					paddingTop: top + 22,
 					paddingBottom: bottom,
 					paddingHorizontal: PagePadding.config.paddingHorizontal
 				}}
 			>
-				<View style={{ alignItems: 'center', marginBottom: 16 }}>
-					<Image
-						style={{ aspectRatio: 16 / 9, width: 120 }}
-						source={require('assets/images/logo.webp')}
-					/>
+				<View style={{ alignItems: 'center', marginBottom: 26 }}>
+					<Logo size={100} />
 
-					<Text style={{ fontSize: 24, fontWeight: 700, color: Colors.primary }}>
-						Join Beauwise
+					<Text
+						style={{
+							fontFamily: 'Outfit',
+							fontSize: 20,
+							textAlign: 'center',
+							fontWeight: 700,
+							color: Colors.textColor
+						}}
+					>
+						Find what your skin loves
 					</Text>
 				</View>
-				<View style={{ rowGap: 20 }}>
+				<View style={{ rowGap: 10 }}>
 					<Controller
 						control={control}
 						render={({ field: { onChange, onBlur, value }, fieldState: { error } }) => (
 							<Input
+								label={'Full Name'}
 								placeholder={'Full Name'}
 								contentType={'username'}
 								value={value}
@@ -212,7 +224,7 @@ export default function SignIn() {
 								onChangeText={onChange}
 								error={error}
 							>
-								<UserRound size={size} color={Colors.textColor + '7a'} />
+								<User size={size} color={Colors.textColor + '7a'} />
 							</Input>
 						)}
 						name='userName'
@@ -221,6 +233,7 @@ export default function SignIn() {
 						control={control}
 						render={({ field: { onChange, onBlur, value }, fieldState: { error } }) => (
 							<Input
+								label={'Email'}
 								placeholder={'Email address'}
 								contentType={'email'}
 								value={value}
@@ -238,6 +251,7 @@ export default function SignIn() {
 						control={control}
 						render={({ field: { onChange, onBlur, value }, fieldState: { error } }) => (
 							<Input
+								label={'Password'}
 								isPassword={true}
 								placeholder={'Password'}
 								contentType={'new-password'}
@@ -251,27 +265,9 @@ export default function SignIn() {
 						)}
 						name='password'
 					/>
-
-					<Controller
-						control={control}
-						render={({ field: { onChange, onBlur, value }, fieldState: { error } }) => (
-							<Input
-								isPassword={true}
-								placeholder={'Confirm Password'}
-								contentType={'password'}
-								value={value}
-								onBlur={onBlur}
-								onChangeText={onChange}
-								error={error}
-							>
-								<Lock size={size} color={Colors.textColor + '7a'} />
-							</Input>
-						)}
-						name='confirmPassword'
-					/>
 				</View>
 
-				<View style={{ marginVertical: 35, rowGap: 8 }}>
+				<View style={{ marginVertical: 20, rowGap: 8 }}>
 					<TouchableOpacity
 						style={{ flexDirection: 'row', alignItems: 'center', columnGap: 6 }}
 						onPress={handleValueChange(false, isOlder, setIsOlder)}
@@ -289,10 +285,16 @@ export default function SignIn() {
 						/>
 
 						<View>
-							<Text style={{ fontSize: 12 }}>
+							<Text style={{ fontFamily: 'Outfit', fontSize: 12 }}>
 								I confirm that I am 18 years of age or older
 							</Text>
-							<Text style={{ fontSize: 10, color: Colors.textColor + '7a' }}>
+							<Text
+								style={{
+									fontFamily: 'Outfit',
+									fontSize: 10,
+									color: Colors.textColor + '7a'
+								}}
+							>
 								BeauWise provides cosmetic analysis that requires adult discretion
 							</Text>
 						</View>
@@ -314,20 +316,24 @@ export default function SignIn() {
 							}}
 						/>
 
-						<Text style={{ fontSize: 12 }}>
+						<Text style={{ fontFamily: 'Outfit', fontSize: 12 }}>
 							I have read and agree to the{' '}
-							<Text style={{ color: Colors.primary, fontWeight: 500 }}>
+							<Text
+								style={{ fontFamily: 'Outfit', color: Colors.primary, fontWeight: 500 }}
+							>
 								Terms of Service
 							</Text>{' '}
 							and{' '}
-							<Text style={{ color: Colors.primary, fontWeight: 500 }}>
+							<Text
+								style={{ fontFamily: 'Outfit', color: Colors.primary, fontWeight: 500 }}
+							>
 								Privacy Policy
 							</Text>
 						</Text>
 					</TouchableOpacity>
 				</View>
 
-				<View
+				{/* <View
 					style={{
 						borderRadius: 16,
 						rowGap: 10,
@@ -350,9 +356,9 @@ export default function SignIn() {
 							</Text>
 						))}
 					</View>
-				</View>
+				</View> */}
 
-				<View style={{ rowGap: 25, marginTop: 35 }}>
+				<View style={{ rowGap: 14, marginTop: 10 }}>
 					<TouchableOpacity
 						style={[
 							STYLES.button,
@@ -362,10 +368,16 @@ export default function SignIn() {
 						disabled={(!isAgreeOnPrivacy && !isAgreeOnTerms) || !isOlder}
 						onPress={handlePress}
 					>
-						<Text style={{ fontSize: 16, fontWeight: 600, color: '#fff' }}>
-							Create Account
+						<Text
+							style={{
+								fontFamily: 'Outfit',
+								fontSize: 12,
+								fontWeight: 600,
+								color: '#fff'
+							}}
+						>
+							Sign Up
 						</Text>
-						<ArrowRight size={14} color={'#fff'} />
 					</TouchableOpacity>
 
 					<View
@@ -378,12 +390,12 @@ export default function SignIn() {
 						<View style={[STYLES.seperator]} />
 						<Text
 							style={{
+								fontFamily: 'Outfit',
 								color: Colors.textColor + '7a',
-								textTransform: 'uppercase',
-								fontSize: 10
+								fontSize: 11
 							}}
 						>
-							or continue with
+							Or sign up with
 						</Text>
 						<View style={[STYLES.seperator]} />
 					</View>
@@ -396,7 +408,7 @@ export default function SignIn() {
 							STYLES.button,
 							{
 								backgroundColor: '#fff',
-								columnGap: 20,
+								columnGap: 8,
 								justifyContent: 'center',
 								opacity: isAgreeOnPrivacy && isAgreeOnTerms && isOlder ? 1 : 0.5
 							}
@@ -408,29 +420,44 @@ export default function SignIn() {
 
 						<Text
 							style={{
+								fontFamily: 'Outfit',
+								fontSize: 12,
 								fontWeight: 600,
 								color: '#4B5563'
 							}}
 						>
-							Sign Up with Google
+							Google
 						</Text>
 					</TouchableOpacity>
 
-					<View style={{ flexDirection: 'row', columnGap: 4, alignSelf: 'center' }}>
-						<Text
-							style={{
-								color: Colors.textColor + '7a'
-							}}
-						>
+					<View
+						style={{
+							marginTop: 8,
+							flexDirection: 'row',
+							columnGap: 10,
+							alignSelf: 'center',
+							alignItems: 'center',
+							paddingBottom: 8
+						}}
+					>
+						<Text style={{ fontFamily: 'Outfit', color: Colors.textColor + '7a' }}>
 							Already have an account?
 						</Text>
 
-						<TouchableOpacity onPress={() => router.replace('authentication/sign-in')}>
+						<TouchableOpacity
+							style={{
+								backgroundColor: '#8b78ff2a',
+								borderRadius: 8,
+								paddingVertical: 8,
+								paddingHorizontal: 16
+							}}
+							onPress={() => router.replace('authentication/sign-in')}
+						>
 							<Text
 								style={{
-									fontWeight: 900,
-									color: Colors.primary,
-									textDecorationLine: 'underline'
+									fontFamily: 'Outfit',
+									fontWeight: 400,
+									color: Colors.primary
 								}}
 							>
 								Sign In
@@ -491,6 +518,41 @@ export default function SignIn() {
 					/>
 				</BottomSheetScrollView>
 			</BottomSheetModal>
+
+			<Portal>
+				<Modal
+					style={{
+						marginHorizontal: PagePadding.config.paddingHorizontal
+					}}
+					visible={visible}
+					onDismiss={hideModal}
+					dismissable={false}
+					dismissableBackButton={false}
+					contentContainerStyle={{
+						alignItems: 'center'
+					}}
+				>
+					<View
+						style={{
+							padding: 18,
+							borderRadius: 10,
+							backgroundColor: Colors.backgroundColor,
+							alignItems: 'center',
+							rowGap: 8
+						}}
+					>
+						<Swing size={28} color={Colors.primary} />
+						<Text
+							style={{
+								fontFamily: 'Outfit',
+								fontWeight: 500
+							}}
+						>
+							Signing up...
+						</Text>
+					</View>
+				</Modal>
+			</Portal>
 		</>
 	);
 }
@@ -523,7 +585,7 @@ const STYLES = StyleSheet.create({
 	},
 
 	sheet: {
-		marginHorizontal: PagePadding.config.paddingHorizontal,
+		marginHorizontal: 6,
 		paddingBottom: 200
 	}
 });

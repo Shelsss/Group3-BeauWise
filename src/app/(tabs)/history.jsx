@@ -7,6 +7,7 @@ import GuestModeView from '@/components/history/GuessModeView';
 import HistoryBottomSheet from '@/components/history/HistoryBottomSheet';
 import SearchBar from '@/components/SearchBar';
 import SearchFilter from '@/components/SearchFilter';
+import SingleSidedShadow from '@/components/SingleSidedShadow';
 import Colors from '@/constants/Colors';
 import PagePadding from '@/constants/PagePadding';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -82,8 +83,8 @@ export default function HistoryScreen() {
 	};
 
 	const handleScanHistory = () => {
-		router.push('scanner/results');
-		Vibration.vibrate(50);
+		// router.push('scanner/results');
+		// Vibration.vibrate(50);
 	};
 	return (
 		<View style={{ flex: 1 }}>
@@ -93,16 +94,10 @@ export default function HistoryScreen() {
 				accessible={false}
 			>
 				<View style={{ zIndex: 2 }}>
-					<CustomHeader title={'History'} disableShadow={true} />
+					<CustomHeader title={'History'} />
 
 					{isAuthenticated && (
-						<Shadow
-							distance={3}
-							stretch={true}
-							startColor='#00000010'
-							sides={{ top: false }}
-							offset={[0, 0]}
-						>
+						<SingleSidedShadow hasDefaultStyle={true}>
 							<View
 								style={{
 									backgroundColor: Colors.backgroundColor,
@@ -112,7 +107,13 @@ export default function HistoryScreen() {
 									borderBottomEndRadius: 16,
 
 									paddingTop: 16,
-									rowGap: 16
+									rowGap: 16,
+
+									shadowColor: '#000',
+									shadowOffset: { width: 1, height: 1 },
+									shadowOpacity: 0.4,
+									shadowRadius: 3,
+									elevation: 8
 								}}
 							>
 								<View
@@ -132,7 +133,7 @@ export default function HistoryScreen() {
 									currentIndex={tab}
 								/>
 							</View>
-						</Shadow>
+						</SingleSidedShadow>
 					)}
 				</View>
 			</TouchableWithoutFeedback>
@@ -154,7 +155,7 @@ export default function HistoryScreen() {
 							contentContainerStyle={{
 								rowGap: 15,
 								paddingHorizontal: PagePadding.config.paddingHorizontal,
-								paddingBottom: PagePadding.config.paddingBottom - 15,
+								paddingBottom: 40,
 								paddingTop: 15
 							}}
 							sections={mockData}
@@ -180,7 +181,7 @@ export default function HistoryScreen() {
 							contentContainerStyle={{
 								rowGap: 15,
 								paddingHorizontal: PagePadding.config.paddingHorizontal,
-								paddingBottom: PagePadding.config.paddingBottom - 15,
+								paddingBottom: 40,
 								paddingTop: 15
 							}}
 							sections={mockData}
@@ -250,6 +251,7 @@ function SectionHeader({ title }) {
 			<View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 6 }}>
 				<Text
 					style={{
+						fontFamily: 'Outfit',
 						fontSize: 12,
 						letterSpacing: 1,
 						fontWeight: '700',

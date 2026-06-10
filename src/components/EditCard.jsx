@@ -1,9 +1,9 @@
 import Colors from '@/constants/Colors';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet, TouchableOpacity } from 'react-native';
 
-import { Pencil } from 'lucide-react-native';
 import formatSnakeToTitle from '@/utility/formatSnaketoTitle';
 import { memo } from 'react';
+import Edit2 from '@/components/icons/hugeicons/Edit2';
 
 function EditCard({
 	handlePresentModalPress,
@@ -23,13 +23,14 @@ function EditCard({
 					alignItems: 'center'
 				}}
 			>
-				<View style={[STYLES.iconStyle, { backgroundColor: iconColor + '2a' }]}>
-					{iconProp}
-				</View>
+				<View style={[STYLES.iconStyle]}>{iconProp}</View>
 
-				<Text style={{ fontSize: 16, fontWeight: '700' }}>{label}</Text>
+				<Text style={{ fontSize: 14, fontWeight: '600', fontFamily: 'Outfit' }}>
+					{label}
+				</Text>
 
-				<Pressable
+				<TouchableOpacity
+					activeOpacity={0.5}
 					style={{
 						marginLeft: 'auto',
 						marginRight: 8,
@@ -40,8 +41,8 @@ function EditCard({
 					}}
 					onPress={handlePresentModalPress(section)}
 				>
-					<Pencil size={20} color={Colors.primary} />
-				</Pressable>
+					<Edit2 size={22} color={Colors.primary} />
+				</TouchableOpacity>
 			</View>
 
 			<View
@@ -62,9 +63,10 @@ function EditCard({
 						{section !== 'about_you' && (
 							<Text
 								style={{
+									fontFamily: 'Outfit',
 									fontSize: 12,
 									fontWeight: '500',
-									color: '#676767f0',
+									color: Colors.textColor + '9a',
 									marginBottom: 4
 								}}
 							>
@@ -103,7 +105,7 @@ const STYLES = StyleSheet.create({
 		borderWidth: 1,
 		borderColor: 'rgba(46, 45, 46, 0)',
 		backgroundColor: '#ffffff',
-		shadowColor: '#0000009f',
+		shadowColor: '#0000007d',
 		shadowOffset: {
 			width: 0,
 			height: 1
@@ -115,10 +117,9 @@ const STYLES = StyleSheet.create({
 	},
 
 	iconStyle: {
-		backgroundColor: Colors.primary + '40',
 		padding: 10,
 		borderRadius: 100,
-		borderColor: Colors.primary + '4D',
+
 		marginRight: 12
 	},
 
@@ -129,6 +130,7 @@ const STYLES = StyleSheet.create({
 	},
 
 	textStyle: {
+		fontFamily: 'Outfit',
 		fontSize: 12,
 		fontWeight: '500',
 		letterSpacing: 0.2

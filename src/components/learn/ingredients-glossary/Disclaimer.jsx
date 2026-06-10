@@ -17,6 +17,7 @@ export default function Disclaimer({ content, color, disclaimerTitle, children }
 			<View style={{ flex: 1 }}>
 				<Text
 					style={{
+						fontFamily: 'Outfit',
 						fontWeight: 600,
 						fontSize: 14,
 						lineHeight: 20,
@@ -28,6 +29,7 @@ export default function Disclaimer({ content, color, disclaimerTitle, children }
 
 				<Text
 					style={{
+						fontFamily: 'Outfit',
 						lineHeight: 18,
 						fontSize: 12,
 						display: 'flex',

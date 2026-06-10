@@ -4,7 +4,7 @@ import LottieView from 'lottie-react-native';
 import { useEffect } from 'react';
 import { Text, ToastAndroid, View } from 'react-native';
 import { useProfilingStore } from '@/stores/useProfilingStore';
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI } from '@google/genai';
 import { z } from 'zod';
 import { router, useGlobalSearchParams } from 'expo-router';
 import {

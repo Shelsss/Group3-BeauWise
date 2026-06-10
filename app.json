@@ -1,6 +1,6 @@
 {
 	"expo": {
-		"name": "Beauwise",
+		"name": "BeauWise",
 		"slug": "beauwise-client",
 		"scheme": "beauwise-client",
 		"version": "1.0.0",
@@ -47,7 +47,53 @@
 			],
 			"expo-secure-store",
 			"@react-native-async-storage/expo-with-async-storage",
-			"expo-image-picker"
+			"expo-image-picker",
+			[
+				"expo-font",
+				{
+					"fonts": [
+						{
+							"fontFamily": "Outfit",
+							"fontDefinitions": [
+								{
+									"path": "node_modules/@expo-google-fonts/outfit/100Thin/Outfit_100Thin.ttf",
+									"weight": 100
+								},
+
+								{
+									"path": "node_modules/@expo-google-fonts/outfit/200ExtraLight/Outfit_200ExtraLight.ttf",
+									"weight": 200
+								},
+
+								{
+									"path": "node_modules/@expo-google-fonts/outfit/300Light/Outfit_300Light.ttf",
+									"weight": 300
+								},
+
+								{
+									"path": "node_modules/@expo-google-fonts/outfit/400Regular/Outfit_400Regular.ttf",
+									"weight": 400
+								},
+
+								{
+									"path": "node_modules/@expo-google-fonts/outfit/500Medium/Outfit_500Medium.ttf",
+									"weight": 500
+								},
+
+								{
+									"path": "node_modules/@expo-google-fonts/outfit/600SemiBold/Outfit_600SemiBold.ttf",
+									"weight": 600
+								},
+
+								{
+									"path": "node_modules/@expo-google-fonts/outfit/700Bold/Outfit_700Bold.ttf",
+									"weight": 700
+								}
+							]
+						}
+					]
+				}
+			]
 		],
 		"extra": {
 			"router": {},

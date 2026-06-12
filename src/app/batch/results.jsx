@@ -9,7 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Shadow } from 'react-native-shadow-2';
 const resultSchema = [
     {
-        type: 'fresh',
+        type: 'safe',
         headerContent: 'Product is Fresh',
         footerContent: 'Valid batch code detected',
         icon: (size, color) => <CircleCheckBig color={color} size={size} />,
@@ -21,7 +21,7 @@ const resultSchema = [
     },
 
     {
-        type: 'expired',
+        type: 'unsafe',
         headerContent: 'Product is Expired',
         footerContent: `This product's batch code indicates it is past its recommended shelf life.`,
         icon: (size, color) => <CircleAlert color={color} size={size} />,
@@ -33,7 +33,7 @@ const resultSchema = [
     },
 
     {
-        type: 'invalid',
+        type: 'warn',
         headerContent: 'Invalid Code or Not Found',
         footerContent: `We could not decode this batch code. It might be invalid or not yet in our database.`,
         icon: (size, color) => <CircleQuestionMark color={color} size={size} />,
@@ -57,7 +57,7 @@ export default function BatchResultsScreen(/*{ resultType = 'invalid' }*/) {
     const { bottom } = useSafeAreaInsets();
     const { resultType, brandName, batchCode, manufactureDate, estimatedExpiration, currentAge, error } = useGlobalSearchParams();
     const schema = resultSchema.find((item) => item.type === resultType);
-
+    
     return (
         <View style={{ flex: 1, backgroundColor: '#f8fafc', paddingBottom: bottom }}>
             <BatchHeader title='Batch Analysis' />
@@ -116,7 +116,7 @@ export default function BatchResultsScreen(/*{ resultType = 'invalid' }*/) {
                         </View>
 
                         {
-                            resultType != 'invalid' &&
+                            resultType != 'warn' &&
 
                             <>
                                 <View style={{ flexDirection: 'row' }}>

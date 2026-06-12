@@ -19,6 +19,8 @@ import { Shadow } from 'react-native-shadow-2';
 import { useRef, useState } from 'react';
 import BatchBottomSheet from '@/components/batch/BatchBottomSheet';
 import BatchInput from '@/components/batch/Input';
+import { getFirestore, Timestamp, arrayUnion, doc, updateDoc } from '@react-native-firebase/firestore';
+import { auth } from '@/services/auth';
 export default function BatchScreen() {
     const router = useRouter();
     const { bottom, top } = useSafeAreaInsets();
@@ -73,7 +75,7 @@ export default function BatchScreen() {
     }
 
     const getMonthName = (month) => {
-        switch(month) {
+        switch (month) {
             case 1:
                 return "January";
             case 2:
@@ -110,12 +112,12 @@ export default function BatchScreen() {
                     let resultType = '';
                     let currentAgeString = '';
                     const manufactureDate = getMonthName(data?.body?.month ?? 0) + " " +
-                                        (data?.body?.date ?? '1') + ", " + data?.body?.year;
+                        (data?.body?.date ?? '1') + ", " + data?.body?.year;
                     const estimatedExpiration = getMonthName(data?.body?.month ?? 0) + " " +
-                                        (data?.body?.date ?? '1') + ", " +  (parseInt(data?.body?.year ?? 2026)+3);
+                        (data?.body?.date ?? '1') + ", " + (parseInt(data?.body?.year ?? 2026) + 3);
 
                     if (parseInt(data.error) > 0) {
-                        resultType = 'invalid'
+                        resultType = 'warn'
                     } else {
                         const day = data?.body?.date ?? 1;
                         const month = data?.body?.month ?? 1;
@@ -130,11 +132,36 @@ export default function BatchScreen() {
                         currentAgeString = getCurrentAge(currentAgeYear, currentAgeMonth, currentAgeDay);
 
                         if (Date.now() > estExpiryDate) {
-                            resultType = 'expired';
+                            resultType = 'unsafe';
                         } else {
-                            resultType = 'fresh';
+                            resultType = 'safe';
                         }
                     }
+
+                    //Save to db
+                    const newHistoryObj = {
+                        createdAt: Timestamp.now(),
+                        query: {
+                            brandName: brandValue.text,
+                            batchCode: codeValue,
+                        },
+                        results: {
+                            resultType: resultType,
+                            brandName: brandValue.text,
+                            batchCode: codeValue,
+                            manufactureDate: manufactureDate,
+                            estimatedExpiration: estimatedExpiration,
+                            currentAge: currentAgeString,
+                            error: data.error ?? "0"
+                        },
+                        resultType: resultType,
+                    }
+
+                    const db = getFirestore();
+                    const docRef = doc(db, "users", auth.currentUser.uid);
+                    updateDoc(docRef, {
+                        batchHistory: arrayUnion(newHistoryObj)
+                    })
 
                     router.push({
                         pathname: '/batch/results',

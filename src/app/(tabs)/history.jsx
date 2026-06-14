@@ -14,7 +14,6 @@ import { auth } from '@/services/auth';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { doc, getDoc, getFirestore, query as firestoreQuery } from '@react-native-firebase/firestore';
 import { router } from 'expo-router';
-
 import { useEffect, useRef, useState } from 'react';
 import {
     Text,
@@ -26,8 +25,6 @@ import {
 } from 'react-native';
 import PagerView from 'react-native-pager-view';
 import { Shadow } from 'react-native-shadow-2';
-import { doc, getDoc, getFirestore, query as firestoreQuery } from '@react-native-firebase/firestore';
-import { auth } from '@/services/auth';
 
 const mockData = [
     {
@@ -81,6 +78,7 @@ export default function HistoryScreen() {
     const handleTabChange = (value) => {
         if(value == 2) {
             fetchFdaData();
+		}
         if(value == 1) {
             fetchBatchData();
         }
@@ -107,7 +105,10 @@ export default function HistoryScreen() {
             params: {
                 result: result.result || 'warn',
                 data: JSON.stringify(result.data)
+			}
+		});
     }
+	
     const handleBatchHistory = (result) => {
         router.push({
             pathname: '/batch/results',

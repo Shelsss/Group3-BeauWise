@@ -26,6 +26,7 @@ export default function PageLayout({ item }) {
 				<View>
 					<Text
 						style={{
+							fontFamily: 'Outfit',
 							textAlign: 'center',
 							fontSize: 30,
 							fontWeight: 600,
@@ -37,6 +38,7 @@ export default function PageLayout({ item }) {
 
 					<Text
 						style={{
+							fontFamily: 'Outfit',
 							textAlign: 'center',
 							fontSize: 16,
 							fontWeight: 600,
@@ -84,10 +86,17 @@ export default function PageLayout({ item }) {
 						rowGap: 8
 					}}
 				>
-					<Text style={{ fontSize: 18, fontWeight: 700, color: Colors.textColor }}>
+					<Text
+						style={{
+							fontFamily: 'Outfit',
+							fontSize: 18,
+							fontWeight: 700,
+							color: Colors.textColor
+						}}
+					>
 						What It Is
 					</Text>
-					<Text style={{ lineHeight: 25, color: Colors.textColor }}>
+					<Text style={{ fontFamily: 'Outfit', lineHeight: 25, color: Colors.textColor }}>
 						{item.what_it_is}
 					</Text>
 				</View>
@@ -101,7 +110,14 @@ export default function PageLayout({ item }) {
 							rowGap: 8
 						}}
 					>
-						<Text style={{ fontSize: 18, fontWeight: 700, color: Colors.textColor }}>
+						<Text
+							style={{
+								fontFamily: 'Outfit',
+								fontSize: 18,
+								fontWeight: 700,
+								color: Colors.textColor
+							}}
+						>
 							What It Does
 						</Text>
 						<View style={{ rowGap: 12 }}>
@@ -114,7 +130,15 @@ export default function PageLayout({ item }) {
 										<CircleCheckFill size={18} color={'#20C997'} />
 									</View>
 
-									<Text style={{ lineHeight: 20, color: Colors.textColor }}>{item}</Text>
+									<Text
+										style={{
+											fontFamily: 'Outfit',
+											lineHeight: 20,
+											color: Colors.textColor
+										}}
+									>
+										{item}
+									</Text>
 								</View>
 							))}
 						</View>
@@ -129,7 +153,14 @@ export default function PageLayout({ item }) {
 						rowGap: 8
 					}}
 				>
-					<Text style={{ fontSize: 18, fontWeight: 700, color: Colors.textColor }}>
+					<Text
+						style={{
+							fontFamily: 'Outfit',
+							fontSize: 18,
+							fontWeight: 700,
+							color: Colors.textColor
+						}}
+					>
 						Usage
 					</Text>
 
@@ -137,12 +168,23 @@ export default function PageLayout({ item }) {
 						{item.best_for && (
 							<View>
 								<Text
-									style={{ textTransform: 'uppercase', fontSize: 12, color: '#20C997' }}
+									style={{
+										fontFamily: 'Outfit',
+										textTransform: 'uppercase',
+										fontSize: 12,
+										color: '#20C997'
+									}}
 								>
 									best for
 								</Text>
 
-								<Text style={{ lineHeight: 25, color: Colors.textColor }}>
+								<Text
+									style={{
+										fontFamily: 'Outfit',
+										lineHeight: 25,
+										color: Colors.textColor
+									}}
+								>
 									{item.best_for}
 								</Text>
 							</View>
@@ -151,12 +193,23 @@ export default function PageLayout({ item }) {
 						{item.common_products && (
 							<View>
 								<Text
-									style={{ textTransform: 'uppercase', fontSize: 12, color: '#20C997' }}
+									style={{
+										fontFamily: 'Outfit',
+										textTransform: 'uppercase',
+										fontSize: 12,
+										color: '#20C997'
+									}}
 								>
 									best for
 								</Text>
 
-								<Text style={{ lineHeight: 25, color: Colors.textColor }}>
+								<Text
+									style={{
+										fontFamily: 'Outfit',
+										lineHeight: 25,
+										color: Colors.textColor
+									}}
+								>
 									{item.common_products}
 								</Text>
 							</View>
@@ -180,6 +233,7 @@ export default function PageLayout({ item }) {
 
 const STYLES = StyleSheet.create({
 	category: {
+		fontFamily: 'Outfit',
 		borderRadius: 100,
 		textAlign: 'center',
 		fontSize: 12,

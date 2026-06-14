@@ -13,6 +13,7 @@ import MedicalDisclaimer from '@/constants/MedicalDisclaimer';
 import ContactUs from '@/constants/ContactUs';
 import AboutUs from '@/constants/AboutUs';
 import { Image } from 'expo-image';
+import BatchHeader from '@/components/batch/Header';
 
 export default function LegalSupportType() {
 	const { legalSupportType } = useLocalSearchParams();
@@ -36,7 +37,7 @@ export default function LegalSupportType() {
 
 	return (
 		<>
-			<LearnHeader title={pageName} />
+			<BatchHeader title={pageName} />
 			<ScrollView
 				showsVerticalScrollIndicator={false}
 				ref={scrollViewRef}
@@ -66,7 +67,14 @@ export default function LegalSupportType() {
 
 				{displayItem.map((item, index) => (
 					<View key={item.title}>
-						<Text style={{ fontWeight: 700, fontSize: 16, color: Colors.textColor }}>
+						<Text
+							style={{
+								fontWeight: 700,
+								fontSize: 16,
+								color: Colors.textColor,
+								fontFamily: 'Outfit'
+							}}
+						>
 							{legalSupportType !== 'about-us' &&
 								legalSupportType !== 'contact-support' &&
 								`${index + 1}. `}
@@ -77,7 +85,11 @@ export default function LegalSupportType() {
 							<View style={{ rowGap: 20 }}>
 								{item.content.map((content, index) => (
 									<Text
-										style={{ color: Colors.textColor + '9a', lineHeight: 20 }}
+										style={{
+											color: Colors.textColor + '9a',
+											lineHeight: 20,
+											fontFamily: 'Outfit'
+										}}
 										key={index}
 									>
 										{content}
@@ -104,7 +116,13 @@ export default function LegalSupportType() {
 											style={{ marginTop: 7 }}
 											size={6}
 										/>
-										<Text style={{ color: Colors.textColor + '9a', lineHeight: 20 }}>
+										<Text
+											style={{
+												color: Colors.textColor + '9a',
+												lineHeight: 20,
+												fontFamily: 'Outfit'
+											}}
+										>
 											{content}
 										</Text>
 									</View>
@@ -116,7 +134,11 @@ export default function LegalSupportType() {
 							<View style={{ rowGap: 20, marginTop: 20 }}>
 								{item.additional_content.map((content, index) => (
 									<Text
-										style={{ color: Colors.textColor + '9a', lineHeight: 20 }}
+										style={{
+											color: Colors.textColor + '9a',
+											lineHeight: 20,
+											fontFamily: 'Outfit'
+										}}
 										key={index}
 									>
 										{content}
@@ -130,11 +152,20 @@ export default function LegalSupportType() {
 								{item.subsections.map(
 									({ title, content, list_items, additional_content }, index) => (
 										<View style={{ rowGap: 4 }} key={index}>
-											<Text style={{ color: Colors.textColor, fontWeight: 700 }}>
+											<Text
+												style={{
+													color: Colors.textColor,
+													fontWeight: 700,
+													fontFamily: 'Outfit'
+												}}
+											>
 												{title}
 											</Text>
 
-											<Text style={{ color: Colors.textColor }} key={index}>
+											<Text
+												style={{ color: Colors.textColor, fontFamily: 'Outfit' }}
+												key={index}
+											>
 												{content}
 											</Text>
 
@@ -155,7 +186,11 @@ export default function LegalSupportType() {
 														size={6}
 													/>
 													<Text
-														style={{ color: Colors.textColor + '9a', lineHeight: 20 }}
+														style={{
+															color: Colors.textColor + '9a',
+															lineHeight: 20,
+															fontFamily: 'Outfit'
+														}}
 													>
 														{item}
 													</Text>
@@ -163,7 +198,9 @@ export default function LegalSupportType() {
 											))}
 
 											{additional_content && (
-												<Text style={{ color: Colors.textColor + '9a' }}>
+												<Text
+													style={{ color: Colors.textColor + '9a', fontFamily: 'Outfit' }}
+												>
 													{additional_content}
 												</Text>
 											)}

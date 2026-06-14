@@ -69,6 +69,7 @@ export default function InitialStep() {
 			>
 				<Text
 					style={{
+						fontFamily: 'Outfit',
 						fontWeight: '800',
 						fontSize: 24,
 						color: Colors.primary,
@@ -79,6 +80,7 @@ export default function InitialStep() {
 				</Text>
 				<Text
 					style={{
+						fontFamily: 'Outfit',
 						color: '#6B7280',
 						lineHeight: 25
 					}}
@@ -90,6 +92,7 @@ export default function InitialStep() {
 			<Animated.Text
 				entering={FadeInUp.delay(300).duration(200)}
 				style={{
+					fontFamily: 'Outfit',
 					marginTop: 30,
 					color: Colors.textColor,
 					lineHeight: 20
@@ -101,27 +104,49 @@ export default function InitialStep() {
 
 			<View style={{ rowGap: 20, marginTop: 25 }}>
 				<Animated.View entering={FadeInUp.delay(400).duration(100)} style={STYLES.card}>
-					<Text style={{ fontWeight: 600, fontSize: 16, color: Colors.textColor }}>
+					<Text
+						style={{
+							fontFamily: 'Outfit',
+							fontWeight: 600,
+							fontSize: 16,
+							color: Colors.textColor
+						}}
+					>
 						{initialStepSchema[0].name}
 					</Text>
 					<View style={{ rowGap: 4 }}>
 						{initialStepSchema[0].items.map((item) => (
 							<View key={item} style={STYLES.cardItemStyle}>
 								<Circle size={6} fill={Colors.primary} strokeWidth={0} />
-								<Text style={{ fontSize: 12, color: Colors.textColor }}>{item}</Text>
+								<Text
+									style={{ fontFamily: 'Outfit', fontSize: 12, color: Colors.textColor }}
+								>
+									{item}
+								</Text>
 							</View>
 						))}
 					</View>
 				</Animated.View>
 
 				<Animated.View entering={FadeInUp.delay(500).duration(200)} style={STYLES.card}>
-					<Text style={{ fontWeight: 600, fontSize: 16, color: Colors.textColor }}>
+					<Text
+						style={{
+							fontFamily: 'Outfit',
+							fontWeight: 600,
+							fontSize: 16,
+							color: Colors.textColor
+						}}
+					>
 						{initialStepSchema[1].name}
 					</Text>
 					<View style={{ rowGap: 4 }}>
 						{initialStepSchema[1].items.map((item) => (
 							<View key={item} style={STYLES.cardItemStyle}>
-								<Text style={{ fontSize: 12, color: Colors.textColor }}>✗ {item}</Text>
+								<Text
+									style={{ fontFamily: 'Outfit', fontSize: 12, color: Colors.textColor }}
+								>
+									✗ {item}
+								</Text>
 							</View>
 						))}
 					</View>
@@ -137,11 +162,12 @@ export default function InitialStep() {
 					marginTop: 18
 				}}
 			>
-				<Text style={{ fontWeight: 600, color: Colors.textColor }}>
+				<Text style={{ fontFamily: 'Outfit', fontWeight: 600, color: Colors.textColor }}>
 					Medical Disclaimer & Consent:
 				</Text>
 				<Text
 					style={{
+						fontFamily: 'Outfit',
 						fontSize: 12,
 						color: Colors.textColor + '9a'
 					}}
@@ -174,7 +200,7 @@ export default function InitialStep() {
 				/>
 
 				<View>
-					<Text style={{ fontSize: 12, paddingRight: 20 }}>
+					<Text style={{ fontFamily: 'Outfit', fontSize: 12, paddingRight: 20 }}>
 						I understand that BeauWise is an educational tool and not a substitute for
 						professional medical advice.
 					</Text>

@@ -45,7 +45,7 @@ export default function Processing() {
 		}
 	});
 
-	const hasSaved = useRef(false); // Ref to prevent double-calls in Strict Mode
+	const hasSaved = useRef(false);
 
 	useEffect(() => {
 		if (data?.length > 0 && !isPending && !hasSaved.current) {

@@ -3,15 +3,21 @@ import Colors from '@/constants/Colors';
 import LottieView from 'lottie-react-native';
 import { FingerprintPattern, ShieldPlus } from 'lucide-react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
+import Pattern from '../icons/hugeicons/Pattern';
+import Hair from '../icons/hugeicons/Hair';
 
 export default function CheckpointScreen({ section, completedSteps, totalSteps }) {
 	return (
 		<View
-			style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}
+			style={{
+				flex: 1,
+				justifyContent: 'center',
+				alignItems: 'center',
+				padding: 20
+			}}
 		>
 			<LottieView
 				style={{
-					marginTop: 30,
 					aspectRatio: 1,
 					width: 180
 				}}
@@ -40,16 +46,22 @@ export default function CheckpointScreen({ section, completedSteps, totalSteps }
 							entering={FadeInUp.delay(300).duration(280)}
 							style={styles.card}
 						>
-							<View
-								style={{ backgroundColor: '#7676760b', padding: 12, borderRadius: 30 }}
-							>
-								<FingerprintPattern size={18} color={Colors.primary} />
-							</View>
+							<Pattern size={18} color={Colors.primary} />
+
 							<View>
-								<Text style={{ fontWeight: 700, color: Colors.textColor }}>
+								<Text
+									style={{
+										fontFamily: 'Outfit',
+										fontWeight: 600,
+										color: Colors.textColor,
+										fontSize: 12
+									}}
+								>
 									Hair Pattern & Texture
 								</Text>
-								<Text>Determine curl type and strand thickness</Text>
+								<Text style={{ fontFamily: 'Outfit', fontSize: 10 }}>
+									Determine curl type and strand thickness
+								</Text>
 							</View>
 						</Animated.View>
 
@@ -57,16 +69,22 @@ export default function CheckpointScreen({ section, completedSteps, totalSteps }
 							entering={FadeInUp.delay(400).duration(280)}
 							style={styles.card}
 						>
-							<View
-								style={{ backgroundColor: '#5959590b', padding: 12, borderRadius: 30 }}
-							>
-								<ShieldPlus size={18} color={Colors.primary} />
-							</View>
+							<Hair size={18} color={Colors.primary} />
+
 							<View>
-								<Text style={{ fontWeight: 700, color: Colors.textColor }}>
+								<Text
+									style={{
+										fontFamily: 'Outfit',
+										fontWeight: 600,
+										color: Colors.textColor,
+										fontSize: 12
+									}}
+								>
 									Scalp Health Assessment
 								</Text>
-								<Text>Analyze oiliness and sensitivity levels</Text>
+								<Text style={{ fontFamily: 'Outfit', fontSize: 10 }}>
+									Analyze oiliness and sensitivity levels
+								</Text>
 							</View>
 						</Animated.View>
 					</View>
@@ -74,9 +92,17 @@ export default function CheckpointScreen({ section, completedSteps, totalSteps }
 
 				<Animated.Text
 					entering={FadeIn.delay(500).duration(280)}
-					style={{ color: Colors.textColor + '7a' }}
+					style={{
+						fontFamily: 'Outfit',
+						color: Colors.textColor + '7a',
+						fontSize: 12,
+						marginLeft: 12,
+						width: 250,
+						bottom: -86,
+						position: 'absolute'
+					}}
 				>
-					<Text style={{ fontWeight: 700 }}>Reminder: </Text>All hair profiling questions
+					<Text style={{ fontWeight: 600 }}>Reminder: </Text>All hair profiling questions
 					are for general cosmetic ingredient matching and not for diagnosing scalp
 					conditions like alopecia or clinical dandruff.
 				</Animated.Text>
@@ -87,17 +113,19 @@ export default function CheckpointScreen({ section, completedSteps, totalSteps }
 
 const styles = StyleSheet.create({
 	container: {
-		alignItems: 'center'
+		alignItems: 'center',
+		marginBottom: 40
 	},
 
 	card: {
 		flexDirection: 'row',
 		columnGap: 12,
-		borderRadius: 16,
-		padding: 16,
+		borderRadius: 18,
+		paddingVertical: 12,
+		paddingHorizontal: 14,
 		backgroundColor: Colors.backgroundColor,
-
-		shadowColor: '#00000053',
+		alignItems: 'center',
+		shadowColor: '#00000027',
 		shadowOffset: {
 			width: 0,
 			height: 1
@@ -109,17 +137,19 @@ const styles = StyleSheet.create({
 	},
 
 	checkpointTitle: {
+		fontFamily: 'Outfit',
 		color: Colors.primary,
-		fontSize: 26,
-		fontWeight: '900',
+		fontSize: 18,
+		fontWeight: '600',
 		textAlign: 'center',
 		marginBottom: 12
 	},
 	checkpointDescription: {
-		fontSize: 15,
+		fontFamily: 'Outfit',
+		fontSize: 14,
 		color: Colors.textColor + '7a',
 		textAlign: 'center',
-		lineHeight: 22,
+		lineHeight: 20,
 		paddingHorizontal: 20
 	}
 });

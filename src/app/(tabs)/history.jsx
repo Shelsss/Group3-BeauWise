@@ -7,6 +7,7 @@ import GuestModeView from '@/components/history/GuessModeView';
 import HistoryBottomSheet from '@/components/history/HistoryBottomSheet';
 import SearchBar from '@/components/SearchBar';
 import SearchFilter from '@/components/SearchFilter';
+import SingleSidedShadow from '@/components/SingleSidedShadow';
 import Colors from '@/constants/Colors';
 import PagePadding from '@/constants/PagePadding';
 import { auth } from '@/services/auth';

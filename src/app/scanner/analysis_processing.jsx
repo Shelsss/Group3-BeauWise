@@ -4,27 +4,37 @@ import LottieView from 'lottie-react-native';
 import { useEffect } from 'react';
 import { Text, ToastAndroid, View } from 'react-native';
 import { useProfilingStore } from '@/stores/useProfilingStore';
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI } from '@google/genai';
 import { z } from 'zod';
 import { router, useGlobalSearchParams } from 'expo-router';
 import {
+    collection,
     doc,
     getDoc,
     getFirestore,
     query
 } from '@react-native-firebase/firestore';
 import { auth } from '@/services/auth';
+import { profileTags, exfoliantNames, emollientNames, emulsifierNames, skinLighteningNames, moisturizerNames, retinoidNames, skinRestoringNames } from '@/constants/ProfileTags';
 
 export default function Processing() {
     const { name, brand, notes, ingredients } = useGlobalSearchParams();
     const db = getFirestore();
-    
+
     const fetchData = async () => {
         const queryOption = query(doc(db, 'users', auth.currentUser.uid));
-    
+
         const documentSnapshot = await getDoc(queryOption);
-    
+
         return documentSnapshot.data().profiling;
+    };
+
+    const fetchIngredients = async () => {
+        const queryOption = query(collection(db, 'ingredients_glossary'));
+
+        const collectionSnapshot = await getDocs(queryOption);
+
+        return collectionSnapshot.docs.map(doc => doc.data());
     };
 
     const ai = new GoogleGenAI({
@@ -137,6 +147,8 @@ export default function Processing() {
             });
 
             const parsedResult = outputSchema.parse(JSON.parse(result.text));
+            const recommendations = await generateRecommendations();
+            parsedResult = parsedResult.concat(recommendations);
             return parsedResult;
         } catch (err) {
             ToastAndroid.show('An error occurred during analysis. ' + err.message, ToastAndroid.LONG);
@@ -145,10 +157,135 @@ export default function Processing() {
         }
     }
 
+
+    const generateProfileTagWeights = async () => {
+        const userProfile = await fetchData();
+        let profileWeights = {};
+        let userProfileTags = [];
+        for (const section in userProfile) {
+            if (section === 'about_you') {
+                continue;
+            }
+            for (const question in userProfile[section]) {
+                if (Array.isArray(userProfile[section][question]) && userProfile[section][question].length < 1) {
+                    continue;
+                }
+                if (question === 'chemical_treatments') {
+                    for (const items of userProfile[section][question]) {
+                        userProfileTags = userProfileTags.concat(profileTags[section][question][items]);
+                    }
+                } else {
+                    const answer = userProfile[section][question];
+                    userProfileTags = userProfileTags.concat(profileTags[section][question][answer]);
+                }
+            }
+        }
+
+        for (const tag of userProfileTags) {
+            if (tag === 'Exfoliant') {
+                const removeIndex = userProfileTags.indexOf(tag)
+                if (removeIndex > -1) {
+                    userProfileTags = userProfileTags.splice(removeIndex, 1)
+                }
+                userProfileTags = userProfileTags.concat(exfoliantNames);
+            }
+            if (tag === 'Emollient') {
+                const removeIndex = userProfileTags.indexOf(tag)
+                if (removeIndex > -1) {
+                    userProfileTags = userProfileTags.splice(removeIndex, 1)
+                }
+                userProfileTags = userProfileTags.concat(emollientNames);
+            }
+            if (tag === 'Emulsifier') {
+                const removeIndex = userProfileTags.indexOf(tag)
+                if (removeIndex > -1) {
+                    userProfileTags = userProfileTags.splice(removeIndex, 1)
+                }
+                userProfileTags = userProfileTags.concat(emulsifierNames);
+            }
+            if (tag === 'Skin Lightening') {
+                const removeIndex = userProfileTags.indexOf(tag)
+                if (removeIndex > -1) {
+                    userProfileTags = userProfileTags.splice(removeIndex, 1)
+                }
+                userProfileTags = userProfileTags.concat(skinLighteningNames);
+            }
+            if (tag === 'Moisturizer') {
+                const removeIndex = userProfileTags.indexOf(tag)
+                if (removeIndex > -1) {
+                    userProfileTags = userProfileTags.splice(removeIndex, 1)
+                }
+                userProfileTags = userProfileTags.concat(moisturizerNames);
+            }
+            if (tag === 'Retinoid') {
+                const removeIndex = userProfileTags.indexOf(tag)
+                if (removeIndex > -1) {
+                    userProfileTags = userProfileTags.splice(removeIndex, 1)
+                }
+                userProfileTags = userProfileTags.concat(retinoidNames);
+            }
+            if (tag === 'Skin Restoring') {
+                const removeIndex = userProfileTags.indexOf(tag)
+                if (removeIndex > -1) {
+                    userProfileTags = userProfileTags.splice(removeIndex, 1)
+                }
+                userProfileTags = userProfileTags.concat(skinRestoringNames);
+            }
+        }
+
+        for (const tag of userProfileTags) {
+            if (profileWeights[tag]) {
+                profileWeights[tag] += 1
+            } else {
+                profileWeights[tag] = 1
+            }
+        }
+
+
+        return profileWeights;
+
+    }
+
+    const generateRecommendations = async () => {
+        const profileWeights = await generateProfileTagWeights();
+        let rankedIngredients = [];
+
+        //TODO: convert to fetch ingredients in a seperate function
+        const queryOption = query(collection(db, 'ingredients_glossary'));
+
+        const collectionSnapshot = await getDocs(queryOption);
+
+        collectionSnapshot.forEach((doc) => {
+            let ranking = 0;
+            if (doc.data().ingredient_name === "Chemical X") {
+                return; //NOTE: Skip chemical X from recommendations, its in DB
+            }
+            for (const category of doc.data().category) {
+                if (profileWeights[category]) {
+                    ranking += profileWeights[category]
+                }
+            }
+            const rankedIngredient = {
+                ingredient: doc.data().ingredient_name,
+                flag: "recommended",
+                ranking: ranking
+            };
+            rankedIngredients = [...rankedIngredients, rankedIngredient];
+        })
+
+        rankedIngredients.sort((a, b) => {
+            if (a.ranking < b.ranking) return 1;
+            if (a.ranking > b.ranking) return -1;
+            return 0;
+        });
+
+        return rankedIngredients;
+    }
+
     useEffect(() => {
         startAnalysis().then((res) => {
             //NOTE: for some reason, without this log it tries to route before the result even return, will investigate later
-            console.log('Analysis result:', res); 
+            console.log('Analysis result:', res);
             router.replace({
                 pathname: 'scanner/results',
                 params: {

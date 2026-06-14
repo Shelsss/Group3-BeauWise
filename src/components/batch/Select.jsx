@@ -20,6 +20,7 @@ export default function BatchSelect({ handleSelect, brandValue }) {
 		>
 			<Text
 				style={{
+					fontFamily: 'Outfit',
 					fontSize: 16,
 					marginRight: 'auto',
 					color: brandValue ? Colors.textColor : Colors.textColor + '7a'

@@ -1,6 +1,6 @@
 import Colors from '@/constants/Colors';
-import { Funnel } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
+import Filter from '@/components/icons/hugeicons/Filter';
 
 export default function SearchFilter({ label = 'Filter', handlePress, style }) {
 	return (
@@ -15,12 +15,11 @@ export default function SearchFilter({ label = 'Filter', handlePress, style }) {
 
 					paddingHorizontal: 10,
 					paddingVertical: 10,
-					backgroundColor: Colors.primary + '2a',
 
 					columnGap: 6
 				}}
 			>
-				<Funnel size={15} color={Colors.primary} />
+				<Filter size={20} color={Colors.primary} />
 			</View>
 		</Pressable>
 	);

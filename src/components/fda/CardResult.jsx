@@ -5,7 +5,7 @@ import { Shadow } from 'react-native-shadow-2';
 
 const schema = [
 	{
-		type: 'expired',
+		type: 'unsafe',
 		notes: [
 			'The FDA Notification validity for this product has expired.',
 			`This means the product's authorization for market distribution is no longer active.`,
@@ -14,7 +14,7 @@ const schema = [
 		]
 	},
 	{
-		type: 'invalid',
+		type: 'warn',
 		notes: [
 			'We could not verify a valid Certificate of Product Notification (CPN) or registered brand name matching your input in the FDA Philippines Database.',
 			`Please verify the spelling or try searching via the specific Notification Number (e.g., NN-10000...) found on the packaging.`,
@@ -24,6 +24,7 @@ const schema = [
 ];
 
 export default function CardResult({ result, resultType }) {
+    console.log(resultType);
 	if (!result) return null;
 
 	return (
@@ -40,11 +41,11 @@ export default function CardResult({ result, resultType }) {
 				<View>
 					<Text style={STYLES.cardHeaderTitle}>product name</Text>
 					<Text style={STYLES.cardDescription}>
-						{(result?.productName || 'No product data found').toUpperCase()}
+						{(result?.PRODUCT_NAME || 'No product data found').toUpperCase()}
 					</Text>
 				</View>
 
-				{resultType === 'valid' ? (
+				{resultType === 'safe' ? (
 					<CardResultValid result={result} />
 				) : (
 					<CardResultCommon resultType={resultType} />
@@ -56,8 +57,7 @@ export default function CardResult({ result, resultType }) {
 
 function CardResultCommon({ resultType }) {
 	const selected =
-		schema.find((item) => item.type === resultType) ||
-		schema.find((item) => item.type === 'invalid');
+		schema.find((item) => item.type === resultType)
 
 	return (
 		<View style={{ rowGap: 12 }}>
@@ -80,7 +80,7 @@ function CardResultValid({ result }) {
 			<View>
 				<Text style={STYLES.cardHeaderTitle}>company</Text>
 				<Text style={STYLES.cardDescription}>
-					{(result.company || '—').toUpperCase()}
+					{(result.COMPANY_NAME || '—').toUpperCase()}
 				</Text>
 			</View>
 
@@ -88,7 +88,7 @@ function CardResultValid({ result }) {
 			<View>
 				<Text style={STYLES.cardHeaderTitle}>validity period</Text>
 				<Text style={STYLES.cardDescription}>
-					{(result.validity || '—').toUpperCase()}
+					{(result.NOTIFICATION_VALIDITY || '—').toUpperCase()}
 				</Text>
 			</View>
 
@@ -97,7 +97,7 @@ function CardResultValid({ result }) {
 				<View style={{ paddingTop: 10 }}>
 					<Text style={STYLES.cardHeaderTitle}>notification no.</Text>
 					<Text style={STYLES.cardDescription}>
-						{(result.notificationNo || '—').toUpperCase()}
+						{(result.ACCOUNTCODE || '—').toUpperCase()}
 					</Text>
 				</View>
 			</View>

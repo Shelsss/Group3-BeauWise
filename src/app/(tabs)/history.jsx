@@ -26,6 +26,8 @@ import {
 } from 'react-native';
 import PagerView from 'react-native-pager-view';
 import { Shadow } from 'react-native-shadow-2';
+import { doc, getDoc, getFirestore, query as firestoreQuery } from '@react-native-firebase/firestore';
+import { auth } from '@/services/auth';
 
 const mockData = [
     {
@@ -71,11 +73,14 @@ export default function HistoryScreen() {
     const [query, setQuery] = useState('');
     const [refreshing, setRefresh] = useState(false);
 
+    const [fdaHistory, setFdaData] = useState([]);
     const [batchData, setBatchData] = useState([]);
 
     const handleQuery = (value) => () => setQuery(value);
 
     const handleTabChange = (value) => {
+        if(value == 2) {
+            fetchFdaData();
         if(value == 1) {
             fetchBatchData();
         }
@@ -95,6 +100,14 @@ export default function HistoryScreen() {
         Vibration.vibrate(50);
     };
 
+    const handleFdaHistory = (result) => {
+        console.log(JSON.stringify(result.data));
+        router.push({
+            pathname: '/fda/results',
+            params: {
+                result: result.result || 'warn',
+                data: JSON.stringify(result.data)
+    }
     const handleBatchHistory = (result) => {
         router.push({
             pathname: '/batch/results',
@@ -114,7 +127,45 @@ export default function HistoryScreen() {
         return strTime;
     }
 
-    const fetchBatchData = async () => {
+    const fetchFdaData = async () => {
+      setRefresh(true);
+        const db = getFirestore();
+        const docRef = firestoreQuery(doc(db, "users", auth.currentUser.uid));
+        const data = await getDoc(docRef);
+        const fdaData = [
+            {
+                title: "Today",
+                data: data.data().fdaHistory.filter((item) => {
+                    const createdAt = item.createdAt.toDate();
+                    let today = new Date();
+                    return (createdAt.setHours(0, 0, 0, 0) == today.setHours(0, 0, 0, 0));
+                })
+            },
+            {
+                title: "Yesterday",
+                data: data.data().fdaHistory.filter((item) => {
+                    const createdAt = item.createdAt.toDate();
+                    let yesterday = new Date();
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    return (createdAt.setHours(0, 0, 0, 0) == yesterday.setHours(0, 0, 0, 0));
+                })
+            },
+            {
+                title: "Older",
+                data: data.data().fdaHistory.filter((item) => {
+                     const createdAt = item.createdAt.toDate();
+                    let today = new Date();
+                    let yesterday = new Date();
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    return !(createdAt.setHours(0, 0, 0, 0) == yesterday.setHours(0, 0, 0, 0)) && !(createdAt.setHours(0, 0, 0, 0) == today.setHours(0, 0, 0, 0));
+                })
+            }
+        ]
+        setFdaData(fdaData);
+      setRefresh(false);
+    }
+    
+     const fetchBatchData = async () => {
         setRefresh(true);
         const db = getFirestore();
         const docRef = firestoreQuery(doc(db, "users", auth.currentUser.uid));
@@ -147,9 +198,9 @@ export default function HistoryScreen() {
                     return !(createdAt.setHours(0, 0, 0, 0) == yesterday.setHours(0, 0, 0, 0)) && !(createdAt.setHours(0, 0, 0, 0) == today.setHours(0, 0, 0, 0));
                 })
             }
-        ]
+          ]
         setBatchData(batchData);
-        setRefresh(false);
+       setRefresh(false);
     }
 
     return (
@@ -284,14 +335,15 @@ export default function HistoryScreen() {
                                 paddingBottom: PagePadding.config.paddingBottom - 15,
                                 paddingTop: 15
                             }}
-                            sections={mockData}
+                            sections={fdaHistory}
                             keyExtractor={(item, index) => `${item.title} + ${index}`}
                             renderItem={({ item }) => (
                                 <Card
                                     type='fda'
-                                    time={item.time}
-                                    status={item.status}
-                                    title={item.title}
+                                    onPress={() => { handleFdaHistory(item.results) }}
+                                    time={formatAMPM(item.createdAt.toDate())}
+                                    status={item.resultType}
+                                    title={item.query.text}
                                 />
                             )}
                             stickySectionHeadersEnabled={true}

@@ -1,4 +1,4 @@
-const BASE_URL = 'http://192.168.100.121:3000';
+const BASE_URL = 'https://verification.fda.gov.ph/api';
 
 const parseResponse = (data) => {
 	// 🛑 No data
@@ -24,12 +24,12 @@ const parseResponse = (data) => {
 
 const handleFetch = async (body) => {
 	try {
-		const res = await fetch(`${BASE_URL}/search`, {
-			method: 'POST',
+		const res = await fetch(`${BASE_URL}/search?q=` + body, {
+			method: 'GET',
 			headers: {
-				'Content-Type': 'application/json'
+				'Content-Type': 'application/json',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36'
 			},
-			body: JSON.stringify(body)
 		});
 
 		// 🚨 HANDLE HTTP ERRORS (like 403, 500)
@@ -61,18 +61,12 @@ const handleFetch = async (body) => {
 export const verifyProductByName = async (name) => {
 	if (!name || name.trim() === "") return null;
 
-	return await handleFetch({
-		productName: name.trim(),
-		notificationNumber: ""
-	});
+	return await handleFetch(name.trim().toUpperCase());
 };
 
 // 🔍 SEARCH BY NOTIFICATION NUMBER
 export const verifyProductByNN = async (nn) => {
 	if (!nn || nn.trim() === "") return null;
 
-	return await handleFetch({
-		productName: "",
-		notificationNumber: nn.trim().toUpperCase()
-	});
+	return await handleFetch(nn.trim().toUpperCase());
 };

@@ -3,11 +3,12 @@ import { TextInput, View } from 'react-native';
 import { useState } from 'react';
 import Colors from '@/constants/Colors';
 
-export default function BatchInput() {
+export default function BatchInput( {onCodeValueChanged} ) {
 	const [value, setValue] = useState('');
 
 	const handleChange = (value) => {
 		setValue(value);
+        onCodeValueChanged(value);
 	};
 
 	return (
@@ -28,6 +29,7 @@ export default function BatchInput() {
 				value={value}
 				placeholder='Enter Batch Code'
 				style={{
+					fontFamily: 'Outfit',
 					fontSize: 16,
 					flex: 1,
 					color: Colors.textColor

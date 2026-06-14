@@ -84,11 +84,17 @@ const renderHeader = memo(() => {
 	const { name, brand, notes, flaggedIngredients } = useGlobalSearchParams();
 	const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 	const flagged_ingredients = JSON.parse(flaggedIngredients);
-	ingredientsData[0].data = flagged_ingredients.filter((ingredient) => ingredient.status === 'restricted') || [];
-	ingredientsData[1].data = flagged_ingredients.filter((ingredient) => ingredient.status === 'aligned') || [];
-	ingredientsData[2].data = flagged_ingredients.filter((ingredient) => ingredient.status === 'attention') || [];
-	ingredientsData[3].data = flagged_ingredients.filter((ingredient) => ingredient.status === 'unrecognized') || [];
-	ingredientsData[4].data = flagged_ingredients.filter((ingredient) => ingredient.status === 'base') || [];
+	ingredientsData[0].data =
+		flagged_ingredients.filter((ingredient) => ingredient.status === 'restricted') || [];
+	ingredientsData[1].data =
+		flagged_ingredients.filter((ingredient) => ingredient.status === 'aligned') || [];
+	ingredientsData[2].data =
+		flagged_ingredients.filter((ingredient) => ingredient.status === 'attention') || [];
+	ingredientsData[3].data =
+		flagged_ingredients.filter((ingredient) => ingredient.status === 'unrecognized') ||
+		[];
+	ingredientsData[4].data =
+		flagged_ingredients.filter((ingredient) => ingredient.status === 'base') || [];
 
 	return (
 		<View style={{ paddingBottom: 20 }}>

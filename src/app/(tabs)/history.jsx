@@ -7,12 +7,15 @@ import GuestModeView from '@/components/history/GuessModeView';
 import HistoryBottomSheet from '@/components/history/HistoryBottomSheet';
 import SearchBar from '@/components/SearchBar';
 import SearchFilter from '@/components/SearchFilter';
+import SingleSidedShadow from '@/components/SingleSidedShadow';
 import Colors from '@/constants/Colors';
 import PagePadding from '@/constants/PagePadding';
+import { auth } from '@/services/auth';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { doc, getDoc, getFirestore, query as firestoreQuery } from '@react-native-firebase/firestore';
 import { router } from 'expo-router';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
     Text,
     View,
@@ -71,12 +74,15 @@ export default function HistoryScreen() {
     const [refreshing, setRefresh] = useState(false);
 
     const [fdaHistory, setFdaData] = useState([]);
+    const [batchData, setBatchData] = useState([]);
 
     const handleQuery = (value) => () => setQuery(value);
 
     const handleTabChange = (value) => {
         if(value == 2) {
             fetchFdaData();
+        if(value == 1) {
+            fetchBatchData();
         }
         requestAnimationFrame(() => {
             setTab(value);
@@ -101,7 +107,11 @@ export default function HistoryScreen() {
             params: {
                 result: result.result || 'warn',
                 data: JSON.stringify(result.data)
-            }
+    }
+    const handleBatchHistory = (result) => {
+        router.push({
+            pathname: '/batch/results',
+            params: result
         });
         Vibration.vibrate(50);
     }
@@ -118,7 +128,7 @@ export default function HistoryScreen() {
     }
 
     const fetchFdaData = async () => {
-        setRefresh(true);
+      setRefresh(true);
         const db = getFirestore();
         const docRef = firestoreQuery(doc(db, "users", auth.currentUser.uid));
         const data = await getDoc(docRef);
@@ -143,7 +153,7 @@ export default function HistoryScreen() {
             {
                 title: "Older",
                 data: data.data().fdaHistory.filter((item) => {
-                    const createdAt = item.createdAt.toDate();
+                     const createdAt = item.createdAt.toDate();
                     let today = new Date();
                     let yesterday = new Date();
                     yesterday.setDate(yesterday.getDate() - 1);
@@ -152,7 +162,45 @@ export default function HistoryScreen() {
             }
         ]
         setFdaData(fdaData);
-        setRefresh(false);
+      setRefresh(false);
+    }
+    
+     const fetchBatchData = async () => {
+        setRefresh(true);
+        const db = getFirestore();
+        const docRef = firestoreQuery(doc(db, "users", auth.currentUser.uid));
+        const data = await getDoc(docRef);
+        const batchData = [
+            {
+                title: "Today",
+                data: data.data().batchHistory.filter((item) => {
+                    const createdAt = item.createdAt.toDate();
+                    let today = new Date();
+                    return (createdAt.setHours(0, 0, 0, 0) == today.setHours(0, 0, 0, 0));
+                })
+            },
+            {
+                title: "Yesterday",
+                data: data.data().batchHistory.filter((item) => {
+                    const createdAt = item.createdAt.toDate();
+                    let yesterday = new Date();
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    return (createdAt.setHours(0, 0, 0, 0) == yesterday.setHours(0, 0, 0, 0));
+                })
+            },
+            {
+                title: "Older",
+                data: data.data().batchHistory.filter((item) => {
+                    const createdAt = item.createdAt.toDate();
+                    let today = new Date();
+                    let yesterday = new Date();
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    return !(createdAt.setHours(0, 0, 0, 0) == yesterday.setHours(0, 0, 0, 0)) && !(createdAt.setHours(0, 0, 0, 0) == today.setHours(0, 0, 0, 0));
+                })
+            }
+          ]
+        setBatchData(batchData);
+       setRefresh(false);
     }
 
     return (
@@ -253,14 +301,17 @@ export default function HistoryScreen() {
                                 paddingBottom: PagePadding.config.paddingBottom - 15,
                                 paddingTop: 15
                             }}
-                            sections={mockData}
+                            onRefresh={fetchBatchData}
+                            refreshing={refreshing}
+                            sections={batchData}
                             keyExtractor={(item, index) => `${item.title} + ${index}`}
                             renderItem={({ item }) => (
                                 <Card
                                     type='batch'
-                                    time={item.time}
-                                    status={item.status}
-                                    title={item.title}
+                                    onPress={() => {handleBatchHistory(item.results)}}
+                                    time={formatAMPM(item.createdAt.toDate())}
+                                    status={item.resultType}
+                                    title={item.query.brandName}
                                 />
                             )}
                             stickySectionHeadersEnabled={true}

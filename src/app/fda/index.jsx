@@ -5,12 +5,13 @@ import Colors from '@/constants/Colors';
 import { useRouter } from 'expo-router';
 import { CircleCheck } from 'lucide-react-native';
 import {
-    Keyboard,
-    Pressable,
-    StyleSheet,
-    Text,
-    TouchableWithoutFeedback,
-    View
+	Keyboard,
+	Pressable,
+	StyleSheet,
+	Text,
+	TouchableOpacity,
+	TouchableWithoutFeedback,
+	View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Shadow } from 'react-native-shadow-2';
@@ -20,11 +21,14 @@ import Info from '@/components/icons/Info';
 import AnimatedTabs from '@/components/AnimatedTabs';
 
 import { verifyProductByName, verifyProductByNN } from '@/services/fdaApiService';
-import { saveHistory } from '@/services/historyService';
-import { saveFdaHistory } from '@/services/historyService';
+import { saveHistory, saveFdaHistory } from '@/services/historyService';
+
 import { useAuthStore } from '@/stores/useAuthStore';
 import { getFirestore, Timestamp, arrayUnion, doc, updateDoc } from '@react-native-firebase/firestore';
 import { auth } from '@/services/auth';
+import { fdaVerification } from '@/services/cloudFunctions';
+import Toast from 'react-native-toast-message';
+import { ActivityIndicator } from 'react-native-paper';
 
 const fdaSchema = [
     {

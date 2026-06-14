@@ -25,9 +25,10 @@ export default function Card({ title, description, buttonLabel, tag, routeTarget
 					>
 						<Text
 							style={{
+								fontFamily: 'Outfit',
 								fontSize: 12,
 								color: Colors.backgroundColor,
-								letterSpacing: 1.5,
+
 								textTransform: 'capitalize'
 							}}
 						>
@@ -55,6 +56,7 @@ export default function Card({ title, description, buttonLabel, tag, routeTarget
 
 const STYLES = StyleSheet.create({
 	tag: {
+		fontFamily: 'Outfit',
 		textTransform: 'uppercase',
 		paddingHorizontal: 12,
 		paddingVertical: 8,
@@ -80,6 +82,7 @@ const STYLES = StyleSheet.create({
 	},
 
 	cardTitle: {
+		fontFamily: 'Outfit',
 		width: 120,
 		color: Colors.textColor,
 		fontWeight: 700,
@@ -87,10 +90,11 @@ const STYLES = StyleSheet.create({
 	},
 
 	cardDescription: {
+		fontFamily: 'Outfit',
 		width: 200,
-		letterSpacing: 0.5,
+
 		fontSize: 14,
-		lineHeight: 22,
+		lineHeight: 20,
 		color: Colors.textColor + '7a'
 	},
 

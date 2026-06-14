@@ -24,13 +24,13 @@ export default function MultiCheckBoxContainer({
 	};
 
 	return (
-		<View style={{ marginHorizontal: 20 }}>
+		<View style={{ marginHorizontal: 20, rowGap: 8 }}>
 			<Text
 				style={{
-					textTransform: 'uppercase',
+					fontFamily: 'Outfit',
 					width: '100%',
-					fontSize: 14,
-					fontWeight: '800'
+					fontSize: 12,
+					fontWeight: '600'
 				}}
 			>
 				{choiceLabel}

@@ -1,6 +1,6 @@
 import PagePadding from '@/constants/PagePadding';
-import { useCallback, useRef, useState } from 'react';
-import { View } from 'react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { SectionList, Text, TouchableOpacity, View } from 'react-native';
 import {
 	getFirestore,
 	collection,
@@ -9,28 +9,176 @@ import {
 	documentId,
 	orderBy,
 	limit,
-	startAfter
+	startAfter,
+	where
 } from '@react-native-firebase/firestore';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { LegendList } from '@legendapp/list';
-import { useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import Card from '@/components/learn/ingredients-glossary/Card';
 import CardMyths from '@/components/learn/myths/Card';
 import CardAwareness from '@/components/learn/awareness/Card';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import SkeletonCard from '@/components/learn/ingredients-glossary/SkeletonCard';
 import LottieView from 'lottie-react-native';
+import SearchBar from '@/components/SearchBar';
+import Colors from '@/constants/Colors';
+import Animated, {
+	useAnimatedStyle,
+	useSharedValue,
+	withTiming
+} from 'react-native-reanimated';
+import { searchEngine } from '@/services/cloudFunctions';
+import { Swing } from 'react-native-animated-spinkit';
+import BatchHeader from '@/components/batch/Header';
 
 const db = getFirestore();
 
+const sectionListData = [
+	{
+		title: 'A',
+		data: []
+	},
+
+	{
+		title: 'B',
+		data: []
+	},
+
+	{
+		title: 'C',
+		data: []
+	},
+
+	{
+		title: 'D',
+		data: []
+	},
+
+	{
+		title: 'E',
+		data: []
+	},
+
+	{
+		title: 'F',
+		data: []
+	},
+
+	{
+		title: 'G',
+		data: []
+	},
+
+	{
+		title: 'H',
+		data: []
+	},
+
+	{
+		title: 'I',
+		data: []
+	},
+
+	{
+		title: 'J',
+		data: []
+	},
+
+	{
+		title: 'K',
+		data: []
+	},
+
+	{
+		title: 'L',
+		data: []
+	},
+
+	{
+		title: 'M',
+		data: []
+	},
+
+	{
+		title: 'N',
+		data: []
+	},
+
+	{
+		title: 'O',
+		data: []
+	},
+
+	{
+		title: 'P',
+		data: []
+	},
+
+	{
+		title: 'Q',
+		data: []
+	},
+
+	{
+		title: 'R',
+		data: []
+	},
+
+	{
+		title: 'S',
+		data: []
+	},
+
+	{
+		title: 'T',
+		data: []
+	},
+
+	{
+		title: 'U',
+		data: []
+	},
+
+	{
+		title: 'V',
+		data: []
+	},
+
+	{
+		title: 'W',
+		data: []
+	},
+
+	{
+		title: 'X',
+		data: []
+	},
+
+	{
+		title: 'Y',
+		data: []
+	},
+
+	{
+		title: 'Z',
+		data: []
+	}
+];
+
 export default function Index() {
-	const scrollViewRef = useRef(null);
+	const [queryResult, setQueryResult] = useState(null);
+
 	const { category } = useLocalSearchParams();
-	const [isTransitionFinished, setIsTransitionFinished] = useState(false);
 	const { bottom } = useSafeAreaInsets();
 
 	const currentCategory = category.match(/\[(.*?)\]/)[1];
-
+	const currentRoute = category
+		.match(/\[(.*?)\]/)[1]
+		.split('_')
+		.map((string) => string.charAt(0).toUpperCase() + string.slice(1))
+		.join(' ');
+	const scrollViewRef = useRef(null);
 	const collectionRef = collection(db, currentCategory);
 
 	const fetchData = useCallback(async (pageParam) => {
@@ -50,19 +198,6 @@ export default function Index() {
 			nextCursor: lastVisible
 		};
 	}, []);
-
-	useFocusEffect(
-		useCallback(() => {
-			const handle = requestIdleCallback(() => {
-				setIsTransitionFinished(true);
-			});
-
-			return () => {
-				if (handle) cancelIdleCallback(handle);
-				setIsTransitionFinished(false);
-			};
-		}, [])
-	);
 
 	const { data, isPending, error, hasNextPage, fetchNextPage, isFetchingNextPage } =
 		useInfiniteQuery({
@@ -139,55 +274,226 @@ export default function Index() {
 		}
 	}, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-	const dataList = data?.pages.flatMap((page) => page.data) ?? [];
+	let dataList = data?.pages.flatMap((page) => page.data) ?? [];
 
-	if (!isTransitionFinished || isPending) {
-		return (
-			<LottieView
-				style={{
-					marginTop: '60%',
-					alignSelf: 'center',
-					aspectRatio: 1,
-					width: 200
-				}}
-				speed={2.5}
-				autoPlay
-				loop={true}
-				source={require('assets/lottie/loader.json')}
-			/>
-		);
+	if (currentCategory === 'ingredients_glossary') {
+		dataList.map((item) => {
+			const initialChar = item.ingredient_name[0];
+
+			const sectionIndex = sectionListData.findIndex(
+				({ title }) => title === initialChar
+			);
+
+			// sectionListData[sectionIndex].data = [...sectionListData[sectionIndex].data, item];
+		});
 	}
 
-	return (
-		<View style={{ flex: 1 }}>
-			<LegendList
-				ref={scrollViewRef}
-				onScroll={({ nativeEvent }) => {
-					if (nativeEvent.contentOffset.y < 0) {
-						scrollViewRef.current?.scrollToOffset({ x: 0, y: 0 });
-					}
-				}}
-				onEndReachedThreshold={0.5}
-				onEndReached={handleEndReached}
-				ListFooterComponent={renderFooterComponent}
-				ListFooterComponentStyle={{
-					paddingBottom: bottom + 20
-				}}
-				recycleItems={true}
-				getEstimatedItemSize={estimatedItemSize}
-				waitForInitialLayout={true}
-				showsVerticalScrollIndicator={false}
-				style={{ gap: 20 }}
-				contentContainerStyle={{
-					gap: 20,
-					paddingHorizontal: PagePadding.config.paddingHorizontal,
+	const handleQuery = (searchQuery) => async () => {
+		if (searchQuery.length <= 0) {
+			closeQueryResults();
+			return;
+		}
 
-					paddingTop: PagePadding.config.paddingTop
-				}}
-				keyExtractor={(item) => item.id}
-				data={dataList}
-				renderItem={renderItem}
-			/>
-		</View>
+		const searchResults = await searchEngine(searchQuery);
+
+		setQueryResult(searchResults);
+		showQueryResults();
+	};
+
+	const queryResultOpacity = useSharedValue(0);
+	const queryResultTransform = useSharedValue(0);
+
+	const showQueryResults = () => {
+		queryResultOpacity.value = 0;
+		queryResultTransform.value = -5;
+
+		queryResultOpacity.value = withTiming(1, { duration: 300 });
+		queryResultTransform.value = withTiming(0, { duration: 400 });
+	};
+
+	const closeQueryResults = () => {
+		queryResultOpacity.value = withTiming(0, { duration: 300 });
+		queryResultTransform.value = withTiming(-5, { duration: 400 });
+	};
+
+	const animatedQueryResult = useAnimatedStyle(() => {
+		return {
+			opacity: queryResultOpacity.value,
+			transform: [{ translateY: queryResultTransform.value }],
+			zIndex: queryResultOpacity.value === 0 ? 1 : 2
+		};
+	});
+
+	return (
+		<>
+			{isPending ? (
+				<View
+					style={{
+						flex: 1,
+						padding: 18,
+						borderRadius: 10,
+
+						justifyContent: 'center',
+						alignItems: 'center',
+						rowGap: 8
+					}}
+				>
+					<Swing size={28} color={Colors.primary} />
+					<Text
+						style={{
+							fontFamily: 'Outfit',
+							fontWeight: 500
+						}}
+					>
+						Loading...
+					</Text>
+				</View>
+			) : (
+				<View style={{ flex: 1 }}>
+					<BatchHeader title={currentRoute} />
+					{currentCategory === 'ingredients_glossary' ? (
+						<SectionList
+							onEndReachedThreshold={0.2}
+							onEndReached={handleEndReached}
+							ListHeaderComponent={() => {
+								if (currentCategory === 'ingredients_glossary') {
+									return (
+										<View>
+											<SearchBar
+												closeQueryResults={closeQueryResults}
+												handleQuery={handleQuery}
+												style={{
+													backgroundColor: Colors.backgroundColor
+												}}
+											/>
+
+											<Animated.View
+												style={[
+													{
+														borderRadius: 14,
+														padding: 16,
+														top: 45,
+														backgroundColor: Colors.backgroundColor,
+
+														position: 'absolute',
+														width: '100%',
+														rowGap: 20
+													},
+													animatedQueryResult
+												]}
+											>
+												{queryResult?.length <= 0 && (
+													<Text
+														style={{
+															textAlign: 'center',
+															fontSize: 10,
+															fontFamily: 'Outfit'
+														}}
+													>
+														No results found. Please try a different search term.
+													</Text>
+												)}
+
+												{queryResult?.map((item, index) => (
+													<TouchableOpacity
+														onPress={() => {
+															router.push({
+																pathname: `/learn/${currentCategory}/details`,
+																params: {
+																	selectedItem: item?.id
+																}
+															});
+
+															closeQueryResults();
+														}}
+														key={item?.id}
+														style={{ flexDirection: 'row', alignItems: 'center' }}
+													>
+														<Text
+															style={{
+																fontFamily: 'Outfit',
+																color: index === 0 ? Colors.primary : Colors.textColor,
+																fontWeight: 700,
+																width: 200
+															}}
+														>
+															{item?.ingredient_name}
+														</Text>
+
+														{index === 0 && (
+															<Text
+																style={{
+																	fontFamily: 'Outfit',
+																	paddingLeft: '14%',
+																	fontStyle: 'italic',
+																	color: Colors.textColor + '7a',
+																	fontWeight: 800,
+																	width: 180,
+																	fontSize: 12
+																}}
+															>
+																Suggested
+															</Text>
+														)}
+													</TouchableOpacity>
+												))}
+											</Animated.View>
+										</View>
+									);
+								}
+							}}
+							ListHeaderComponentStyle={{
+								marginBottom: currentCategory === 'ingredients_glossary' && 20,
+								zIndex: 1
+							}}
+							ListFooterComponent={renderFooterComponent}
+							ListFooterComponentStyle={{
+								paddingBottom: bottom + 20
+							}}
+							getEstimatedItemSize={estimatedItemSize}
+							waitForInitialLayout={true}
+							showsVerticalScrollIndicator={false}
+							contentContainerStyle={{
+								gap: 20,
+								paddingHorizontal: PagePadding.config.paddingHorizontal,
+
+								paddingTop: PagePadding.config.paddingTop
+							}}
+							keyExtractor={(item) => item.id}
+							sections={sectionListData}
+							renderItem={renderItem}
+						/>
+					) : (
+						<LegendList
+							ref={scrollViewRef}
+							onScroll={({ nativeEvent }) => {
+								if (nativeEvent.contentOffset.y < 0) {
+									scrollViewRef.current?.scrollToOffset({ x: 0, y: 0 });
+								}
+							}}
+							onEndReachedThreshold={0.5}
+							onEndReached={handleEndReached}
+							ListFooterComponent={renderFooterComponent}
+							ListFooterComponentStyle={{
+								paddingBottom: bottom + 20
+							}}
+							recycleItems={true}
+							getEstimatedItemSize={estimatedItemSize}
+							waitForInitialLayout={true}
+							showsVerticalScrollIndicator={false}
+							contentContainerStyle={{
+								gap: 20,
+								paddingHorizontal: PagePadding.config.paddingHorizontal,
+
+								paddingTop: PagePadding.config.paddingTop
+							}}
+							keyExtractor={(item) => item.id}
+							data={dataList}
+							renderItem={renderItem}
+						/>
+					)}
+				</View>
+			)}
+		</>
 	);
 }

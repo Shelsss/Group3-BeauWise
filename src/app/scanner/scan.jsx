@@ -192,10 +192,24 @@ export default function CameraScreen() {
 					</TouchableOpacity>
 
 					<View style={{ alignItems: 'center' }}>
-						<Text style={{ fontWeight: 500, letterSpacing: 1.4, color: '#fff' }}>
+						<Text
+							style={{
+								fontWeight: 500,
+								letterSpacing: 1.4,
+								color: '#fff',
+								fontFamily: 'Outfit'
+							}}
+						>
 							SCAN LABEL
 						</Text>
-						<Text style={{ fontWeight: 700, fontSize: 18, color: '#fff' }}>
+						<Text
+							style={{
+								fontFamily: 'Outfit',
+								fontWeight: 700,
+								fontSize: 18,
+								color: '#fff'
+							}}
+						>
 							Ingredient Analysis
 						</Text>
 					</View>

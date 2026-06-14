@@ -13,6 +13,7 @@ export default function SourceLink({ name, link }) {
 		<TouchableOpacity onPress={handlePress} style={{ flexDirection: 'row' }}>
 			<Text
 				style={{
+					fontFamily: 'Outfit',
 					fontStyle: 'italic',
 					fontSize: 12,
 					width: '90%',

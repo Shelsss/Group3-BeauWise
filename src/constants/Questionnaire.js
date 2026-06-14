@@ -2,42 +2,11 @@ import { randomUUID } from 'expo-crypto';
 
 export default [
 	{
-		title: 'About You',
-		section: 'about_you',
-		description: 'Basic information for skin analysis',
-		questions: [
-			{
-				label: 'Gender Identity',
-				identifier: 'gender',
-				id: randomUUID(),
-				options: [
-					{ label: 'Male', value: 'male', id: randomUUID() },
-					{ label: 'Female', value: 'female', id: randomUUID() },
-					{ label: 'Prefer not to say', value: 'prefer_not_to_say', id: randomUUID() }
-				]
-			},
-			{
-				label: 'Age Group',
-				identifier: 'age',
-				id: randomUUID(),
-				options: [
-					{ label: 'Under 18', value: 'under_18', id: randomUUID() },
-					{ label: '18-24', value: '18_24', id: randomUUID() },
-					{ label: '25-34', value: '25_34', id: randomUUID() },
-					{ label: '35-44', value: '35_44', id: randomUUID() },
-					{ label: '45-54', value: '45_54', id: randomUUID() },
-					{ label: '55 and above', value: '55_above', id: randomUUID() }
-				]
-			}
-		]
-	},
-
-	{
 		title: 'The Wash Test',
 		section: 'the_wash_test',
 		description: `Think about how your skin feels 30 minutes after 
-		washing your face with a gentle cleanser, 
-		before applying any moisturizer or toner.`,
+        washing your face with a gentle cleanser, 
+        before applying any moisturizer or toner.`,
 		questions: [
 			{
 				label: '30 minutes after washing your face, how would you describe your skin?',
@@ -48,44 +17,28 @@ export default [
 						label: 'Tight & Stretched',
 						value: 'tight_and_dry',
 						description: `It feels stretched. (Dry indicator)`,
-						image: {
-							male: require('assets/images/skin/male/tight_and_dry.webp'),
-							female: require('assets/images/skin/female/tight_and_dry.webp'),
-							prefer_not_to_say: require('assets/images/skin/prefer_not_to_say/tight_and_dry.webp')
-						},
+						image: require('assets/images/skin/prefer_not_to_say/tight_and_dry.webp'),
 						id: randomUUID()
 					},
 					{
 						label: 'Comfortable',
 						value: 'comfortable',
 						description: `It feels clean and smooth, neither tight nor oily. (Normal indicator)`,
-						image: {
-							male: require('assets/images/skin/male/comfortable.webp'),
-							female: require('assets/images/skin/female/comfortable.webp'),
-							prefer_not_to_say: require('assets/images/skin/prefer_not_to_say/comfortable.webp')
-						},
+						image: require('assets/images/skin/prefer_not_to_say/comfortable.webp'),
 						id: randomUUID()
 					},
 					{
 						label: 'Oily in spots',
 						value: 'oily_in_spots',
 						description: `My forehead and nose (T-zone) are shiny, but my cheeks feel normal or dry. (Combination indicator)`,
-						image: {
-							male: require('assets/images/skin/male/oily_in_spots.webp'),
-							female: require('assets/images/skin/female/oily_in_spots.webp'),
-							prefer_not_to_say: require('assets/images/skin/prefer_not_to_say/oily_in_spots.webp')
-						},
+						image: require('assets/images/skin/prefer_not_to_say/oily_in_spots.webp'),
 						id: randomUUID()
 					},
 					{
 						label: 'Greasy',
 						value: 'greasy',
 						description: ` I can feel oil or shine all over my face. (Oily indicator)`,
-						image: {
-							male: require('assets/images/skin/male/greasy.webp'),
-							female: require('assets/images/skin/female/greasy.webp'),
-							prefer_not_to_say: require('assets/images/skin/prefer_not_to_say/greasy.webp')
-						},
+						image: require('assets/images/skin/prefer_not_to_say/greasy.webp'),
 						id: randomUUID()
 					}
 				]
@@ -98,42 +51,26 @@ export default [
 					{
 						label: 'Very Small',
 						value: 'invisible_very_small',
-						image: {
-							male: require('assets/images/skin/male/invisible_very_small.webp'),
-							female: require('assets/images/skin/female/invisible_very_small.webp'),
-							prefer_not_to_say: require('assets/images/skin/prefer_not_to_say/invisible_very_small.webp')
-						},
+						image: require('assets/images/skin/prefer_not_to_say/invisible_very_small.webp'),
 						id: randomUUID()
 					},
 					{
 						label: 'Visible in T-Zone',
 						value: 'visible_in_t_zone',
 						id: randomUUID(),
-						image: {
-							male: require('assets/images/skin/male/visible_in_t_zone.webp'),
-							female: require('assets/images/skin/female/visible_in_t_zone.webp'),
-							prefer_not_to_say: require('assets/images/skin/prefer_not_to_say/visible_in_t_zone.webp')
-						}
+						image: require('assets/images/skin/prefer_not_to_say/visible_in_t_zone.webp')
 					},
 					{
 						label: 'Large / Visible Everywhere',
 						value: 'large_visible_everywhere',
 						id: randomUUID(),
-						image: {
-							male: require('assets/images/skin/male/large_visible_everywhere.webp'),
-							female: require('assets/images/skin/female/large_visible_everywhere.webp'),
-							prefer_not_to_say: require('assets/images/skin/prefer_not_to_say/large_visible_everywhere.webp')
-						}
+						image: require('assets/images/skin/prefer_not_to_say/large_visible_everywhere.webp')
 					},
 					{
 						label: 'Normal',
 						value: 'normal',
 						id: randomUUID(),
-						image: {
-							male: require('assets/images/skin/male/normal.webp'),
-							female: require('assets/images/skin/female/normal.webp'),
-							prefer_not_to_say: require('assets/images/skin/prefer_not_to_say/normal.webp')
-						}
+						image: require('assets/images/skin/prefer_not_to_say/normal.webp')
 					}
 				]
 			},
@@ -146,41 +83,25 @@ export default [
 						label: 'Dry',
 						value: 'flaky_dull',
 						id: randomUUID(),
-						image: {
-							male: require('assets/images/skin/male/flaky_dull.webp'),
-							female: require('assets/images/skin/female/flaky_dull.webp'),
-							prefer_not_to_say: require('assets/images/skin/prefer_not_to_say/flaky_dull.webp')
-						}
+						image: require('assets/images/skin/prefer_not_to_say/flaky_dull.webp')
 					},
 					{
 						label: 'Normal',
 						value: 'radiant_normal',
 						id: randomUUID(),
-						image: {
-							male: require('assets/images/skin/male/radiant_normal.webp'),
-							female: require('assets/images/skin/female/radiant_normal.webp'),
-							prefer_not_to_say: require('assets/images/skin/prefer_not_to_say/radiant_normal.webp')
-						}
+						image: require('assets/images/skin/prefer_not_to_say/radiant_normal.webp')
 					},
 					{
 						label: 'Shiny T-Zone',
 						value: 'shiny_t_zone',
 						id: randomUUID(),
-						image: {
-							male: require('assets/images/skin/male/shiny_t_zone.webp'),
-							female: require('assets/images/skin/female/shiny_t_zone.webp'),
-							prefer_not_to_say: require('assets/images/skin/prefer_not_to_say/shiny_t_zone.webp')
-						}
+						image: require('assets/images/skin/prefer_not_to_say/shiny_t_zone.webp')
 					},
 					{
 						label: 'Very Shiny',
 						value: 'very_shiny',
 						id: randomUUID(),
-						image: {
-							male: require('assets/images/skin/male/very_shiny.webp'),
-							female: require('assets/images/skin/female/very_shiny.webp'),
-							prefer_not_to_say: require('assets/images/skin/prefer_not_to_say/very_shiny.webp')
-						}
+						image: require('assets/images/skin/prefer_not_to_say/very_shiny.webp')
 					}
 				]
 			}
@@ -201,21 +122,13 @@ export default [
 						label: 'Never',
 						description: `My skin is very resilient`,
 						value: 'never',
-						image: {
-							male: require('assets/images/skin/male/never.webp'),
-							female: require('assets/images/skin/female/never.webp'),
-							prefer_not_to_say: require('assets/images/skin/prefer_not_to_say/never.webp')
-						},
+						image: require('assets/images/skin/prefer_not_to_say/never.webp'),
 						id: randomUUID()
 					},
 					{
 						label: 'Rarely',
 						description: `Only with very harsh products`,
-						image: {
-							male: require('assets/images/skin/male/rarely.webp'),
-							female: require('assets/images/skin/female/rarely.webp'),
-							prefer_not_to_say: require('assets/images/skin/prefer_not_to_say/rarely.webp')
-						},
+						image: require('assets/images/skin/prefer_not_to_say/rarely.webp'),
 						value: 'rarely',
 						id: randomUUID()
 					},
@@ -224,22 +137,14 @@ export default [
 						description: `Certain ingredients trigger a reaction`,
 						value: 'sometimes',
 						id: randomUUID(),
-						image: {
-							male: require('assets/images/skin/male/sometimes.webp'),
-							female: require('assets/images/skin/female/sometimes.webp'),
-							prefer_not_to_say: require('assets/images/skin/prefer_not_to_say/sometimes.webp')
-						}
+						image: require('assets/images/skin/prefer_not_to_say/sometimes.webp')
 					},
 					{
 						label: 'Frequently',
 						description: `I have to be very careful`,
 						value: 'frequently',
 						id: randomUUID(),
-						image: {
-							male: require('assets/images/skin/male/frequently_sensitivity.webp'),
-							female: require('assets/images/skin/female/frequently_sensitivity.webp'),
-							prefer_not_to_say: require('assets/images/skin/prefer_not_to_say/frequently_sensitivity.webp')
-						}
+						image: require('assets/images/skin/prefer_not_to_say/frequently_sensitivity.webp')
 					}
 				]
 			},
@@ -252,31 +157,19 @@ export default [
 						label: 'No, never',
 						value: 'no_never',
 						id: randomUUID(),
-						image: {
-							male: require('assets/images/skin/male/no_never.webp'),
-							female: require('assets/images/skin/female/no_never.webp'),
-							prefer_not_to_say: require('assets/images/skin/prefer_not_to_say/no_never.webp')
-						}
+						image: require('assets/images/skin/prefer_not_to_say/no_never.webp')
 					},
 					{
 						label: 'Occasionally',
 						value: 'occasionally',
 						id: randomUUID(),
-						image: {
-							male: require('assets/images/skin/male/occasionally.webp'),
-							female: require('assets/images/skin/female/occasionally.webp'),
-							prefer_not_to_say: require('assets/images/skin/prefer_not_to_say/occasionally.webp')
-						}
+						image: require('assets/images/skin/prefer_not_to_say/occasionally.webp')
 					},
 					{
 						label: 'Yes, very easily and it stays red for a while',
 						value: 'yes_very_easily',
 						id: randomUUID(),
-						image: {
-							male: require('assets/images/skin/male/yes_very_easily.webp'),
-							female: require('assets/images/skin/female/yes_very_easily.webp'),
-							prefer_not_to_say: require('assets/images/skin/prefer_not_to_say/yes_very_easily.webp')
-						}
+						image: require('assets/images/skin/prefer_not_to_say/yes_very_easily.webp')
 					}
 				]
 			}
@@ -297,94 +190,63 @@ export default [
 						label: 'Never / Very Rarely',
 						value: 'never_very_rarely',
 						id: randomUUID(),
-						image: {
-							male: require('assets/images/skin/male/never_very_rarely.webp'),
-							female: require('assets/images/skin/female/never_very_rarely.webp'),
-							prefer_not_to_say: require('assets/images/skin/prefer_not_to_say/never_very_rarely.webp')
-						}
+						image: require('assets/images/skin/prefer_not_to_say/never_very_rarely.webp')
 					},
 					{
 						label: 'Monthly',
 						description: `Usually hormonal or random`,
 						value: 'monthly',
 						id: randomUUID(),
-						image: {
-							male: require('assets/images/skin/male/monthly.webp'),
-							female: require('assets/images/skin/female/monthly.webp'),
-							prefer_not_to_say: require('assets/images/skin/prefer_not_to_say/monthly.webp')
-						}
+						image: require('assets/images/skin/prefer_not_to_say/monthly.webp')
 					},
 					{
 						label: 'Frequently',
 						description: `Almost always have one pimple`,
 						value: 'frequently',
 						id: randomUUID(),
-						image: {
-							male: require('assets/images/skin/male/frequently.webp'),
-							female: require('assets/images/skin/female/frequently.webp'),
-							prefer_not_to_say: require('assets/images/skin/prefer_not_to_say/frequently.webp')
-						}
+						image: require('assets/images/skin/prefer_not_to_say/frequently.webp')
 					},
 					{
 						label: 'Constantly',
 						description: `Multiple breakouts covering large areas`,
 						value: 'constantly',
 						id: randomUUID(),
-						image: {
-							male: require('assets/images/skin/male/constantly.webp'),
-							female: require('assets/images/skin/female/constantly.webp'),
-							prefer_not_to_say: require('assets/images/skin/prefer_not_to_say/constantly.webp')
-						}
+						image: require('assets/images/skin/prefer_not_to_say/constantly.webp')
 					}
 				]
 			},
 			{
-				label: 'Which texture issue bothers you the most?',
+				label: 'Which texture issue bothers you the most? (Select all that apply)',
 				identifier: 'texture_concern',
 				id: randomUUID(),
+				multiSelect: true,
 				options: [
 					{
 						label: 'Rough / Flaky patches',
 						description: `Associated with dry skin`,
 						value: 'rough_flaky_patches',
 						id: randomUUID(),
-						image: {
-							male: require('assets/images/skin/male/rough_flaky_patches.webp'),
-							female: require('assets/images/skin/female/rough_flaky_patches.webp'),
-							prefer_not_to_say: require('assets/images/skin/prefer_not_to_say/rough_flaky_patches.webp')
-						}
+						image: require('assets/images/skin/prefer_not_to_say/rough_flaky_patches.webp')
 					},
 					{
 						label: 'Blackheads / Whiteheads',
 						description: `Associated with oily or combination skin`,
 						value: 'blackheads_whiteheads',
 						id: randomUUID(),
-						image: {
-							male: require('assets/images/skin/male/blackheads_whiteheads.webp'),
-							female: require('assets/images/skin/female/blackheads_whiteheads.webp'),
-							prefer_not_to_say: require('assets/images/skin/prefer_not_to_say/blackheads_whiteheads.webp')
-						}
+						image: require('assets/images/skin/prefer_not_to_say/blackheads_whiteheads.webp')
 					},
 					{
 						label: 'Redness / Inflammation',
 						description: `Associated with sensitive skin`,
 						value: 'redness_inflammation',
 						id: randomUUID(),
-						image: {
-							male: require('assets/images/skin/male/redness_inflammation.webp'),
-							female: require('assets/images/skin/female/redness_inflammation.webp'),
-							prefer_not_to_say: require('assets/images/skin/prefer_not_to_say/redness_inflammation.webp')
-						}
+						image: require('assets/images/skin/prefer_not_to_say/redness_inflammation.webp')
 					},
 					{
 						label: 'None / Smooth Texture',
 						value: 'none_smooth_texture',
 						id: randomUUID(),
-						image: {
-							male: require('assets/images/skin/male/none_smooth_texture.webp'),
-							female: require('assets/images/skin/female/none_smooth_texture.webp'),
-							prefer_not_to_say: require('assets/images/skin/prefer_not_to_say/none_smooth_texture.webp')
-						}
+						image: require('assets/images/skin/prefer_not_to_say/none_smooth_texture.webp')
 					}
 				]
 			}
@@ -410,41 +272,25 @@ export default [
 						label: 'It feels essentially the same',
 						value: 'feels_the_same',
 						id: randomUUID(),
-						image: {
-							male: require('assets/images/skin/male/feels_the_same.webp'),
-							female: require('assets/images/skin/female/feels_the_same.webp'),
-							prefer_not_to_say: require('assets/images/skin/prefer_not_to_say/feels_the_same.webp')
-						}
+						image: require('assets/images/skin/prefer_not_to_say/feels_the_same.webp')
 					},
 					{
 						label: 'It gets a little drier but manageable',
 						value: 'little_drier',
 						id: randomUUID(),
-						image: {
-							male: require('assets/images/skin/male/little_drier.webp'),
-							female: require('assets/images/skin/female/little_drier.webp'),
-							prefer_not_to_say: require('assets/images/skin/prefer_not_to_say/little_drier.webp')
-						}
+						image: require('assets/images/skin/prefer_not_to_say/little_drier.webp')
 					},
 					{
 						label: 'It becomes painfully dry, cracked, or chapped',
 						value: 'painfully_dry',
 						id: randomUUID(),
-						image: {
-							male: require('assets/images/skin/male/painfully_dry.webp'),
-							female: require('assets/images/skin/female/painfully_dry.webp'),
-							prefer_not_to_say: require('assets/images/skin/prefer_not_to_say/painfully_dry.webp')
-						}
+						image: require('assets/images/skin/prefer_not_to_say/painfully_dry.webp')
 					},
 					{
 						label: 'It actually gets oilier (compensating for dryness)',
 						value: 'gets_oilier',
 						id: randomUUID(),
-						image: {
-							male: require('assets/images/skin/male/gets_oilier.webp'),
-							female: require('assets/images/skin/female/gets_oilier.webp'),
-							prefer_not_to_say: require('assets/images/skin/prefer_not_to_say/gets_oilier.webp')
-						}
+						image: require('assets/images/skin/prefer_not_to_say/gets_oilier.webp')
 					}
 				]
 			}
@@ -637,6 +483,7 @@ export default [
 				label: 'How long does your hair take to air-dry?',
 				identifier: 'air_dry_time',
 				id: randomUUID(),
+				isRange: true,
 				options: [
 					{
 						label: 'Very Fast',
@@ -672,9 +519,10 @@ export default [
 		description: 'Scalp condition and hair concerns',
 		questions: [
 			{
-				label: 'How would you describe your scalp condition?',
+				label: 'How would you describe your scalp condition? (Select all that apply)',
 				identifier: 'scalp_condition',
 				id: randomUUID(),
+				multiSelect: true,
 				options: [
 					{
 						label: 'Oily',
@@ -714,9 +562,10 @@ export default [
 				]
 			},
 			{
-				label: 'What is your primary hair concern?',
+				label: 'What is your primary hair concern? (Select all that apply)',
 				identifier: 'primary_concern',
 				id: randomUUID(),
+				multiSelect: true,
 				options: [
 					{
 						label: 'Hair Fall / Thinning',
@@ -767,16 +616,17 @@ export default [
 				label: 'How often do you wash your hair with shampoo?',
 				identifier: 'wash_frequency',
 				id: randomUUID(),
+				isRange: true,
 				options: [
-					{ label: 'Daily', value: 'daily', id: randomUUID() },
-					{ label: 'Every other day', value: 'every_other_day', id: randomUUID() },
-					{ label: 'Twice a week', value: 'twice_a_week', id: randomUUID() },
-					{ label: 'Once a week', value: 'once_a_week', id: randomUUID() },
 					{
 						label: 'Less than once a week',
 						value: 'less_than_once_a_week',
 						id: randomUUID()
-					}
+					},
+					{ label: 'Once a week', value: 'once_a_week', id: randomUUID() },
+					{ label: 'Twice a week', value: 'twice_a_week', id: randomUUID() },
+					{ label: 'Every other day', value: 'every_other_day', id: randomUUID() },
+					{ label: 'Daily', value: 'daily', id: randomUUID() }
 				]
 			},
 			{
@@ -821,29 +671,30 @@ export default [
 				label: `On a scale of 1 to 5, how knowledgeable do you feel about choosing products for your specific hair type?`,
 				identifier: 'product_knowledge',
 				id: randomUUID(),
+				isRange: true,
 				options: [
 					{
-						label: '1 - Not knowledgeable at all',
+						label: '1',
 						value: '1_not_knowledgeable',
 						id: randomUUID()
 					},
 					{
-						label: '2 - Slightly knowledgeable',
+						label: '2',
 						value: '2_slightly_knowledgeable',
 						id: randomUUID()
 					},
 					{
-						label: '3 - Moderately knowledgeable',
+						label: '3',
 						value: '3_moderately_knowledgeable',
 						id: randomUUID()
 					},
 					{
-						label: '4 - Very knowledgeable',
+						label: '4',
 						value: '4_very_knowledgeable',
 						id: randomUUID()
 					},
 					{
-						label: '5 - Expert (I check ingredients & pH)',
+						label: '5',
 						value: '5_expert',
 						id: randomUUID()
 					}

@@ -3,7 +3,7 @@ import MythLayout from '@/components/learn/myths/PageLayout';
 import PageLayout from '@/components/learn/ingredients-glossary/PageLayout';
 import AwarenessLayout from '@/components/learn/awareness/PageLayout';
 import { useRef } from 'react';
-import { ScrollView, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import LottieView from 'lottie-react-native';
@@ -16,6 +16,8 @@ import {
 } from '@react-native-firebase/firestore';
 import SourceLink from '@/components/SourceLink';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Swing } from 'react-native-animated-spinkit';
+import Colors from '@/constants/Colors';
 
 const db = getFirestore();
 
@@ -44,24 +46,29 @@ export default function Details() {
 		queryFn: fetchData
 	});
 
-	if (isPending) {
-		return (
-			<LottieView
-				style={{
-					marginTop: '60%',
-					alignSelf: 'center',
-					aspectRatio: 1,
-					width: 200
-				}}
-				speed={2.5}
-				autoPlay
-				loop={true}
-				source={require('assets/lottie/loader.json')}
-			/>
-		);
-	}
+	return isPending ? (
+		<View
+			style={{
+				flex: 1,
+				padding: 18,
+				borderRadius: 10,
 
-	return (
+				justifyContent: 'center',
+				alignItems: 'center',
+				rowGap: 8
+			}}
+		>
+			<Swing size={28} color={Colors.primary} />
+			<Text
+				style={{
+					fontFamily: 'Outfit',
+					fontWeight: 500
+				}}
+			>
+				Loading...
+			</Text>
+		</View>
+	) : (
 		<ScrollView
 			onScroll={({ nativeEvent }) => {
 				if (nativeEvent.contentOffset.y < 0) {

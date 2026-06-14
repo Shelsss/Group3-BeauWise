@@ -2,7 +2,7 @@ import Colors from '@/constants/Colors';
 import { ChevronDown } from 'lucide-react-native';
 import { Pressable, Text } from 'react-native';
 
-export default function BatchSelect({ handleSelect }) {
+export default function BatchSelect({ handleSelect, brandValue }) {
 	return (
 		<Pressable
 			onPress={handleSelect}
@@ -23,10 +23,10 @@ export default function BatchSelect({ handleSelect }) {
 					fontFamily: 'Outfit',
 					fontSize: 16,
 					marginRight: 'auto',
-					color: Colors.textColor + '7a'
+					color: brandValue ? Colors.textColor : Colors.textColor + '7a'
 				}}
 			>
-				Select Brand
+                {brandValue ? brandValue.text : "Select Brand" }
 			</Text>
 			<ChevronDown size={18} color={Colors.textColor + '7a'} />
 		</Pressable>

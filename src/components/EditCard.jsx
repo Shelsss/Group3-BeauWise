@@ -1,21 +1,29 @@
-import Colors from '@/constants/Colors';
-import { View, Text, Pressable, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 
-import formatSnakeToTitle from '@/utility/formatSnaketoTitle';
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import Edit2 from '@/components/icons/hugeicons/Edit2';
+import styles from '@/config/styles';
+import { ChevronDown } from 'lucide-react-native';
+import Animated from 'react-native-reanimated';
+import { entrySpringDown, exitSpringUp } from '@/utility/animations';
 
 function EditCard({
-	handlePresentModalPress,
+	onEdit,
 	section,
 	label,
-	sectionValue,
 	iconProp,
-	iconColor
+	questions,
+	activeTheme,
+	profileData
 }) {
+	const [visible, setVisible] = useState(false);
+
+	const current = questions.find((item) => item.section === section);
+
 	return (
-		<View style={STYLES.cardStyle}>
-			<View
+		<View style={{ padding: styles.spacing.lg }}>
+			<TouchableOpacity
+				onPress={() => setVisible((prev) => !prev)}
 				style={{
 					display: 'flex',
 					flexDirection: 'row',
@@ -24,28 +32,142 @@ function EditCard({
 				}}
 			>
 				<View style={[STYLES.iconStyle]}>{iconProp}</View>
-
-				<Text style={{ fontSize: 14, fontWeight: '600', fontFamily: 'Outfit' }}>
+				<Text
+					style={{
+						fontSize: styles.font.size.md,
+						fontWeight: styles.font.weight.semi_bold,
+						fontFamily: styles.font.family,
+						color: styles.theme.colors[activeTheme].text
+					}}
+				>
 					{label}
 				</Text>
-
-				<TouchableOpacity
-					activeOpacity={0.5}
+				<Animated.View
 					style={{
 						marginLeft: 'auto',
-						marginRight: 8,
-
-						paddingHorizontal: 8,
-						paddingVertical: 10,
-						borderRadius: 6
+						marginRight: styles.spacing.lg,
+						transform: [{ rotateZ: visible ? '180deg' : '0deg' }],
+						transitionDuration: 220,
+						transitionProperty: 'transform'
 					}}
-					onPress={handlePresentModalPress(section)}
 				>
-					<Edit2 size={22} color={Colors.primary} />
-				</TouchableOpacity>
-			</View>
+					<ChevronDown
+						strokeWidth={1.5}
+						color={styles.theme.colors[activeTheme].icon}
+						size={styles.icon.size.xl}
+					/>
+				</Animated.View>
+			</TouchableOpacity>
 
-			<View
+			{visible && (
+				<Animated.View
+					exiting={exitSpringUp}
+					entering={entrySpringDown}
+					style={{
+						marginTop: styles.spacing.xl,
+						padding: styles.spacing.xl,
+						backgroundColor: styles.theme.colors[activeTheme].card_background,
+						borderWidth: 1,
+						borderColor: styles.theme.colors[activeTheme].card_border,
+						borderRadius: styles.border.radius.size.sm,
+						rowGap: styles.spacing.double_xl
+					}}
+				>
+					<View style={{ flexDirection: 'row', alignItems: 'center' }}>
+						<Text
+							style={{
+								color: styles.theme.colors[activeTheme].text,
+								fontFamily: styles.font.family,
+								fontSize: styles.font.size.md
+							}}
+						>
+							{current.description}
+						</Text>
+						<TouchableOpacity
+							onPress={onEdit}
+							style={{ marginLeft: 'auto', marginRight: styles.spacing.md }}
+						>
+							<Edit2
+								color={styles.theme.colors.primary}
+								size={styles.icon.size.xl * 1.2}
+							/>
+						</TouchableOpacity>
+					</View>
+
+					<View style={{ rowGap: styles.spacing.double_xl }}>
+						{current.questions.map((question) => {
+							const answers = Array.isArray(profileData[section][question.identifier])
+								? question.options
+										.filter((option) =>
+											profileData[section][question.identifier].includes(option.value)
+										)
+										.map((option) => option.label)
+								: question.options.find(
+										(option) => option.value === profileData[section][question.identifier]
+									).label;
+
+							return (
+								<View key={question.identifier} style={{ rowGap: styles.spacing.md }}>
+									<Text
+										style={{
+											color: styles.theme.colors[activeTheme].text_secondary,
+											fontFamily: styles.font.family,
+											fontSize: styles.font.size.md
+										}}
+									>
+										{question.label}
+									</Text>
+
+									<View
+										style={{
+											rowGap: styles.spacing.xl
+										}}
+									>
+										{Array.isArray(answers) ? (
+											answers.map((val) => {
+												return (
+													<Text
+														key={val}
+														style={{
+															paddingVertical: styles.spacing.xs,
+															paddingHorizontal: styles.spacing.double_xl,
+															backgroundColor: styles.theme.colors.primary,
+															borderRadius: styles.border.radius.size.pill,
+															fontFamily: styles.font.family,
+															fontSize: styles.font.size.sm,
+															alignSelf: 'baseline',
+															color: styles.font.colors._04
+														}}
+													>
+														{val}
+													</Text>
+												);
+											})
+										) : (
+											<Text
+												style={{
+													paddingVertical: styles.spacing.xs,
+													paddingHorizontal: styles.spacing.double_xl,
+													backgroundColor: styles.theme.colors.primary,
+													borderRadius: styles.border.radius.size.pill,
+													fontFamily: styles.font.family,
+													fontSize: styles.font.size.sm,
+													alignSelf: 'baseline',
+													color: styles.font.colors._04
+												}}
+											>
+												{answers}
+											</Text>
+										)}
+									</View>
+								</View>
+							);
+						})}
+					</View>
+				</Animated.View>
+			)}
+
+			{/* <View
 				style={{
 					display: 'flex',
 					flexDirection: label === 'About You' ? 'row' : 'column',
@@ -93,47 +215,17 @@ function EditCard({
 						</View>
 					</View>
 				))}
-			</View>
+			</View> */}
 		</View>
 	);
 }
 
 const STYLES = StyleSheet.create({
-	cardStyle: {
-		padding: 16,
-		borderRadius: 30,
-		borderWidth: 1,
-		borderColor: 'rgba(46, 45, 46, 0)',
-		backgroundColor: '#ffffff',
-		shadowColor: '#0000007d',
-		shadowOffset: {
-			width: 0,
-			height: 1
-		},
-		shadowOpacity: 0.15,
-		shadowRadius: 1.0,
-		elevation: 1,
-		width: '100%'
-	},
-
 	iconStyle: {
 		padding: 10,
 		borderRadius: 100,
 
 		marginRight: 12
-	},
-
-	chipStyle: {
-		paddingHorizontal: 14,
-		paddingVertical: 8,
-		borderRadius: 20
-	},
-
-	textStyle: {
-		fontFamily: 'Outfit',
-		fontSize: 12,
-		fontWeight: '500',
-		letterSpacing: 0.2
 	}
 });
 

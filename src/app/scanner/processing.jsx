@@ -1,124 +1,135 @@
+import Info from '@/components/icons/Info';
+import styles from '@/config/styles';
 import Colors from '@/constants/Colors';
-import { scanIngredient } from '@/services/cloudFunctions';
-import { useAuthStore } from '@/stores/useAuthStore';
+import { ingredientScan } from '@/services/cloudFunctions';
 import { useScanStore } from '@/stores/useScanStore';
+import { useThemeStore } from '@/stores/useThemeStore';
+import { useBackHandler } from '@react-native-community/hooks';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Redirect, router, useLocalSearchParams, usePathname } from 'expo-router';
+import { router, useGlobalSearchParams } from 'expo-router';
 import LottieView from 'lottie-react-native';
-import { Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Text, TouchableOpacity, useColorScheme, View } from 'react-native';
+import { Modal, Portal } from 'react-native-paper';
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import Toast from 'react-native-toast-message';
 
-import {
-	arrayUnion,
-	doc,
-	getFirestore,
-	updateDoc
-} from '@react-native-firebase/firestore';
-import { auth } from '@/services/auth';
-import { useEffect, useRef } from 'react';
-
-const db = getFirestore();
-
-const saveScanHistory = async (ingredients) => {
-	await updateDoc(doc(db, 'users', auth.currentUser.uid), {
-		scanHistory: arrayUnion(ingredients)
-	});
-};
-
 export default function Processing() {
-	const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-	const params = useLocalSearchParams();
+	// const queryClient = useQueryClient();
+	const systemTheme = useColorScheme() ?? 'light';
+	const themeMode = useThemeStore((state) => state.themeMode);
+	const activeTheme = themeMode === 'system' ? systemTheme : themeMode;
+
 	const imageBase64 = useScanStore((state) => state.imageBase64);
 	const setIngredients = useScanStore((state) => state.setIngredients);
-	const resetIngredients = useScanStore((state) => state.resetIngredients);
-	const { data, isSuccess, isPending, isError } = useQuery({
-		queryKey: [imageBase64],
-		queryFn: () => scanIngredient(imageBase64),
-		gcTime: 0
-	});
-	const queryClient = useQueryClient();
 
-	const { mutate: handleSaveHistory } = useMutation({
-		mutationFn: saveScanHistory,
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: [auth.currentUser?.uid] });
-		}
-	});
+	const [visible, setVisible] = useState(false);
 
-	const hasSaved = useRef(false);
-
-	useEffect(() => {
-		if (data?.length > 0 && !isPending && !hasSaved.current) {
-			resetIngredients();
+	const { mutate } = useMutation({
+		mutationFn: ingredientScan,
+		mutationKey: ['ocr-processing'],
+		onSuccess: ({ data }) => {
 			setIngredients([...data]);
+			router.replace('/scanner/details');
+		},
 
-			if (isAuthenticated) {
-				handleSaveHistory({
-					date: new Date().toISOString()
-				});
-			}
+		onError: (err) => {
+			Toast.show({
+				type: 'errorToast',
+				text1: 'Something went wrong. Please try again',
+				visibilityTime: 8000
+			});
 
-			hasSaved.current = true;
-			router.replace('scanner/details');
+			router.back();
 		}
-	}, [data, isPending, isAuthenticated]);
+	});
+
+	useBackHandler(() => {
+		setVisible(true);
+		return true;
+	}, []);
 
 	useEffect(() => {
-		if (isSuccess && data?.length === 0) {
-			Toast.show({
-				type: 'error',
-				visibilityTime: 3000,
-				text1: 'No ingredients detected',
-				text2: 'Please ensure that the image has an ingredients list.'
-			});
-			params?.from === 'library' ? router.replace('scanner') : router.back();
-		}
-	}, [isSuccess, data]);
-
-	useEffect(() => {
-		if (isError) {
-			Toast.show({
-				type: 'error',
-				visibilityTime: 3000,
-				text1: 'Error occurred',
-				text2: 'Please try again later.'
-			});
-			params?.from === 'library' ? router.replace('scanner') : router.back();
-		}
-	}, [isError]);
+		mutate(imageBase64);
+	}, []);
 
 	return (
-		<View
-			style={{
-				flex: 1,
-				justifyContent: 'center',
-				alignItems: 'center'
-			}}
-		>
-			<View style={{ alignItems: 'center', justifyContent: 'center' }}>
-				<LottieView
-					style={{
-						aspectRatio: 1,
-						width: 600
-					}}
-					resizeMode='contain'
-					speed={1.5}
-					autoPlay
-					loop={true}
-					source={require('assets/lottie/flask-loading.json')}
-				/>
-				<Text
-					style={{
-						position: 'absolute',
-						top: 400,
-						fontSize: 30,
-						fontWeight: 600,
-						color: Colors.textColor
-					}}
-				>
-					Loading
-				</Text>
+		<>
+			<View
+				style={{
+					flex: 1,
+					justifyContent: 'center',
+					alignItems: 'center'
+				}}
+			>
+				<Animated.View entering={FadeIn.delay(300)} exiting={FadeOut}>
+					<LottieView
+						style={{
+							aspectRatio: 1,
+							width: 400
+						}}
+						resizeMode='contain'
+						autoPlay
+						loop={true}
+						source={require('assets/lottie/loader-particles.json')}
+					/>
+				</Animated.View>
 			</View>
-		</View>
+			<Portal>
+				<Modal visible={visible}>
+					<View
+						style={{
+							rowGap: styles.spacing.one_xl,
+							padding: styles.spacing.one_xxl,
+							alignSelf: 'center',
+							backgroundColor: styles.theme.colors[activeTheme].screen_background,
+							borderRadius: styles.border.radius.size.sm
+						}}
+					>
+						<Text
+							style={{
+								fontFamily: styles.font.family,
+								color: styles.theme.colors[activeTheme].text
+							}}
+						>
+							Are you sure you want to cancel the scan?
+						</Text>
+
+						<View style={{ flexDirection: 'row', alignSelf: 'flex-end' }}>
+							<TouchableOpacity
+								onPress={() => setVisible(false)}
+								activeOpacity={0.7}
+								style={{
+									paddingVertical: styles.spacing.lg,
+									paddingHorizontal: styles.spacing.three_xxl,
+									borderRadius: styles.border.radius.size.sm
+								}}
+							>
+								<Text style={{ color: styles.theme.colors[activeTheme].text }}>No</Text>
+							</TouchableOpacity>
+							<TouchableOpacity
+								onPress={router.back}
+								activeOpacity={0.7}
+								style={{
+									paddingVertical: styles.spacing.lg,
+									backgroundColor: styles.theme.colors.primary,
+									paddingHorizontal: styles.spacing.one_xxl,
+									borderRadius: styles.border.radius.size.sm
+								}}
+							>
+								<Text
+									style={{
+										fontFamily: styles.font.family,
+										color: styles.font.colors._04
+									}}
+								>
+									Yes
+								</Text>
+							</TouchableOpacity>
+						</View>
+					</View>
+				</Modal>
+			</Portal>
+		</>
 	);
 }

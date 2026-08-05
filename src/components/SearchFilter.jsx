@@ -1,10 +1,10 @@
 import Colors from '@/constants/Colors';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, Text, TouchableOpacity, View } from 'react-native';
 import Filter from '@/components/icons/hugeicons/Filter';
 
 export default function SearchFilter({ label = 'Filter', handlePress, style }) {
 	return (
-		<Pressable onPress={handlePress} style={style} android_disableSound={true}>
+		<TouchableOpacity onPress={handlePress} style={style}>
 			<View
 				style={{
 					display: 'flex',
@@ -21,6 +21,6 @@ export default function SearchFilter({ label = 'Filter', handlePress, style }) {
 			>
 				<Filter size={20} color={Colors.primary} />
 			</View>
-		</Pressable>
+		</TouchableOpacity>
 	);
 }

@@ -1,23 +1,50 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Text, StyleSheet, BackHandler, View, Pressable } from 'react-native';
+import { Text, StyleSheet, BackHandler, View, TouchableOpacity } from 'react-native';
 
 import {
 	BottomSheetModal,
 	BottomSheetView,
 	BottomSheetBackdrop,
-	useBottomSheetModal
+	useBottomSheetModal,
+	useBottomSheetSpringConfigs
 } from '@gorhom/bottom-sheet';
 
-import { X } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import PrimaryButton from '../PrimaryButton';
+import styles from '@/config/styles';
+import Animated, { createAnimatedComponent } from 'react-native-reanimated';
+import Calendar2 from '../icons/hugeicons/Calendar2';
+import Calendar3 from '../icons/hugeicons/Calendar3';
+import Calendar4 from '../icons/hugeicons/Calendar4';
+import Calendar5 from '../icons/hugeicons/Calendar5';
 
-const filters = ['All Time', 'Today', 'Yesterday', 'This Month'];
+const filters = [
+	{
+		label: 'All Time',
+		field: 'all_time',
+		icon: (size, color) => <Calendar2 size={size} color={color} />
+	},
+	{
+		label: 'Today',
+		field: 'today',
+		icon: (size, color) => <Calendar3 size={size} color={color} />
+	},
+	{
+		label: 'Yesterday',
+		field: 'yesterday',
+		icon: (size, color) => <Calendar4 size={size} color={color} />
+	},
+	{
+		label: 'This Month',
+		field: 'this_month',
+		icon: (size, color) => <Calendar5 size={size} color={color} />
+	}
+];
 
-const HistoryBottomSheet = ({ historySheetModalRef }) => {
-	const [filter, setFilter] = useState(() => filters[0]);
+const AnimatedTouchableOpacity = createAnimatedComponent(TouchableOpacity);
+const HistoryBottomSheet = ({ historySheetModalRef, activeTheme, onChangeFilter }) => {
+	const [filter, setFilter] = useState(() => filters[0].field);
 	const { bottom } = useSafeAreaInsets();
 	const { dismiss } = useBottomSheetModal();
 
@@ -40,10 +67,24 @@ const HistoryBottomSheet = ({ historySheetModalRef }) => {
 		setFilter(value);
 	};
 
+	const animationConfigs = useBottomSheetSpringConfigs({
+		damping: 120,
+		stiffness: 920
+	});
+
 	return (
 		<>
-			<BottomSheetModal ref={historySheetModalRef} backdropComponent={renderBackdrop}>
-				<BottomSheetView style={[styles.contentContainer, { paddingBottom: bottom }]}>
+			<BottomSheetModal
+				animationConfigs={animationConfigs}
+				handleComponent={null}
+				backgroundStyle={{
+					backgroundColor: styles.theme.colors[activeTheme].screen_background,
+					borderRadius: styles.border.radius.size.sm
+				}}
+				ref={historySheetModalRef}
+				backdropComponent={renderBackdrop}
+			>
+				<BottomSheetView style={[STYLES.contentContainer]}>
 					<View
 						style={{
 							display: 'flex',
@@ -51,59 +92,71 @@ const HistoryBottomSheet = ({ historySheetModalRef }) => {
 
 							alignItems: 'center',
 							justifyContent: 'center',
-							marginBottom: 30
+							marginTop: styles.spacing.double_xl,
+							marginBottom: styles.spacing.double_xl
 						}}
 					>
 						<Text
 							style={{
-								fontSize: 18,
-								fontWeight: 700,
-								color: '#1E293B',
-								fontFamily: 'Outfit'
+								fontSize: styles.font.size.xl,
+								fontWeight: styles.font.weight.bold,
+								color: styles.theme.colors[activeTheme].text,
+								fontFamily: styles.font.family
 							}}
 						>
 							Sort By
 						</Text>
-
-						<Pressable
-							onPress={() => historySheetModalRef.current?.close()}
-							style={{ position: 'absolute', top: 0, right: 4 }}
-						>
-							<X size={24} strokeWidth={2} />
-						</Pressable>
 					</View>
 
 					<View
 						style={{
 							display: 'flex',
 							rowGap: 16,
-							marginBottom: 30
+							marginBottom: styles.spacing.three_xxl * 1.4
 						}}
 					>
 						{filters.map((item, index) => (
-							<Pressable
-								key={`${item.toLowerCase()}`}
-								onPress={handlePress(item)}
+							<AnimatedTouchableOpacity
+								activeOpacity={0.7}
+								key={item.field}
+								onPress={() => {
+									handlePress(item.field).call();
+									onChangeFilter(item.field);
+								}}
 								style={{
-									borderRadius: 14,
+									flexDirection: 'row',
+									alignItems: 'center',
+									justifyContent: 'center',
+									columnGap: styles.spacing.md,
+									borderRadius: styles.border.radius.size.sm,
 									paddingVertical: 18,
 									overflow: 'hidden',
-									backgroundColor: filter === item ? Colors.primary : 'transparent'
+									backgroundColor: filter === item.field ? Colors.primary : 'transparent',
+									transitionDuration: 140
 								}}
-								android_ripple={{ color: '#2121212a', foreground: true }}
 							>
-								<Text
+								{item.icon(
+									styles.icon.size.xl,
+									filter === item.field
+										? styles.icon.colors._05
+										: styles.theme.colors[activeTheme].icon
+								)}
+
+								<Animated.Text
 									style={{
-										fontFamily: 'Outfit',
-										fontSize: 14,
-										color: filter === item ? '#fff' : '#1E293B',
-										fontWeight: 500,
-										textAlign: 'center'
+										fontFamily: styles.font.family,
+										fontSize: styles.font.size.md,
+										color:
+											filter === item.field
+												? styles.font.colors._04
+												: styles.theme.colors[activeTheme].text,
+										fontWeight: styles.font.weight.regular,
+										transitionDuration: 140
 									}}
 								>
-									{item}
-								</Text>
-							</Pressable>
+									{item.label}
+								</Animated.Text>
+							</AnimatedTouchableOpacity>
 						))}
 					</View>
 				</BottomSheetView>
@@ -112,19 +165,10 @@ const HistoryBottomSheet = ({ historySheetModalRef }) => {
 	);
 };
 
-const styles = StyleSheet.create({
+const STYLES = StyleSheet.create({
 	contentContainer: {
 		flex: 1,
 		paddingHorizontal: 16
-	},
-
-	iconStyle: {
-		backgroundColor: Colors.primary + '40',
-		padding: 10,
-		borderRadius: 100,
-		borderColor: Colors.primary + '4D',
-		marginRight: 12,
-		borderWidth: 1
 	}
 });
 

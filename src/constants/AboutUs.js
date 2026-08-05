@@ -1,35 +1,13 @@
 export default [
 	{
-		title: 'BeauWise App',
-		content: ['Version 1.0.0 (Beta)\n© 2026 RISE Development Team. All rights reserved.']
-	},
-	{
-		title: 'The System',
+		title: 'BeauWise',
 		content: [
-			'Beauwise: Cosmetic Ingredient Analysis And Suitability Assessment System With Recommendations Using Content-Based Filtering And Convolutional Neural Network For OCR'
-		]
-	},
-	{
-		title: 'Our Mission',
-		content: [
-			'BeauWise simplifies complex cosmetic ingredient information and makes it easier to understand for everyday users.',
-			'By combining artificial intelligence with publicly available cosmetic knowledge, the platform helps users make more informed personal care decisions while recognizing that professional medical advice remains essential.'
-		]
-	},
-	{
-		title: 'The Engineering Team',
-		content: [
-			'BeauWise is designed and developed by Bachelor of Science in Computer Science students from Bataan Peninsula State University (Main Campus).',
-			'The system is built using structured engineering practices with a focus on reliability, usability, and data security.',
-			'The RISE development team includes:'
-		],
-		list_items: ['Renjie Perez', 'Ivan Yacas', 'Shelsey Guinto', 'Emmanuel Dela Cruz']
-	},
-	{
-		title: 'Acknowledgements',
-		content: [
-			'BeauWise references publicly available cosmetic safety guidelines, including the ASEAN Cosmetic Directive, along with established dermatological literature.',
-			'All analyses are provided for informational purposes only and do not represent regulatory approval or medical evaluation.'
+			'It is an educational cosmetic ingredient analysis platform designed to help users better understand cosmetic products through accessible, evidence-based information derived from published scientific literature, dermatology references, and publicly available regulatory resources.',
+			"Using Optical Character Recognition (OCR) technology and ingredient name matching techniques, BeauWise extracts ingredient names from cosmetic product labels and compares them against BeauWise's curated ingredient knowledge base to present educational information about ingredient functions, cosmetic applications, regulatory references where applicable, and general compatibility with users' self-reported skin and hair profiles.",
+			'The platform aims to improve cosmetic literacy by helping users identify ingredients, understand their common cosmetic functions, review publicly available cosmetic regulatory references where applicable, and explore products that may align with their personal skin and hair profiles.',
+			'BeauWise is intended solely for educational and informational purposes. The platform does not perform laboratory testing, chemical analysis, ingredient authentication, concentration measurement, purity verification, medical assessment, or certification of cosmetic products.',
+			'The application was designed, developed, and maintained by the RISE Team, an undergraduate Computer Science thesis group committed to building software that emphasizes user privacy, transparency, accessibility, and informed decision-making. The development team consists of Renjie, Ivan, Shelsey, and Emman.',
+			'As an academic project, BeauWise continues to evolve through ongoing research, usability evaluation, testing, and user feedback to support safer and more informed cosmetic product awareness.'
 		]
 	}
 ];

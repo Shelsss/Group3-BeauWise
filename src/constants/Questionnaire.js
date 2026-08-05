@@ -4,40 +4,38 @@ export default [
 	{
 		title: 'The Wash Test',
 		section: 'the_wash_test',
-		description: `Think about how your skin feels 30 minutes after 
-        washing your face with a gentle cleanser, 
-        before applying any moisturizer or toner.`,
+		description: `How your skin feels 30 minutes after washing`,
 		questions: [
 			{
-				label: '30 minutes after washing your face, how would you describe your skin?',
+				label: '30 minutes after washing, how does your skin feel?',
 				identifier: 'post_wash_feel',
 				id: randomUUID(),
 				options: [
 					{
 						label: 'Tight & Stretched',
 						value: 'tight_and_dry',
-						description: `It feels stretched. (Dry indicator)`,
+						description: `It feels stretched`,
 						image: require('assets/images/skin/prefer_not_to_say/tight_and_dry.webp'),
 						id: randomUUID()
 					},
 					{
 						label: 'Comfortable',
 						value: 'comfortable',
-						description: `It feels clean and smooth, neither tight nor oily. (Normal indicator)`,
+						description: `Clean and smooth, balanced feeling`,
 						image: require('assets/images/skin/prefer_not_to_say/comfortable.webp'),
 						id: randomUUID()
 					},
 					{
 						label: 'Oily in spots',
 						value: 'oily_in_spots',
-						description: `My forehead and nose (T-zone) are shiny, but my cheeks feel normal or dry. (Combination indicator)`,
+						description: `T-zone is shiny, cheeks are normal or dry`,
 						image: require('assets/images/skin/prefer_not_to_say/oily_in_spots.webp'),
 						id: randomUUID()
 					},
 					{
 						label: 'Greasy',
 						value: 'greasy',
-						description: ` I can feel oil or shine all over my face. (Oily indicator)`,
+						description: `Oil or shine all over my face`,
 						image: require('assets/images/skin/prefer_not_to_say/greasy.webp'),
 						id: randomUUID()
 					}
@@ -51,24 +49,28 @@ export default [
 					{
 						label: 'Very Small',
 						value: 'invisible_very_small',
+						description: `Hard to see even close up.`,
 						image: require('assets/images/skin/prefer_not_to_say/invisible_very_small.webp'),
 						id: randomUUID()
 					},
 					{
 						label: 'Visible in T-Zone',
 						value: 'visible_in_t_zone',
+						description: `I can see pores mainly on my nose and forehead.`,
 						id: randomUUID(),
 						image: require('assets/images/skin/prefer_not_to_say/visible_in_t_zone.webp')
 					},
 					{
 						label: 'Large / Visible Everywhere',
 						value: 'large_visible_everywhere',
+						description: `I have visible pores on my nose, forehead, and cheeks.`,
 						id: randomUUID(),
 						image: require('assets/images/skin/prefer_not_to_say/large_visible_everywhere.webp')
 					},
 					{
 						label: 'Normal',
 						value: 'normal',
+						description: `Visible but not prominent.`,
 						id: randomUUID(),
 						image: require('assets/images/skin/prefer_not_to_say/normal.webp')
 					}
@@ -82,24 +84,28 @@ export default [
 					{
 						label: 'Dry',
 						value: 'flaky_dull',
+						description: `I see dry patches or my skin looks rough.`,
 						id: randomUUID(),
 						image: require('assets/images/skin/prefer_not_to_say/flaky_dull.webp')
 					},
 					{
 						label: 'Normal',
 						value: 'radiant_normal',
+						description: `My skin looks fresh without excess shine.`,
 						id: randomUUID(),
 						image: require('assets/images/skin/prefer_not_to_say/radiant_normal.webp')
 					},
 					{
 						label: 'Shiny T-Zone',
 						value: 'shiny_t_zone',
+						description: `My nose and forehead are shiny, but the rest is matte.`,
 						id: randomUUID(),
 						image: require('assets/images/skin/prefer_not_to_say/shiny_t_zone.webp')
 					},
 					{
 						label: 'Very Shiny',
 						value: 'very_shiny',
+						description: `I need to blot oil from my entire face.`,
 						id: randomUUID(),
 						image: require('assets/images/skin/prefer_not_to_say/very_shiny.webp')
 					}
@@ -114,7 +120,7 @@ export default [
 		description: 'How your skin reacts to products and triggers',
 		questions: [
 			{
-				label: ` How often does your skin become red, itchy, or sting after using new products (soap, cream, perfume)?`,
+				label: `How often does your skin become red, itchy, or sting after using new products?`,
 				identifier: 'product_reactivity',
 				id: randomUUID(),
 				options: [
@@ -194,21 +200,21 @@ export default [
 					},
 					{
 						label: 'Monthly',
-						description: `Usually hormonal or random`,
+
 						value: 'monthly',
 						id: randomUUID(),
 						image: require('assets/images/skin/prefer_not_to_say/monthly.webp')
 					},
 					{
 						label: 'Frequently',
-						description: `Almost always have one pimple`,
+
 						value: 'frequently',
 						id: randomUUID(),
 						image: require('assets/images/skin/prefer_not_to_say/frequently.webp')
 					},
 					{
 						label: 'Constantly',
-						description: `Multiple breakouts covering large areas`,
+
 						value: 'constantly',
 						id: randomUUID(),
 						image: require('assets/images/skin/prefer_not_to_say/constantly.webp')
@@ -223,21 +229,21 @@ export default [
 				options: [
 					{
 						label: 'Rough / Flaky patches',
-						description: `Associated with dry skin`,
+
 						value: 'rough_flaky_patches',
 						id: randomUUID(),
 						image: require('assets/images/skin/prefer_not_to_say/rough_flaky_patches.webp')
 					},
 					{
 						label: 'Blackheads / Whiteheads',
-						description: `Associated with oily or combination skin`,
+
 						value: 'blackheads_whiteheads',
 						id: randomUUID(),
 						image: require('assets/images/skin/prefer_not_to_say/blackheads_whiteheads.webp')
 					},
 					{
 						label: 'Redness / Inflammation',
-						description: `Associated with sensitive skin`,
+
 						value: 'redness_inflammation',
 						id: randomUUID(),
 						image: require('assets/images/skin/prefer_not_to_say/redness_inflammation.webp')
@@ -365,7 +371,7 @@ export default [
 					},
 					{
 						label: 'Type 2 (Wavy)',
-						description: `Has a loose "S" shape wave: lies flat at the roots but waves towards the ends.`,
+						description: `Loose "S" waves that lie flat at the roots.`,
 						value: 'type_two_wavy',
 						id: randomUUID(),
 						image: require('assets/images/hair/type_two_wavy.webp')
@@ -486,15 +492,9 @@ export default [
 				isRange: true,
 				options: [
 					{
-						label: 'Very Fast',
-						description: 'Less than 1 hour',
-						value: 'very_fast',
-						id: randomUUID()
-					},
-					{
-						label: 'Average',
-						description: '1-3 hours',
-						value: 'average',
+						label: 'Very Slow',
+						description: 'More than 5 hours',
+						value: 'very_slow',
 						id: randomUUID()
 					},
 					{
@@ -504,9 +504,15 @@ export default [
 						id: randomUUID()
 					},
 					{
-						label: 'Very Slow',
-						description: 'More than 5 hours',
-						value: 'very_slow',
+						label: 'Average',
+						description: '1-3 hours',
+						value: 'average',
+						id: randomUUID()
+					},
+					{
+						label: 'Very Fast',
+						description: 'Less than 1 hour',
+						value: 'very_fast',
 						id: randomUUID()
 					}
 				]
@@ -619,14 +625,35 @@ export default [
 				isRange: true,
 				options: [
 					{
-						label: 'Less than once a week',
-						value: 'less_than_once_a_week',
+						label: 'Rarely',
+						value: 'rarely',
+						description: 'Once weekly or less',
 						id: randomUUID()
 					},
-					{ label: 'Once a week', value: 'once_a_week', id: randomUUID() },
-					{ label: 'Twice a week', value: 'twice_a_week', id: randomUUID() },
-					{ label: 'Every other day', value: 'every_other_day', id: randomUUID() },
-					{ label: 'Daily', value: 'daily', id: randomUUID() }
+					{
+						label: 'Occasionally',
+						value: 'occasionally',
+						description: 'Twice weekly',
+						id: randomUUID()
+					},
+					{
+						label: 'Moderately',
+						value: 'moderately',
+						description: 'Every other day',
+						id: randomUUID()
+					},
+					{
+						label: 'Frequently',
+						value: 'frequently',
+						description: 'Once daily',
+						id: randomUUID()
+					},
+					{
+						label: 'Constantly',
+						value: 'constantly',
+						description: '2 - 3 times daily',
+						id: randomUUID()
+					}
 				]
 			},
 			{
@@ -676,26 +703,31 @@ export default [
 					{
 						label: '1',
 						value: '1_not_knowledgeable',
+						description: 'Not knowledegable at all (I buy whatever is available) ',
 						id: randomUUID()
 					},
 					{
 						label: '2',
 						value: '2_slightly_knowledgeable',
+						description: 'Slightly knowledgeable',
 						id: randomUUID()
 					},
 					{
 						label: '3',
 						value: '3_moderately_knowledgeable',
+						description: 'Moderately knowledgeable',
 						id: randomUUID()
 					},
 					{
 						label: '4',
 						value: '4_very_knowledgeable',
+						description: 'Very knowledgeable',
 						id: randomUUID()
 					},
 					{
 						label: '5',
 						value: '5_expert',
+						description: 'Expert (I check ingredients and pH levels)',
 						id: randomUUID()
 					}
 				]

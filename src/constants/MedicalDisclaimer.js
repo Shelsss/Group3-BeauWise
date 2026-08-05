@@ -1,60 +1,57 @@
 export default [
 	{
-		title: 'Informational Use Only',
+		title: 'Educational Tool Only',
 		content: [
-			'BeauWise is designed strictly for educational and informational purposes.\n\nThe system analyzes cosmetic product ingredients and may suggest generally recognized cosmetic ingredients (such as niacinamide, hyaluronic acid, or similar compounds) based on your provided skin, face, and hair profile.\n\nThese suggestions:'
-		],
+			'BeauWise is an educational cosmetic ingredient analysis platform and is not a medical device, diagnostic tool, healthcare service, laboratory testing system, or regulatory authority.'
+		]
+	},
+	{
+		title: 'Analysis Limitations',
+		content: [
+			'All educational analysis results are generated through Optical Character Recognition (OCR) and ingredient name matching techniques using information extracted from cosmetic product labels or entered manually by users. BeauWise does not perform laboratory testing, chemical verification, ingredient authentication, concentration measurement, purity analysis, or verification of product manufacturing claims.'
+		]
+	},
+	{
+		title: 'Text Recognition Limitation',
+		content: [
+			'Ingredient analysis depends on the quality and readability of the product label. Blurred images, damaged packaging, poor lighting, unusual fonts, partially visible labels, or incomplete ingredient lists may result in inaccurate or incomplete text recognition and analysis. Users are encouraged to verify recognized ingredients against the original product label before relying on the information presented.'
+		]
+	},
+	{
+		title: 'Ingredient Database Coverage',
+		content: [
+			"Educational information is limited to ingredients currently available within BeauWise's ingredient knowledge base. Newly introduced, proprietary, uncommon, or unavailable ingredients may not yet be recognized or accompanied by complete educational information."
+		]
+	},
+	{
+		title: 'Label Accuracy Limitation',
+		content: [
+			'BeauWise cannot verify whether the actual contents of a cosmetic product accurately reflect the ingredients printed on its packaging, labeling, or marketing materials.'
+		]
+	},
+	{
+		title: 'No Medical Advice',
+		content: [
+			'Information presented within BeauWise is intended solely for educational and informational purposes and does not constitute medical advice, diagnosis, treatment, or professional healthcare recommendations.'
+		]
+	},
+	{
+		title: 'No Therapeutic Claims',
+		content: [
+			'BeauWise does not diagnose, treat, cure, prevent, monitor, or manage any medical condition, dermatological disorder, scalp condition, allergy, or disease.'
+		]
+	},
 
-		list_items: [
-			'Do not refer to specific product brands',
-			'Do not constitute medical advice, diagnosis, or treatment',
-			'Are based on general cosmetic suitability, not clinical evaluation'
-		],
-		additional_content: [
-			'BeauWise is not a substitute for licensed dermatologists or medical professionals.'
+	{
+		title: 'Special Precautions',
+		content: [
+			'If you are pregnant, breastfeeding, taking prescription medications, undergoing dermatological treatment, or have a diagnosed skin, scalp, or allergic condition, consult a licensed dermatologist or other qualified healthcare professional before using any new cosmetic product regardless of the information presented by BeauWise.'
 		]
 	},
 	{
-		title: 'Nature of Recommendations and Scoring',
+		title: 'Professional Consultation',
 		content: [
-			'The suitability scoring system reflects how well the scanned product ingredients align with your declared profile.\n\nThis means:'
-		],
-		list_items: [
-			'The system evaluates ingredient compatibility, not your actual medical condition',
-			'Scores are derived from predefined rules, cosmetic references, and modeling techniques',
-			'Results are probabilistic and informational, not diagnostic'
-		],
-		additional_content: [
-			'BeauWise does not:\n- Diagnose skin or hair conditions\n- Prescribe treatments\n- Guarantee outcomes or product effectiveness'
-		]
-	},
-	{
-		title: 'System Limitations',
-		content: [
-			'BeauWise references publicly available cosmetic guidelines, including the ASEAN Cosmetic Directive, and established dermatological literature.\n\nHowever, the system has limitations and cannot reliably account for:'
-		],
-		list_items: [
-			'Individual allergic reactions or sensitivities',
-			'Undisclosed or underlying medical conditions',
-			'Severe or clinical cases such as eczema, rosacea, or alopecia',
-			'Variations in formulation quality across brands'
-		],
-		additional_content: [
-			'Features such as product verification tools and batch or freshness estimations are provided for convenience and reference only, and do not represent official certification, regulatory approval, or guaranteed product safety.'
-		]
-	},
-	{
-		title: 'User Responsibility and Risk',
-		content: [
-			'All decisions related to product usage remain your responsibility.\n\nUse of BeauWise and any products analyzed through the system is at your own risk, to the extent permitted by applicable law.\n\nBefore making changes to your skincare or haircare routine, especially if you:'
-		],
-		list_items: [
-			'Have sensitive skin',
-			'Have a history of allergies',
-			'Are managing a medical condition'
-		],
-		additional_content: [
-			'You should consult a licensed dermatologist or healthcare professional.\n\nIf you experience any adverse reaction such as redness, irritation, swelling, or discomfort:\n- Stop using the product immediately\n- Seek appropriate medical attention'
+			'Users should always seek professional medical guidance regarding personal health concerns and should never delay or disregard professional medical advice based on information obtained through BeauWise.'
 		]
 	}
 ];

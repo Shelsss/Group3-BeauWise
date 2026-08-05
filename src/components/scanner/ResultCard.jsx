@@ -8,7 +8,7 @@ import Bulb from '../icons/Bulb';
 import Question from '../icons/Question';
 
 const iconSize = 20;
-export default function ResultCard({ status, name, description }) {
+export default function ResultCard({ flag, name, description }) {
 	return (
 		<View
 			style={{
@@ -31,14 +31,12 @@ export default function ResultCard({ status, name, description }) {
 			}}
 		>
 			<View style={{ marginTop: 4 }}>
-				{status === 'restricted' && <AlertFill size={iconSize} color='#ff8183' />}
-				{status === 'based' && <Flask size={iconSize} color={Colors.primary} />}
-				{status === 'attention' && <WarnFill size={iconSize} color='#ffc53d' />}
-				{status === 'unrecognized' && (
-					<Question size={iconSize} color={Colors.textColor} />
-				)}
-				{status === 'suggested' && <Bulb size={iconSize} color='#00acc1' />}
-				{status === 'aligned' && (
+				{flag === 'restricted' && <AlertFill size={iconSize} color='#ff8183' />}
+				{flag === 'based' && <Flask size={iconSize} color={Colors.primary} />}
+				{flag === 'attention' && <WarnFill size={iconSize} color='#ffc53d' />}
+				{flag === 'unrecognized' && <Question size={iconSize} color={Colors.textColor} />}
+				{flag === 'suggested' && <Bulb size={iconSize} color='#00acc1' />}
+				{flag === 'aligned' && (
 					<View style={{ padding: 4, borderRadius: 30, backgroundColor: '#20c997' }}>
 						<Check size={iconSize - 8} color='#fff' />
 					</View>

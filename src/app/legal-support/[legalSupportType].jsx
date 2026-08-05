@@ -1,21 +1,23 @@
-import { useLocalSearchParams } from 'expo-router';
-import { Text, View } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
+import { Text, TouchableOpacity, useColorScheme, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
-import Colors from '@/constants/Colors';
 import TermsOfService from '@/constants/TermsOfService';
-import { Circle } from 'lucide-react-native';
+import { ChevronLeft, Circle } from 'lucide-react-native';
 import PagePadding from '@/constants/PagePadding';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRef } from 'react';
-import LearnHeader from '@/components/learn/Header';
 import PrivacyPolicy from '@/constants/PrivacyPolicy';
 import MedicalDisclaimer from '@/constants/MedicalDisclaimer';
 import ContactUs from '@/constants/ContactUs';
 import AboutUs from '@/constants/AboutUs';
-import { Image } from 'expo-image';
-import BatchHeader from '@/components/batch/Header';
+import { useThemeStore } from '@/stores/useThemeStore';
+import styles from '@/config/styles';
 
 export default function LegalSupportType() {
+	const systemTheme = useColorScheme() ?? 'light';
+	const themeMode = useThemeStore((state) => state.themeMode);
+	const activeTheme = themeMode === 'system' ? systemTheme : themeMode;
+
 	const { legalSupportType } = useLocalSearchParams();
 	const { bottom } = useSafeAreaInsets();
 	const scrollViewRef = useRef(null);
@@ -37,7 +39,37 @@ export default function LegalSupportType() {
 
 	return (
 		<>
-			<BatchHeader title={pageName} />
+			<View
+				style={{
+					backgroundColor: styles.theme.colors.primary,
+					paddingHorizontal: 15,
+					paddingTop: 70,
+					paddingBottom: styles.spacing.double_xxl + 5,
+					flexDirection: 'row',
+					alignItems: 'center'
+				}}
+			>
+				<TouchableOpacity
+					onPress={router.back}
+					style={{
+						paddingRight: styles.spacing.xxl
+					}}
+				>
+					<ChevronLeft color={styles.icon.colors._05} size={styles.icon.size.xl} />
+				</TouchableOpacity>
+
+				<Text
+					style={{
+						fontFamily: styles.font.family,
+						fontSize: styles.font.size.xl,
+						fontWeight: styles.font.weight.bold,
+						color: styles.font.colors._04
+					}}
+				>
+					{pageName}
+				</Text>
+			</View>
+
 			<ScrollView
 				showsVerticalScrollIndicator={false}
 				ref={scrollViewRef}
@@ -53,26 +85,16 @@ export default function LegalSupportType() {
 					rowGap: 30
 				}}
 			>
-				{legalSupportType === 'about-us' && (
-					<Image
-						style={{
-							aspectRatio: 16 / 9,
-							width: 200,
-							alignSelf: 'center',
-							marginTop: 20
-						}}
-						source={require('assets/images/logo.webp')}
-					/>
-				)}
+				{/* {legalSupportType === 'about-us' && <Logo size={80} />} */}
 
 				{displayItem.map((item, index) => (
 					<View key={item.title}>
 						<Text
 							style={{
-								fontWeight: 700,
-								fontSize: 16,
-								color: Colors.textColor,
-								fontFamily: 'Outfit'
+								fontWeight: styles.font.weight.bold,
+								fontSize: styles.font.size.lg,
+								color: styles.theme.colors[activeTheme].text,
+								fontFamily: styles.font.family
 							}}
 						>
 							{legalSupportType !== 'about-us' &&
@@ -86,9 +108,10 @@ export default function LegalSupportType() {
 								{item.content.map((content, index) => (
 									<Text
 										style={{
-											color: Colors.textColor + '9a',
+											color: styles.theme.colors[activeTheme].text_secondary,
 											lineHeight: 20,
-											fontFamily: 'Outfit'
+											fontFamily: styles.font.family,
+											fontSize: styles.font.size.md
 										}}
 										key={index}
 									>
@@ -112,15 +135,16 @@ export default function LegalSupportType() {
 									>
 										<Circle
 											strokeWidth={0}
-											fill={Colors.textColor}
+											fill={styles.theme.colors[activeTheme].icon}
 											style={{ marginTop: 7 }}
 											size={6}
 										/>
 										<Text
 											style={{
-												color: Colors.textColor + '9a',
+												color: styles.theme.colors[activeTheme].text_secondary,
 												lineHeight: 20,
-												fontFamily: 'Outfit'
+												fontFamily: styles.font.family,
+												fontSize: styles.font.size.md
 											}}
 										>
 											{content}
@@ -135,9 +159,10 @@ export default function LegalSupportType() {
 								{item.additional_content.map((content, index) => (
 									<Text
 										style={{
-											color: Colors.textColor + '9a',
+											color: styles.theme.colors[activeTheme].text_secondary,
 											lineHeight: 20,
-											fontFamily: 'Outfit'
+											fontFamily: styles.font.family,
+											fontSize: styles.font.size.md
 										}}
 										key={index}
 									>
@@ -154,16 +179,21 @@ export default function LegalSupportType() {
 										<View style={{ rowGap: 4 }} key={index}>
 											<Text
 												style={{
-													color: Colors.textColor,
-													fontWeight: 700,
-													fontFamily: 'Outfit'
+													color: styles.theme.colors[activeTheme].text,
+													fontWeight: styles.font.bold,
+													fontFamily: styles.font.family,
+													fontSize: styles.font.size.md
 												}}
 											>
 												{title}
 											</Text>
 
 											<Text
-												style={{ color: Colors.textColor, fontFamily: 'Outfit' }}
+												style={{
+													color: styles.theme.colors[activeTheme].text,
+													fontFamily: styles.font.family,
+													fontSize: styles.font.size.md
+												}}
 												key={index}
 											>
 												{content}
@@ -181,15 +211,16 @@ export default function LegalSupportType() {
 												>
 													<Circle
 														strokeWidth={0}
-														fill={Colors.textColor}
+														fill={styles.theme.colors[activeTheme].icon}
 														style={{ marginTop: 7 }}
 														size={6}
 													/>
 													<Text
 														style={{
-															color: Colors.textColor + '9a',
+															color: styles.theme.colors[activeTheme].text_secondary,
 															lineHeight: 20,
-															fontFamily: 'Outfit'
+															fontFamily: styles.font.family,
+															fontSize: styles.font.size.md
 														}}
 													>
 														{item}
@@ -199,7 +230,11 @@ export default function LegalSupportType() {
 
 											{additional_content && (
 												<Text
-													style={{ color: Colors.textColor + '9a', fontFamily: 'Outfit' }}
+													style={{
+														color: styles.theme.colors[activeTheme].text_secondary,
+														fontFamily: styles.font.family,
+														fontSize: styles.font.size.md
+													}}
 												>
 													{additional_content}
 												</Text>

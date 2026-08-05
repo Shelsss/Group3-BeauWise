@@ -1,40 +1,36 @@
-/* eslint-disable react-native/no-unused-styles */
-import { View, Text, StyleSheet, Pressable } from 'react-native';
-import {
-	CircleCheckBig,
-	CircleAlert,
-	TriangleAlert,
-	ChevronRight
-} from 'lucide-react-native';
-import { createAnimatedComponent, FadeIn } from 'react-native-reanimated';
-import Archive from '@/components/icons/ArchiveFill';
-import Colors from '@/constants/Colors';
+import { View, Text, Pressable, useColorScheme } from 'react-native';
+import { createAnimatedComponent } from 'react-native-reanimated';
 import Camera from '@/components/icons/hugeicons/Camera';
 import InputNumeric from '@/components/icons/hugeicons/InputNumeric';
 import ShieldCheck from '@/components/icons/hugeicons/ShieldCheck';
-import Alert from '../icons/hugeicons/Alert';
-import Warn from '../icons/hugeicons/Warn';
-import Check from '../icons/hugeicons/Check';
+import { useThemeStore } from '@/stores/useThemeStore';
+import styles from '@/config/styles';
+import ArrowRight from '../icons/hugeicons/ArrowRight';
 const AnimatedPressable = createAnimatedComponent(Pressable);
-const ICON_SIZE = 16;
 
 export default function Card({
 	title,
-	time,
-	status = 'default',
+	secondaryText,
+	secondaryTextColor,
 	type = 'default',
 	onPress
 }) {
+	const systemTheme = useColorScheme() ?? 'light';
+	const themeMode = useThemeStore((state) => state.themeMode);
+	const activeTheme = themeMode === 'system' ? systemTheme : themeMode;
+
 	return (
 		<AnimatedPressable
 			onPress={onPress}
-			entering={FadeIn}
 			android_ripple={{ color: '#9797976a', foreground: true }}
 			style={[
 				{
-					backgroundColor: '#fff',
-					padding: 12,
-					borderRadius: 16,
+					borderRadius: styles.border.radius.size.md,
+					borderWidth: 1,
+					borderColor: styles.theme.colors[activeTheme].card_border,
+					backgroundColor: styles.theme.colors[activeTheme].card_background,
+					padding: styles.spacing.xl,
+
 					flexDirection: 'row',
 					alignItems: 'center',
 					columnGap: 10,
@@ -49,32 +45,23 @@ export default function Card({
 						borderRadius: 12
 					}}
 				>
-					<InputNumeric size={22} color='#00ACC1' />
-				</View>
-			) : type === 'arrow' ? (
-				<View
-					style={{
-						backgroundColor: '#20C9971a',
-						borderRadius: 12,
-						marginHorizontal: 8
-					}}
-				>
-					<ChevronRight size={22} color={Colors.textColor} />
+					<InputNumeric
+						size={styles.icon.size.xl * 1.2}
+						color={styles.theme.colors.batch}
+					/>
 				</View>
 			) : type === 'fda' ? (
 				<View
 					style={{
 						marginHorizontal: 8,
-						backgroundColor: '#20C9971a',
-
 						borderRadius: 12
 					}}
 				>
-					<ShieldCheck size={22} color='#20C997' />
+					<ShieldCheck size={styles.icon.size.xl * 1.2} color={styles.theme.colors.fda} />
 				</View>
 			) : (
 				<View style={{ marginHorizontal: 8, borderRadius: 12 }}>
-					<Camera size={22} color={Colors.primary} />
+					<Camera size={styles.icon.size.xl * 1.2} color={styles.theme.colors.primary} />
 				</View>
 			)}
 			<View>
@@ -82,16 +69,26 @@ export default function Card({
 					numberOfLines={1}
 					ellipsizeMode='tail'
 					style={{
-						fontFamily: 'Outfit',
-						fontWeight: 700,
-						fontSize: 14,
-						width: 150,
-						color: Colors.textColor
+						fontFamily: styles.font.family,
+						fontSize: styles.font.size.md,
+						fontWeight: styles.font.weight.bold,
+						color: styles.theme.colors[activeTheme].text,
+						width: 170
 					}}
 				>
 					{title}
 				</Text>
-				<Text style={{ fontFamily: 'Outfit', fontSize: 12, color: '#666' }}>{time}</Text>
+				<Text
+					style={{
+						fontFamily: styles.font.family,
+						fontSize: styles.font.size.sm,
+						color: secondaryTextColor
+							? secondaryTextColor
+							: styles.theme.colors[activeTheme].text_secondary
+					}}
+				>
+					{secondaryText}
+				</Text>
 			</View>
 			<View style={{ marginLeft: 'auto' }}>
 				<View
@@ -102,35 +99,12 @@ export default function Card({
 						}
 					]}
 				>
-					{status === 'safe' ? (
-						<Check size={ICON_SIZE} color={'#20c997'} />
-					) : status === 'unsafe' ? (
-						<Alert size={ICON_SIZE} color={'#ff7a7c'} />
-					) : status === 'warn' ? (
-						<Warn size={ICON_SIZE} color={'#ffc53d'} />
-					) : (
-						<ChevronRight size={ICON_SIZE} color={'#334155ad'} />
-					)}
+					<ArrowRight
+						size={styles.icon.size.lg}
+						color={styles.theme.colors[activeTheme].icon}
+					/>
 				</View>
 			</View>
 		</AnimatedPressable>
 	);
 }
-
-const STYLES = StyleSheet.create({
-	safe: {
-		backgroundColor: '#20c9971a'
-	},
-
-	unsafe: {
-		backgroundColor: '#ff7a7c1a'
-	},
-
-	warn: {
-		backgroundColor: '#ffc53d1a'
-	},
-
-	default: {
-		backgroundColor: 'none'
-	}
-});

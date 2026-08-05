@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, TextInput, useColorScheme, View } from 'react-native';
 import Animated, {
 	interpolateColor,
 	useAnimatedStyle,
@@ -14,58 +14,45 @@ import {
 	useBlurOnFulfill
 } from 'react-native-confirmation-code-field';
 import Colors from '@/constants/Colors';
+import { useThemeStore } from '@/stores/useThemeStore';
+import styles from '@/config/styles';
+import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 
-const Cell = ({ index, symbol, isFocused }) => {
-	const textScale = useSharedValue(0);
-	const borderColorShared = useSharedValue(0);
-
-	const animatedText = useAnimatedStyle(() => {
-		return {
-			transform: [{ scale: textScale.value }]
-		};
-	});
-
-	const animatedBorder = useAnimatedStyle(() => {
-		return {
-			borderColor: interpolateColor(
-				borderColorShared.value,
-				[0, 1],
-				['transparent', Colors.primary]
-			),
-			borderWidth: borderColorShared.value
-		};
-	});
-
-	useEffect(() => {
-		textScale.value = 0;
-		textScale.value = withSpring(1, {
-			mass: 10,
-			duration: 100
-		});
-
-		if (!symbol) {
-			borderColorShared.value = withTiming(0, { duration: 100 });
-			return;
-		}
-
-		borderColorShared.value = 0;
-		borderColorShared.value = withTiming(1, { duration: 100 });
-	}, [symbol]);
+const Cell = ({ index, symbol, isFocused, error }) => {
+	const systemTheme = useColorScheme() ?? 'light';
+	const themeMode = useThemeStore((state) => state.themeMode);
+	const activeTheme = themeMode === 'system' ? systemTheme : themeMode;
 
 	return (
 		<Animated.View
 			style={[
-				styles.cell,
+				STYLES.cell,
 				{
+					borderRadius: styles.border.radius.size.sm,
+					backgroundColor: styles.theme.colors[activeTheme].input_background,
+					borderColor: error
+						? styles.theme.colors.status.red
+						: symbol
+							? styles.theme.colors.primary
+							: styles.theme.colors[activeTheme].input_border,
 					justifyContent: 'center',
 					alignItems: 'center',
-					borderWidth: symbol ? 1 : 0
-				},
-				animatedBorder
+					borderWidth: 1,
+					transitionDuration: 220
+				}
 			]}
 		>
 			<Animated.Text
-				style={[{ fontSize: 20, fontWeight: 500, color: Colors.textColor }, animatedText]}
+				style={[
+					{
+						opacity: symbol ? 1 : 0,
+						fontSize: styles.font.size.xxl,
+						fontFamily: styles.font.family,
+						fontWeight: styles.font.weight.regular,
+						color: styles.theme.colors[activeTheme].text,
+						transitionDuration: 240
+					}
+				]}
 			>
 				{symbol || (isFocused ? <Cursor /> : null)}
 			</Animated.Text>
@@ -73,26 +60,42 @@ const Cell = ({ index, symbol, isFocused }) => {
 	);
 };
 
-export default function CodeInput({ codeCount, onChangeText, value }) {
+export default function CodeInput({
+	codeCount,
+	onChangeText,
+	value,
+	error,
+	isBottomSheet = false
+}) {
 	const ref = useBlurOnFulfill({ value, cellCount: codeCount });
+
+	const inputComponent = isBottomSheet ? BottomSheetTextInput : TextInput;
 
 	return (
 		<CodeField
+			InputComponent={inputComponent}
 			ref={ref}
 			value={value}
+			submitBehavior='blurAndSubmit'
 			onChangeText={onChangeText}
 			cellCount={codeCount}
-			rootStyle={styles.codeFieldRoot}
+			rootStyle={STYLES.codeFieldRoot}
 			keyboardType='number-pad'
 			textContentType='oneTimeCode'
 			renderCell={({ index, symbol, isFocused }) => (
-				<Cell key={index} index={index} symbol={symbol} isFocused={isFocused} />
+				<Cell
+					error={error}
+					key={index}
+					index={index}
+					symbol={symbol}
+					isFocused={isFocused}
+				/>
 			)}
 		/>
 	);
 }
 
-const styles = StyleSheet.create({
+const STYLES = StyleSheet.create({
 	codeFieldRoot: {
 		justifyContent: 'center'
 	},
@@ -100,20 +103,6 @@ const styles = StyleSheet.create({
 	cell: {
 		marginHorizontal: 6,
 		aspectRatio: 1,
-		width: 44,
-
-		borderRadius: 8,
-		color: Colors.primary,
-		backgroundColor: '#fff',
-
-		shadowColor: '#00000055',
-		shadowOffset: {
-			width: 0,
-			height: 1
-		},
-		shadowOpacity: 0.22,
-		shadowRadius: 2.22,
-
-		elevation: 3
+		width: 44
 	}
 });

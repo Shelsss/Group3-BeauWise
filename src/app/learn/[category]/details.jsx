@@ -1,25 +1,17 @@
 import PagePadding from '@/constants/PagePadding';
 import MythLayout from '@/components/learn/myths/PageLayout';
-import PageLayout from '@/components/learn/ingredients-glossary/PageLayout';
+import IngredientsLayout from '@/components/learn/ingredients-glossary/PageLayout';
 import AwarenessLayout from '@/components/learn/awareness/PageLayout';
 import { useRef } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
-import LottieView from 'lottie-react-native';
-import {
-	getFirestore,
-	collection,
-	query,
-	where,
-	getDoc
-} from '@react-native-firebase/firestore';
+import { collection, query, where, getDoc } from '@react-native-firebase/firestore';
 import SourceLink from '@/components/SourceLink';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Swing } from 'react-native-animated-spinkit';
 import Colors from '@/constants/Colors';
-
-const db = getFirestore();
+import { db } from '@/services/firestore';
 
 export default function Details() {
 	const scrollViewRef = useRef(null);
@@ -88,7 +80,7 @@ export default function Details() {
 					paddingTop: PagePadding.config.paddingTop + 10
 				}}
 			>
-				{category === 'ingredients_glossary' && <PageLayout item={data} />}
+				{category === 'ingredients_glossary' && <IngredientsLayout item={data} />}
 				{category === 'consumer_awareness' && <AwarenessLayout item={data} />}
 				{category === 'myths_facts' && <MythLayout item={data} />}
 

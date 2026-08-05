@@ -1,37 +1,39 @@
-import Colors from '@/constants/Colors';
-import { Circle, UserRound } from 'lucide-react-native';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
 import CreateAccountButton from '../CreateAccountButton';
 import { router } from 'expo-router';
 import Analysis from '@/components/icons/hugeicons/Analysis';
 import Transaction from '@/components/icons/hugeicons/Transaction';
 import Dashboard from '@/components/icons/hugeicons/Dashboard';
 import Robot from '@/components/icons/hugeicons/Robot';
-import User from '../icons/hugeicons/User';
+import styles from '@/config/styles';
+import { useThemeStore } from '@/stores/useThemeStore';
+import Profile2Solid from '@/components/icons/hugeicons/Profile2Solid';
 
 const guessModeSchema = {
 	accountFeatures: [
 		{
-			title: 'Personalized Analysis',
-			description: 'Tailored skin reports based on your unique profile.',
+			title: 'Profile-Based Analysis',
+			description: 'Get ingredient filtering based on your saved cosmetic profile.',
 			icon: (color, size) => <Analysis color={color} size={size} />
 		},
 
 		{
 			title: 'Full Scan History',
-			description: 'Review every analysis and see your progress over time.',
+			description: 'Review every product analysis you have made in one convenient place.',
 			icon: (color, size) => <Transaction color={color} size={size} />
 		},
 
 		{
-			title: 'Progress Dashboard',
-			description: 'Visualize your skin health improvement trends.',
+			title: 'Educational Dashboard',
+			description:
+				'Track your scan counts, verified FDA notifications, and most frequently matched ingredients.',
 			icon: (color, size) => <Dashboard color={color} size={size} />
 		},
 
 		{
 			title: 'Smart Ingredient Matching',
-			description: 'AI-powered checks for ingredient compatibility.',
+			description:
+				'AI powered categorization based on established cosmetic literature and guidelines.',
 			icon: (color, size) => <Robot color={color} size={size} />
 		}
 	],
@@ -47,32 +49,36 @@ const guessModeSchema = {
 };
 
 export default function GuessModeView() {
+	const systemTheme = useColorScheme() ?? 'light';
+	const themeMode = useThemeStore((state) => state.themeMode);
+	const activeTheme = themeMode === 'system' ? systemTheme : themeMode;
 	return (
 		<View
 			style={{
 				flex: 1,
-
 				rowGap: 20
 			}}
 		>
 			<View
 				style={{
 					alignSelf: 'center',
-					backgroundColor: Colors.backgroundColor,
-					padding: 20,
+					borderWidth: 0.5,
+					borderColor: styles.theme.colors[activeTheme].card_border,
+					backgroundColor: styles.theme.colors[activeTheme].card_background,
+					padding: 14,
 					borderRadius: 100
 				}}
 			>
-				<User size={50} color={Colors.textColor} />
+				<Profile2Solid size={30} color={styles.theme.colors.primary} />
 			</View>
 
 			<View>
 				<Text
 					style={{
-						fontFamily: 'Outfit',
-						fontSize: 24,
-						fontWeight: 700,
-						color: Colors.textColor,
+						fontFamily: styles.font.family,
+						fontSize: styles.font.size.xl,
+						fontWeight: styles.font.weight.bold,
+						color: styles.theme.colors[activeTheme].text,
 						textAlign: 'center'
 					}}
 				>
@@ -80,8 +86,9 @@ export default function GuessModeView() {
 				</Text>
 				<Text
 					style={{
-						fontFamily: 'Outfit',
-						color: Colors.textColor + '9a',
+						fontSize: styles.font.size.md,
+						fontFamily: styles.font.family,
+						color: styles.theme.colors[activeTheme].text_secondary,
 						textAlign: 'center'
 					}}
 				>
@@ -92,54 +99,60 @@ export default function GuessModeView() {
 			<View
 				style={[
 					{
-						padding: 20,
-						backgroundColor: Colors.backgroundColor,
-						borderRadius: 10,
-						rowGap: 14
-					},
-					STYLES.shadow
+						padding: styles.spacing.double_xl,
+						borderWidth: 1,
+						borderColor: styles.theme.colors[activeTheme].card_border,
+						backgroundColor: styles.theme.colors[activeTheme].card_background,
+						borderRadius: styles.border.radius.size.sm,
+						rowGap: styles.spacing.double_xl
+					}
 				]}
 			>
 				<Text
 					style={{
-						fontFamily: 'Outfit',
-						fontWeight: 600
+						fontSize: styles.font.size.md,
+						color: styles.theme.colors.primary,
+						fontFamily: styles.font.family,
+						fontWeight: styles.font.weight.bold
 					}}
 				>
 					Unlock Full Features
 				</Text>
 
-				<View style={{ rowGap: 24 }}>
+				<View style={{ rowGap: styles.spacing.one_xxl }}>
 					{guessModeSchema.accountFeatures.map(({ title, description, icon }) => (
-						<View key={title} style={{ flexDirection: 'row', columnGap: 12 }}>
+						<View
+							key={title}
+							style={{ flexDirection: 'row', columnGap: styles.spacing.xl }}
+						>
 							<View
 								style={{
 									marginTop: 4,
 									padding: 4,
-									borderRadius: 100,
+
 									alignSelf: 'flex-start'
 								}}
 							>
-								{icon('#64748B', 18)}
+								{icon(styles.theme.colors[activeTheme].icon + '9a', styles.icon.size.xl)}
 							</View>
 
 							<View>
 								<Text
 									style={{
-										fontFamily: 'Outfit',
-										fontSize: 12,
-										fontWeight: 500,
-										color: Colors.textColor
+										fontFamily: styles.font.family,
+										fontSize: styles.font.size.md,
+										fontWeight: styles.font.weight.semi_bold,
+										color: styles.theme.colors[activeTheme].text + '9a'
 									}}
 								>
 									{title}
 								</Text>
 								<Text
 									style={{
-										fontFamily: 'Outfit',
-										fontSize: 12,
-										color: Colors.textColor + '7a',
-										paddingRight: 30
+										fontFamily: styles.font.family,
+										fontSize: styles.font.size.sm,
+										color: styles.theme.colors[activeTheme].text_secondary + '9a',
+										marginRight: styles.spacing.three_xxl
 									}}
 								>
 									{description}
@@ -153,76 +166,39 @@ export default function GuessModeView() {
 
 			<TouchableOpacity onPress={() => router.push('authentication/sign-in')}>
 				<Text
-					style={{ fontFamily: 'Outfit', color: Colors.primary, textAlign: 'center' }}
+					style={{
+						fontSize: styles.font.size.md,
+						fontFamily: styles.font.family,
+						color: styles.theme.colors.primary,
+						textAlign: 'center'
+					}}
 				>
 					Already have an account? Sign In
 				</Text>
 			</TouchableOpacity>
 
-			{/* <View
-				style={[
-					{
-						backgroundColor: Colors.backgroundColor,
-						padding: 20,
-						borderRadius: 16,
-						rowGap: 8
-					},
-					STYLES.shadow
-				]}
-			>
+			<View style={{ rowGap: styles.spacing.sm, marginTop: styles.spacing.one_xl }}>
 				<Text
 					style={{
-						fontFamily: 'Outfit',
-						fontSize: 16,
-						fontWeight: 600,
-						color: Colors.textColor
+						fontSize: styles.font.size.md,
+						fontFamily: styles.font.family,
+						fontWeight: styles.font.weight.bold,
+						color: styles.theme.colors[activeTheme].text
 					}}
 				>
-					What We Never Ask For
+					Safety Reminder
 				</Text>
-				{guessModeSchema.notAskedFor.map((item) => (
-					<View
-						key={item}
-						style={{ flexDirection: 'row', columnGap: 6, alignItems: 'center' }}
-					>
-						<Circle size={6} fill={Colors.textColor + '7a'} strokeWidth={0} />
-						<Text style={{ fontFamily: 'Outfit', color: Colors.textColor + '7a' }}>
-							{item}
-						</Text>
-					</View>
-				))}
-			</View> */}
-
-			<View style={{ backgroundColor: '#E8F5E9', padding: 20, borderRadius: 16 }}>
 				<Text
 					style={{
-						fontFamily: 'Outfit',
-						fontSize: 12,
-						color: Colors.textColor + '7a',
-						lineHeight: 18
+						fontSize: styles.font.size.sm,
+						fontFamily: styles.font.family,
+
+						color: styles.theme.colors[activeTheme].text_secondary
 					}}
 				>
-					<Text
-						style={{ fontFamily: 'Outfit', fontWeight: 600, color: Colors.textColor }}
-					>
-						Safety Reminder:{' '}
-					</Text>
 					{guessModeSchema.note}
 				</Text>
 			</View>
 		</View>
 	);
 }
-const STYLES = StyleSheet.create({
-	shadow: {
-		shadowColor: '#0000008e',
-		shadowOffset: {
-			width: 0,
-			height: 1
-		},
-		shadowOpacity: 0.2,
-		shadowRadius: 1.41,
-
-		elevation: 2
-	}
-});

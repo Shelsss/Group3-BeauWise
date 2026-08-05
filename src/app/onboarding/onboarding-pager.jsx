@@ -1,44 +1,47 @@
 import ArrowRight from '@/components/icons/hugeicons/ArrowRight';
 import PageFour from '@/components/onboarding/PageFour';
 import PageOne from '@/components/onboarding/PageOne';
-import PageThree from '@/components/onboarding/PageThree';
 import PageTwo from '@/components/onboarding/PageTwo';
+import { storage } from '@/config/mmkv';
+import styles from '@/config/styles';
 import Colors from '@/constants/Colors';
+import { useThemeStore } from '@/stores/useThemeStore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
+import { ChevronLeft } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
-import { BackHandler, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+	useColorScheme,
+	BackHandler,
+	StyleSheet,
+	Text,
+	TouchableOpacity,
+	View
+} from 'react-native';
+
 import { usePagerView } from 'react-native-pager-view';
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useSharedValue } from 'react-native-worklets-core';
 
 const pages = [
 	{
-		title: 'Welcome to BeauWise',
+		title: 'Analyze cosmetic ingredients with confidence',
 		description:
-			'Your smart companion for cosmetic ingredient analysis. We decode complex labels so you know exactly what goes on your skin and hair.',
+			'Scan products, verify information, and understand ingredients that match your needs.',
 		animatedComponent: ({ isActive }) => <PageOne isActive={isActive} />
 	},
 
 	{
-		title: 'Decode Ingredients Instantly',
+		title: 'Know what works for you',
 		description:
-			'Snap a photo of any cosmetic label. Our scanner reads the text and cross-references the ingredients with established cosmetic literature and safety guidelines.',
+			'See ingredients that may match your profile and identify ingredients that may need attention before using a product.',
 		animatedComponent: ({ isActive }) => <PageTwo isActive={isActive} />
 	},
 
 	{
-		title: 'Check Legitimacy & Freshness',
+		title: 'Make informed cosmetic choices',
 		description:
-			'Verify if a product is FDA-notified to help avoid counterfeits. You can also use our batch code decoder to keep an eye on product freshness.',
-		animatedComponent: ({ isActive }) => <PageThree isActive={isActive} />
-	},
-
-	{
-		title: 'Build Your Cosmetic Literacy',
-		description:
-			'To provide a profile-based ingredient analysis and personalized educational suggestions, we need to understand your general skin and hair traits.',
+			'Verify product information, explore ingredient insights, and access evidence-based tools designed to help you understand cosmetic products better.',
 		animatedComponent: ({ isActive }) => <PageFour isActive={isActive} />
 	}
 ];
@@ -49,7 +52,7 @@ const PaginationDot = ({ index, currentIndex }) => {
 		return {
 			width: withTiming(isActive ? 20 : 6, { duration: 160 }),
 
-			backgroundColor: withTiming(isActive ? Colors.primary : '#e7e6e6', {
+			backgroundColor: withTiming(isActive ? styles.theme.colors.primary : '#e7e6e6', {
 				duration: 100
 			})
 		};
@@ -69,28 +72,32 @@ const PaginationDot = ({ index, currentIndex }) => {
 };
 
 const Page = ({ currentIndex, index, title, description, render = null }) => {
+	const systemTheme = useColorScheme() ?? 'light';
+	const themeMode = useThemeStore((state) => state.themeMode);
+	const activeTheme = themeMode === 'system' ? systemTheme : themeMode;
 	return (
-		<View style={[styles.page]} key={index}>
+		<View style={[STYLES.page]} key={index}>
+			<Text
+				style={{
+					textAlign: 'center',
+					fontFamily: styles.font.family,
+					fontSize: styles.font.size.xxl,
+					color: styles.theme.colors.primary,
+					fontWeight: styles.font.weight.bold
+				}}
+			>
+				{title}
+			</Text>
+
 			{render && render({ isActive: currentIndex === index })}
 
-			<View style={{ rowGap: 6 }}>
+			<View>
 				<Text
 					style={{
 						textAlign: 'center',
-						fontFamily: 'Outfit',
-						fontSize: 22,
-						color: index === 0 ? Colors.primary : Colors.textColor,
-						fontWeight: 600
-					}}
-				>
-					{title}
-				</Text>
-				<Text
-					style={{
-						textAlign: 'center',
-						fontFamily: 'Outfit',
-						color: Colors.textColor,
-						width: 280,
+						fontFamily: styles.font.family,
+						color: styles.theme.colors[activeTheme].text,
+
 						lineHeight: 20
 					}}
 				>
@@ -102,15 +109,17 @@ const Page = ({ currentIndex, index, title, description, render = null }) => {
 };
 
 export default function OnboardingPager() {
+	const systemTheme = useColorScheme() ?? 'light';
+	const themeMode = useThemeStore((state) => state.themeMode);
+	const activeTheme = themeMode === 'system' ? systemTheme : themeMode;
 	const { bottom, top } = useSafeAreaInsets();
 	const { setPage, PagerView, ref } = usePagerView();
 	const [pageNumber, setPageNumber] = useState(0);
 
 	const handleNextPage = (newPage) => async () => {
 		if (newPage >= pages.length) {
-			router.dismissAll();
 			router.replace('authentication/sign-in');
-			await onFinish();
+			onFinish();
 
 			return;
 		}
@@ -130,18 +139,15 @@ export default function OnboardingPager() {
 	};
 
 	const handleSkip = async () => {
-		await onFinish();
-		router.dismissAll();
+		if (router.canGoBack()) {
+			router.dismissAll();
+		}
+		onFinish();
 		router.replace('authentication/sign-in');
 	};
 
-	const onFinish = async () => {
-		try {
-			await AsyncStorage.setItem('isOnboardComplete', JSON.stringify(true));
-		} catch (error) {
-			console.log(error);
-			console.log('is error');
-		}
+	const onFinish = () => {
+		storage.set('isOnboardComplete', true);
 	};
 
 	useEffect(() => {
@@ -174,19 +180,18 @@ export default function OnboardingPager() {
 					paddingTop: top
 				}}
 			>
-				<TouchableOpacity
-					onPress={handlePreviousPage}
-					style={{ marginLeft: 16, transform: [{ rotateZ: '180deg' }] }}
-				>
-					<ArrowRight />
-				</TouchableOpacity>
+				{(router.canGoBack() || pageNumber > 0) && (
+					<TouchableOpacity onPress={handlePreviousPage} style={{ marginLeft: 16 }}>
+						<ChevronLeft color={styles.theme.colors[activeTheme].icon} />
+					</TouchableOpacity>
+				)}
 
 				{pageNumber < pages.length - 1 && (
 					<TouchableOpacity
 						style={{ marginLeft: 'auto', marginRight: 20 }}
 						onPress={handleSkip}
 					>
-						<Text style={{ fontFamily: 'Outfit', color: Colors.primary }}>SKIP</Text>
+						<Text style={{ fontFamily: 'Outfit', color: Colors.primary }}>Skip</Text>
 					</TouchableOpacity>
 				)}
 			</View>
@@ -195,7 +200,7 @@ export default function OnboardingPager() {
 					handleNextPage(position).call()
 				}
 				ref={ref}
-				style={styles.pagerView}
+				style={STYLES.pagerView}
 				initialPage={pageNumber}
 			>
 				{pages.map((page, index) => (
@@ -258,7 +263,7 @@ export default function OnboardingPager() {
 	);
 }
 
-const styles = StyleSheet.create({
+const STYLES = StyleSheet.create({
 	pagerView: {
 		flex: 1,
 		marginHorizontal: 16,
@@ -266,6 +271,7 @@ const styles = StyleSheet.create({
 	},
 
 	page: {
+		rowGap: 90,
 		alignItems: 'center',
 		flex: 1,
 		justifyContent: 'center'

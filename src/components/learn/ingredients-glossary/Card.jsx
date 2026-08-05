@@ -1,56 +1,41 @@
+import styles from '@/config/styles';
 import Colors from '@/constants/Colors';
+import { useThemeStore } from '@/stores/useThemeStore';
 import { router } from 'expo-router';
 import { ChevronRight } from 'lucide-react-native';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, useColorScheme } from 'react-native';
 import { Shadow } from 'react-native-shadow-2';
 
-export default function Card({
-	id,
-	title,
-	category,
-	categories = ['Emollient', 'Antioxidant', 'Moisturizer']
-}) {
+export default function Card({ name, onPress, categories }) {
+	const systemTheme = useColorScheme() ?? 'light';
+	const themeMode = useThemeStore((state) => state.themeMode);
+	const activeTheme = themeMode === 'system' ? systemTheme : themeMode;
+
 	return (
 		<TouchableOpacity
-			onPress={() => {
-				router.push({
-					pathname: `/learn/${category}/details`,
-					params: {
-						selectedItem: id
-					}
-				});
-			}}
-			activeOpacity={0.8}
+			onPress={onPress}
+			activeOpacity={0.5}
 			style={{
-				borderRadius: 16,
-				padding: 20,
 				flexDirection: 'row',
 				alignItems: 'center',
-				flex: 1,
 				columnGap: 12,
-				backgroundColor: Colors.backgroundColor,
-
-				shadowColor: '#00000042',
-				shadowOffset: {
-					width: 0,
-					height: 1
-				},
-				shadowOpacity: 0.2,
-				shadowRadius: 1.41,
-
-				elevation: 2
+				backgroundColor: styles.theme.colors[activeTheme].card_background,
+				borderColor: styles.theme.colors[activeTheme].card_border,
+				borderWidth: 1,
+				padding: styles.spacing.xxl,
+				borderRadius: styles.border.radius.size.md
 			}}
 		>
 			<View>
 				<Text
 					style={{
-						fontFamily: 'Outfit',
-						color: Colors.textColor,
-						fontSize: 16,
-						fontWeight: 600
+						fontFamily: styles.font.family,
+						color: styles.theme.colors[activeTheme].text,
+						fontSize: styles.font.size.sm,
+						fontWeight: styles.font.weight.semi_bold
 					}}
 				>
-					{title}
+					{name}
 				</Text>
 				<View style={{ flexDirection: 'row', alignItems: 'center' }}>
 					<>
@@ -58,20 +43,24 @@ export default function Card({
 							numberOfLines={1}
 							ellipsizeMode='tail'
 							style={{
-								fontFamily: 'Outfit',
+								fontFamily: styles.font.family,
 								width: 250,
-								fontSize: 10,
-								color: Colors.textColor + '7a',
-								fontWeight: 500
+								fontSize: styles.font.size.sm,
+								color: styles.theme.colors[activeTheme].text_secondary,
+								fontWeight: styles.font.weight.light
 							}}
 						>
-							{categories.join('  •  ')}
+							{categories?.join('  •  ')}
 						</Text>
 					</>
 				</View>
 			</View>
 
-			<ChevronRight size={18} color={Colors.textColor} style={{ marginLeft: 'auto' }} />
+			<ChevronRight
+				size={styles.icon.size.lg}
+				color={styles.theme.colors[activeTheme].icon + '5a'}
+				style={{ marginLeft: 'auto' }}
+			/>
 		</TouchableOpacity>
 	);
 }

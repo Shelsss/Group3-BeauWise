@@ -1,17 +1,18 @@
 import Colors from '@/constants/Colors';
-import { View, TextInput, TouchableOpacity, Text } from 'react-native';
+import { View, TextInput, TouchableOpacity } from 'react-native';
 import { useEffect, useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react-native';
 import Animated, {
 	interpolateColor,
 	useAnimatedStyle,
 	useSharedValue,
-	withRepeat,
-	withSequence,
 	withTiming
 } from 'react-native-reanimated';
 import Warn from './icons/hugeicons/Warn';
+import styles from '@/config/styles';
 export default function Input({
+	focusNextInput = null,
+	enterKeyHint = 'done',
 	ref,
 	children,
 	isPassword = false,
@@ -19,11 +20,12 @@ export default function Input({
 	label,
 	onChangeText,
 	value,
-	error
+	error,
+	activeTheme
 }) {
 	const labelPositionY = useSharedValue(0);
-	const labelPositionX = useSharedValue(42);
-	const labelFontSize = useSharedValue(14);
+	const labelPositionX = useSharedValue(14);
+	const labelFontSize = useSharedValue(styles.font.size.sm);
 	const opacity = useSharedValue(0);
 	const passwordOpacity = useSharedValue(0);
 	const borderColorShared = useSharedValue(0);
@@ -67,13 +69,13 @@ export default function Input({
 	});
 
 	const minimizeLabel = () => {
-		labelPositionY.value = withTiming(-16, { duration: 130 });
-		labelFontSize.value = withTiming(8, { duration: 130 });
+		labelPositionY.value = withTiming(-12, { duration: 130 });
+		labelFontSize.value = withTiming(styles.font.size.xs, { duration: 130 });
 	};
 
 	const restartLabel = () => {
 		labelPositionY.value = withTiming(0, { duration: 130 });
-		labelFontSize.value = withTiming(14, { duration: 130 });
+		labelFontSize.value = withTiming(styles.font.size.sm, { duration: 130 });
 	};
 
 	useEffect(() => {
@@ -99,27 +101,16 @@ export default function Input({
 		<View>
 			<Animated.View
 				style={[
+					animatedBorder,
 					{
 						borderWidth: 1,
-						backgroundColor: Colors.backgroundColor,
+						backgroundColor: styles.theme.colors[activeTheme].input_background,
+						borderColor: styles.theme.colors[activeTheme].input_border,
 						flexDirection: 'row',
 						alignItems: 'center',
-						paddingVertical: 8,
-						paddingHorizontal: 14,
-						borderRadius: 12,
-						columnGap: 6,
-						shadowColor: '#000000a3',
-						shadowOffset: {
-							width: 0,
-							height: 1
-						},
-						shadowOpacity: 0.2,
-						shadowRadius: 1.41,
-
-						elevation: 2,
-						overflow: 'hidden'
-					},
-					animatedBorder
+						padding: styles.spacing.sm,
+						borderRadius: styles.border.radius.size.md
+					}
 				]}
 			>
 				<View>{children}</View>
@@ -127,11 +118,11 @@ export default function Input({
 				<Animated.Text
 					style={[
 						{
-							fontFamily: 'Outfit',
+							fontFamily: styles.font.family,
 							position: 'absolute',
-							fontSize: 14,
+							fontSize: styles.font.size.sm,
 							transform: [{ translateX: 42 }, { translateY: 0 }],
-							color: Colors.textColor + '9a'
+							color: styles.theme.colors[activeTheme].text
 						},
 						labelAnimatedStyle
 					]}
@@ -148,30 +139,56 @@ export default function Input({
 					}}
 					ref={ref}
 					value={value}
-					cursorColor={Colors.textColor}
+					cursorColor={styles.theme.colors.primary}
 					onChangeText={onChangeText}
-					style={{ fontFamily: 'Outfit', flex: 1 }}
+					submitBehavior={focusNextInput ? 'submit' : 'blurAndSubmit'}
+					onSubmitEditing={() => {
+						if (focusNextInput) {
+							focusNextInput();
+						}
+					}}
+					style={{
+						fontFamily: styles.font.family,
+						flex: 1,
+						fontSize: styles.font.size.sm,
+						paddingLeft: styles.spacing.xl - 2,
+						marginTop: styles.spacing.sm,
+						textTransform: label === 'Full Name' ? 'capitalize' : 'none',
+						color: styles.theme.colors[activeTheme].text
+					}}
+					selectionColor={styles.theme.colors.primary}
 					autoComplete={contentType}
 					secureTextEntry={isPassword ? !passwordVisibility : false}
 					autoCapitalize='none'
 					textContentType={contentType}
+					enterKeyHint={enterKeyHint}
 				/>
 
 				{isPassword && (
-					<Animated.View style={animatedPasswordStyle}>
+					<Animated.View
+						style={[animatedPasswordStyle, { marginRight: styles.spacing.md }]}
+					>
 						{passwordVisibility ? (
-							<TouchableOpacity
-								style={{ padding: 4, paddingVertical: 8 }}
-								onPress={handlePasswordVisibility}
-							>
-								<EyeOff color={Colors.textColor + '7a'} size={16} />
+							<TouchableOpacity style={{ padding: 4 }} onPress={handlePasswordVisibility}>
+								<EyeOff
+									color={
+										activeTheme !== 'dark'
+											? styles.font.colors._01 + '7a'
+											: styles.font.colors._04
+									}
+									size={14}
+								/>
 							</TouchableOpacity>
 						) : (
-							<TouchableOpacity
-								style={{ padding: 4, paddingVertical: 8 }}
-								onPress={handlePasswordVisibility}
-							>
-								<Eye color={Colors.textColor + '7a'} size={16} />
+							<TouchableOpacity style={{ padding: 4 }} onPress={handlePasswordVisibility}>
+								<Eye
+									color={
+										activeTheme !== 'dark'
+											? styles.font.colors._01 + '7a'
+											: styles.font.colors._04
+									}
+									size={14}
+								/>
 							</TouchableOpacity>
 						)}
 					</Animated.View>
@@ -184,9 +201,8 @@ export default function Input({
 							alignItems: 'center',
 							columnGap: 4,
 							bottom: 2,
-							left: 20,
-							position: 'absolute',
-							marginLeft: 4
+							left: 14,
+							position: 'absolute'
 						},
 						error && animatedStyle
 					]}
@@ -194,16 +210,16 @@ export default function Input({
 					{error && (
 						<>
 							<Animated.View>
-								<Warn color={'#ff6565'} size={10} />
+								<Warn color={styles.icon.colors._01} size={styles.icon.size.xs} />
 							</Animated.View>
 
 							<Animated.Text
 								style={[
 									{
 										alignItems: 'center',
-										fontFamily: 'Outfit',
-										fontSize: 9,
-										color: '#ff6565',
+										fontFamily: styles.font.family,
+										fontSize: styles.font.size.xs,
+										color: styles.icon.colors._01,
 										fontWeight: 500,
 										letterSpacing: 0.7,
 										paddingBottom: !error && 1.5

@@ -1,3 +1,4 @@
+import styles from '@/config/styles';
 import Colors from '@/constants/Colors';
 import PagePadding from '@/constants/PagePadding';
 import TermsOfService from '@/constants/TermsOfService';
@@ -7,21 +8,27 @@ import { useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-export default function ToS({ handleClose, handleAgree }) {
+export default function ToS({ handleClose, handleAgree, activeTheme }) {
 	const [isRead, setIsRead] = useState(false);
 	const { bottom } = useSafeAreaInsets();
 	return (
-		<View style={{ overflow: 'hidden', zIndex: -1, paddingBottom: bottom + 10 }}>
+		<View
+			style={{
+				overflow: 'hidden',
+
+				backgroundColor: styles.theme.colors[activeTheme].card_background
+			}}
+		>
 			<Text
 				style={{
-					fontFamily: 'Outfit',
-					fontSize: 18,
-					color: Colors.textColor,
-					fontWeight: 700,
+					fontFamily: styles.font.family,
+					fontSize: styles.font.size.xl,
+					color: styles.theme.colors[activeTheme].text,
+					fontWeight: styles.font.weight.bold,
 					borderBottomWidth: 0.5,
-					borderBottomColor: Colors.textColor + '1a',
-					paddingHorizontal: PagePadding.config.paddingHorizontal,
-					paddingVertical: PagePadding.config.paddingTop
+					borderBottomColor: styles.theme.colors[activeTheme].seperator,
+					paddingHorizontal: styles.spacing.one_xl,
+					paddingVertical: styles.spacing.three_xl
 				}}
 			>
 				Terms of Service
@@ -29,19 +36,19 @@ export default function ToS({ handleClose, handleAgree }) {
 
 			<View
 				style={{
-					paddingHorizontal: PagePadding.config.paddingHorizontal,
+					paddingHorizontal: styles.spacing.double_xl,
 					paddingTop: PagePadding.config.paddingTop,
-					rowGap: 20
+					rowGap: styles.spacing.three_xl
 				}}
 			>
 				{TermsOfService.map((item, index) => (
 					<View key={item.title}>
 						<Text
 							style={{
-								fontFamily: 'Outfit',
-								fontWeight: 700,
-								fontSize: 16,
-								color: Colors.textColor
+								fontFamily: styles.font.family,
+								fontWeight: styles.font.weight.semi_bold,
+								fontSize: styles.font.size.md,
+								color: styles.theme.colors[activeTheme].text
 							}}
 						>
 							{index + 1}. {item.title}
@@ -51,8 +58,9 @@ export default function ToS({ handleClose, handleAgree }) {
 							{item.content.map((content, index) => (
 								<Text
 									style={{
-										fontFamily: 'Outfit',
-										color: Colors.textColor + '9a',
+										fontSize: styles.font.size.md,
+										fontFamily: styles.font.family,
+										color: styles.theme.colors[activeTheme].text_secondary,
 										lineHeight: 20
 									}}
 									key={index}
@@ -68,7 +76,7 @@ export default function ToS({ handleClose, handleAgree }) {
 									<View
 										key={index}
 										style={{
-											fontFamily: 'Outfit',
+											fontFamily: styles.font.family,
 											flexDirection: 'row',
 											columnGap: 8,
 											marginLeft: 8,
@@ -77,14 +85,15 @@ export default function ToS({ handleClose, handleAgree }) {
 									>
 										<Circle
 											strokeWidth={0}
-											fill={Colors.textColor}
-											style={{ marginTop: 7 }}
+											fill={styles.theme.colors[activeTheme].icon}
+											style={{ marginTop: 8 }}
 											size={6}
 										/>
 										<Text
 											style={{
-												fontFamily: 'Outfit',
-												color: Colors.textColor + '9a',
+												fontSize: styles.font.size.md,
+												fontFamily: styles.font.family,
+												color: styles.theme.colors[activeTheme].text_secondary,
 												lineHeight: 20
 											}}
 										>
@@ -100,8 +109,9 @@ export default function ToS({ handleClose, handleAgree }) {
 								{item.additional_content.map((content, index) => (
 									<Text
 										style={{
-											fontFamily: 'Outfit',
-											color: Colors.textColor + '9a',
+											fontSize: styles.font.size.md,
+											fontFamily: styles.font.family,
+											color: styles.theme.colors[activeTheme].text_secondary,
 											lineHeight: 20
 										}}
 										key={index}
@@ -119,16 +129,22 @@ export default function ToS({ handleClose, handleAgree }) {
 										<View style={{ rowGap: 4 }} key={index}>
 											<Text
 												style={{
-													fontFamily: 'Outfit',
-													color: Colors.textColor,
-													fontWeight: 700
+													fontWeight: styles.font.weight.semi_bold,
+													fontSize: styles.font.size.md,
+													fontFamily: styles.font.family,
+													color: styles.theme.colors[activeTheme].text_secondary
 												}}
 											>
 												{title}
 											</Text>
 
 											<Text
-												style={{ fontFamily: 'Outfit', color: Colors.textColor }}
+												style={{
+													fontWeight: styles.font.weight.regular,
+													fontSize: styles.font.size.md,
+													fontFamily: styles.font.family,
+													color: styles.theme.colors[activeTheme].text_secondary
+												}}
 												key={index}
 											>
 												{content}
@@ -146,14 +162,15 @@ export default function ToS({ handleClose, handleAgree }) {
 												>
 													<Circle
 														strokeWidth={0}
-														fill={Colors.textColor}
-														style={{ marginTop: 7 }}
+														fill={styles.theme.colors[activeTheme].icon + '4a'}
+														style={{ marginTop: 8 }}
 														size={6}
 													/>
 													<Text
 														style={{
-															fontFamily: 'Outfit',
-															color: Colors.textColor + '9a',
+															fontSize: styles.font.size.md,
+															fontFamily: styles.font.family,
+															color: styles.theme.colors[activeTheme].text_secondary,
 															lineHeight: 20
 														}}
 													>
@@ -164,7 +181,13 @@ export default function ToS({ handleClose, handleAgree }) {
 
 											{additional_content && (
 												<Text
-													style={{ fontFamily: 'Outfit', color: Colors.textColor + '9a' }}
+													style={{
+														marginTop: styles.spacing.lg,
+														lineHeight: styles.spacing.double_xl,
+														fontSize: styles.font.size.md,
+														fontFamily: styles.font.family,
+														color: styles.theme.colors[activeTheme].text_secondary
+													}}
 												>
 													{additional_content}
 												</Text>
@@ -192,19 +215,25 @@ export default function ToS({ handleClose, handleAgree }) {
 									width: 15,
 									pointerEvents: 'none',
 									borderRadius: 4,
-									backgroundColor: '#f9f8f8c4'
+									backgroundColor: styles.theme.colors[activeTheme].card_background
 								}}
 							/>
 
 							<View>
-								<Text style={{ fontFamily: 'Outfit', fontSize: 12 }}>
+								<Text
+									style={{
+										color: styles.theme.colors[activeTheme].text,
+										fontFamily: styles.font.family,
+										fontSize: styles.font.size.sm
+									}}
+								>
 									I have read the full document
 								</Text>
 							</View>
 						</TouchableOpacity>
 					</View>
 
-					<View style={{ flexDirection: 'row' }}>
+					<View style={{ flexDirection: 'row', marginBottom: styles.spacing.xxl }}>
 						<TouchableOpacity
 							onPress={handleClose}
 							activeOpacity={0.5}
@@ -212,10 +241,10 @@ export default function ToS({ handleClose, handleAgree }) {
 						>
 							<Text
 								style={{
-									fontFamily: 'Outfit',
-
-									fontWeight: 400,
-									color: Colors.textColor
+									fontFamily: styles.font.family,
+									fontWeight: styles.font.weight.light,
+									color: styles.theme.colors[activeTheme].text,
+									fontSize: styles.font.size.md
 								}}
 							>
 								Decline
@@ -234,8 +263,9 @@ export default function ToS({ handleClose, handleAgree }) {
 						>
 							<Text
 								style={{
-									fontFamily: 'Outfit',
-									fontWeight: 400,
+									fontSize: styles.font.size.md,
+									fontFamily: styles.font.family,
+									fontWeight: styles.font.weight.light,
 									color: '#fff'
 								}}
 							>
@@ -258,6 +288,6 @@ const STYLES = StyleSheet.create({
 		justifyContent: 'center',
 		flexDirection: 'row',
 		backgroundColor: Colors.primary,
-		borderRadius: 10
+		borderRadius: styles.border.radius.size.sm
 	}
 });

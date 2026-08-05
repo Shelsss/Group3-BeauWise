@@ -3,17 +3,11 @@ import Animated, {
 	useAnimatedStyle,
 	useSharedValue,
 	withDelay,
-	withRepeat,
 	withSequence,
 	withSpring,
 	withTiming
 } from 'react-native-reanimated';
-import Magnify from '@/components/icons/Magnify';
-import ClipboardOnboarding from '@/components/icons/ClipboardOnboarding';
-import { useDebouncedCallback } from 'use-debounce';
 import { useEffect } from 'react';
-import Sparks from '../icons/Sparks';
-import Colors from '@/constants/Colors';
 import BookOnboarding from '../icons/hugeicons/BookOnboarding';
 import BulbOnboarding from '../icons/hugeicons/BulbOnboarding';
 
@@ -58,7 +52,7 @@ export default function PageFour({ isActive }) {
 	}, [isActive]);
 
 	return (
-		<View style={{ position: 'relative', marginBottom: 200 }}>
+		<View style={{ position: 'relative', marginBottom: 120 }}>
 			<Animated.View
 				style={[
 					{

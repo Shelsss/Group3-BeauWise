@@ -1,109 +1,88 @@
 import { ArrowRight, Lightbulb } from 'lucide-react-native';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
 import { Shadow } from 'react-native-shadow-2';
 
 import Colors from '@/constants/Colors';
 import { router } from 'expo-router';
+import { useThemeStore } from '@/stores/useThemeStore';
+import styles from '@/config/styles';
+import { Image } from 'expo-image';
 
-export default function Card({ title, description, buttonLabel, tag, routeTarget }) {
+export default function Card({ name, description, buttonText, icon, onPress }) {
+	const systemTheme = useColorScheme() ?? 'light';
+	const themeMode = useThemeStore((state) => state.themeMode);
+	const activeTheme = themeMode === 'system' ? systemTheme : themeMode;
+
 	return (
-		<Shadow distance={1} stretch={true} startColor='#00000010' offset={[0, 1]}>
-			<View style={STYLES.cardContainer}>
-				<View style={STYLES.firstColumnContainer}>
-					<Text style={STYLES.tag}>{tag}</Text>
+		<View
+			style={{
+				alignSelf: 'center',
+				width: '92%',
+				padding: styles.spacing.one_xxl,
+				borderRadius: styles.border.radius.size.sm,
+				backgroundColor: styles.theme.colors[activeTheme].card_background,
+				borderColor: styles.theme.colors[activeTheme].card_border,
+				borderWidth: 1,
+				rowGap: styles.spacing.xl
+			}}
+		>
+			<View
+				style={{
+					flexDirection: 'row',
+					alignItems: 'center',
+					columnGap: styles.spacing.lg
+				}}
+			>
+				{icon(styles.icon.size.xl, styles.theme.colors.primary)}
 
-					<Text style={STYLES.cardTitle}>{title}</Text>
-
-					<Text style={STYLES.cardDescription}>{description}</Text>
-
-					<TouchableOpacity
-						onPress={() => {
-							router.push(`/learn/[${routeTarget}]`);
-						}}
-						activeOpacity={0.8}
-						style={STYLES.button}
-					>
-						<Text
-							style={{
-								fontFamily: 'Outfit',
-								fontSize: 12,
-								color: Colors.backgroundColor,
-
-								textTransform: 'capitalize'
-							}}
-						>
-							{buttonLabel}
-						</Text>
-						<ArrowRight size={14} color={'#fff'} />
-					</TouchableOpacity>
-				</View>
-
-				<View
+				<Text
 					style={{
-						borderRadius: 8,
-						marginLeft: 'auto',
-						backgroundColor: Colors.secondary + '3a',
-						padding: 30,
-						alignSelf: 'flex-start'
+						color: styles.theme.colors[activeTheme].text,
+						fontFamily: styles.font.family,
+						fontSize: styles.font.size.md,
+						fontWeight: styles.font.weight.semi_bold
 					}}
 				>
-					<Lightbulb size={28} color={Colors.secondary + '9a'} />
-				</View>
+					{name}
+				</Text>
 			</View>
-		</Shadow>
+			<Text
+				style={{
+					color: styles.theme.colors[activeTheme].text_secondary,
+					fontFamily: styles.font.family,
+					fontSize: styles.font.size.sm,
+					fontWeight: styles.font.weight.regular
+				}}
+			>
+				{description}
+			</Text>
+			<TouchableOpacity
+				onPress={onPress}
+				activeOpacity={0.7}
+				style={{
+					alignItems: 'center',
+					justifyContent: 'center',
+					columnGap: styles.spacing.sm,
+					flexDirection: 'row',
+					backgroundColor: styles.theme.colors.primary,
+					borderRadius: styles.border.radius.size.sm,
+					paddingVertical: styles.spacing.xl
+				}}
+			>
+				<Text
+					style={{
+						textTransform: 'capitalize',
+						textAlign: 'center',
+						color: styles.font.colors._04,
+						fontFamily: styles.font.family,
+						fontSize: styles.font.size.sm,
+						fontWeight: styles.font.weight.regular
+					}}
+				>
+					{buttonText}
+				</Text>
+				<ArrowRight size={styles.icon.size.md} color={styles.icon.colors._05} />
+			</TouchableOpacity>
+		</View>
 	);
 }
-
-const STYLES = StyleSheet.create({
-	tag: {
-		fontFamily: 'Outfit',
-		textTransform: 'uppercase',
-		paddingHorizontal: 12,
-		paddingVertical: 8,
-		borderRadius: 4,
-		backgroundColor: Colors.secondary + '3a',
-		color: Colors.textColor,
-		fontWeight: 500,
-		fontSize: 9,
-		letterSpacing: 0.5
-	},
-
-	firstColumnContainer: {
-		rowGap: 10,
-		alignItems: 'flex-start',
-		justifyContent: 'flex-start'
-	},
-
-	cardContainer: {
-		borderRadius: 16,
-		backgroundColor: Colors.backgroundColor,
-		padding: 16,
-		flexDirection: 'row'
-	},
-
-	cardTitle: {
-		fontFamily: 'Outfit',
-		width: 120,
-		color: Colors.textColor,
-		fontWeight: 700,
-		fontSize: 18
-	},
-
-	cardDescription: {
-		fontFamily: 'Outfit',
-		width: 200,
-
-		fontSize: 14,
-		lineHeight: 20,
-		color: Colors.textColor + '7a'
-	},
-
-	button: {
-		columnGap: 8,
-		borderRadius: 8,
-		paddingHorizontal: 20,
-		paddingVertical: 16,
-		backgroundColor: Colors.primary,
-		flexDirection: 'row'
-	}
-});

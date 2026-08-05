@@ -1,36 +1,44 @@
-import Colors from '@/constants/Colors';
-import { ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text, useColorScheme, View } from 'react-native';
 import CreateAccountButton from '../CreateAccountButton';
 import { Check } from 'lucide-react-native';
 import PagePadding from '@/constants/PagePadding';
 import { useRef } from 'react';
 import FolderLock from '@/components/icons/hugeicons/FolderLock';
+import styles from '@/config/styles';
+import { useThemeStore } from '@/stores/useThemeStore';
 
 const guessModeSchema = {
-	title: 'No Scan History Yet',
-	description: `In Guest Mode, your scans are not saved. Create an account to save your history and easily revisit your product safety scores.`,
+	title: 'No Saved History',
+	description:
+		'In Guest Mode, your product scans, FDA registry checks, and batch code verifications are not saved. Create an account to keep a permanent log of all your analyses.',
 	accountBenefits: [
 		{
-			title: 'Save Unlimited Scans',
-			description: 'Keep a complete log of all the cosmetics you have analyzed.'
-		},
-
-		{
-			title: 'Review Safety Scores',
-			description: 'Instantly access the chemical breakdown and top irritants.'
-		},
-
-		{
-			title: 'Personalized Insights',
+			title: 'Save All Your Analyses',
 			description:
-				'Get tailored analysis based strictly on your exact skin and hair profile.'
+				'Keep a complete, organized record of every cosmetic label you scan, along with your FDA and batch code results.'
+		},
+
+		{
+			title: 'Review Ingredient Breakdowns',
+			description:
+				'Instantly access past ingredient lists and clearly see which components need your attention.'
+		},
+
+		{
+			title: 'Unlock Profile-Based Filtering',
+			description:
+				'Cross-reference cosmetic ingredients with standard safety literature based on your general skin and hair traits.'
 		}
 	],
 	limitation:
 		'In Guest Mode, scans are temporary and cleared when you close the app. Sign up to unlock full history tracking and personalization features.'
 };
 export default function GuestModeView() {
+	const systemTheme = useColorScheme() ?? 'light';
+	const themeMode = useThemeStore((state) => state.themeMode);
+	const activeTheme = themeMode === 'system' ? systemTheme : themeMode;
 	const scrollViewRef = useRef(null);
+
 	return (
 		<ScrollView
 			showsVerticalScrollIndicator={false}
@@ -53,24 +61,25 @@ export default function GuestModeView() {
 					borderRadius: 100
 				}}
 			>
-				<FolderLock size={100} color={Colors.textColor} />
+				<FolderLock size={70} color={styles.theme.colors.primary} />
 			</View>
 
 			<View style={{ alignItems: 'center', marginTop: 20 }}>
 				<Text
 					style={{
-						fontFamily: 'Outfit',
-						fontSize: 20,
-						fontWeight: 600,
-						color: Colors.textColor
+						fontFamily: styles.font.family,
+						fontSize: styles.font.size.xl,
+						fontWeight: styles.font.weight.bold,
+						color: styles.theme.colors[activeTheme].text
 					}}
 				>
 					{guessModeSchema.title}
 				</Text>
 				<Text
 					style={{
-						fontFamily: 'Outfit',
-						color: Colors.textColor + '9a',
+						fontFamily: styles.font.family,
+						fontSize: styles.font.size.md,
+						color: styles.theme.colors[activeTheme].text_secondary + '9a',
 						textAlign: 'center',
 						lineHeight: 22,
 						width: '80%'
@@ -82,8 +91,13 @@ export default function GuestModeView() {
 
 			<View
 				style={{
-					rowGap: 20,
-					marginVertical: 30
+					borderColor: styles.theme.colors[activeTheme].card_border,
+					backgroundColor: styles.theme.colors[activeTheme].card_background,
+					borderWidth: 1,
+					borderRadius: styles.border.radius.size.sm,
+					rowGap: styles.spacing.double_xl,
+					padding: styles.spacing.double_xl,
+					marginVertical: styles.spacing.double_xxl
 				}}
 			>
 				{guessModeSchema.accountBenefits.map(({ title, description }) => (
@@ -100,18 +114,27 @@ export default function GuestModeView() {
 							<Check size={12} color={'#20C997'} />
 						</View>
 
-						<View>
+						<View
+							style={{
+								rowGap: styles.spacing.sm
+							}}
+						>
 							<Text
-								style={{ fontFamily: 'Outfit', fontWeight: 600, color: Colors.textColor }}
+								style={{
+									fontSize: styles.font.size.md,
+									fontFamily: styles.font.family,
+									fontWeight: styles.font.weight.semi_bold,
+									color: styles.theme.colors[activeTheme].text
+								}}
 							>
 								{title}
 							</Text>
 							<Text
 								style={{
-									fontFamily: 'Outfit',
-									fontSize: 12,
-									color: Colors.textColor + '7a',
-									paddingRight: 30
+									fontSize: styles.font.size.sm,
+									fontFamily: styles.font.family,
+									color: styles.theme.colors[activeTheme].text_secondary,
+									paddingRight: styles.spacing.double_xxl
 								}}
 							>
 								{description}
@@ -125,17 +148,26 @@ export default function GuestModeView() {
 
 			<View
 				style={{
-					backgroundColor: '#e8f5e9',
-					padding: 16,
-					borderRadius: 16,
-					marginTop: 18
+					rowGap: styles.spacing.sm,
+					marginTop: styles.spacing.double_xxl
 				}}
 			>
-				<Text style={{ fontFamily: 'Outfit', fontWeight: 600, color: Colors.textColor }}>
+				<Text
+					style={{
+						fontSize: styles.font.size.md,
+						fontFamily: styles.font.family,
+						fontWeight: styles.font.weight.bold,
+						color: styles.theme.colors[activeTheme].text
+					}}
+				>
 					Guess Mode Limitations
 				</Text>
 				<Text
-					style={{ fontFamily: 'Outfit', fontSize: 12, color: Colors.textColor + '9a' }}
+					style={{
+						fontFamily: styles.font.family,
+						fontSize: styles.font.size.sm,
+						color: styles.theme.colors[activeTheme].text_secondary
+					}}
 				>
 					{guessModeSchema.limitation}
 				</Text>

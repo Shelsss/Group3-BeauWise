@@ -3,8 +3,10 @@ import { View, Text } from 'react-native';
 import { useProfilingStore } from '@/stores/useProfilingStore';
 
 import OptionItem from './profiling/OptionItem';
+import styles from '@/config/styles';
 
 export default function MultiCheckBoxContainer({
+	activeTheme,
 	options,
 	choiceLabel,
 	section,
@@ -27,10 +29,10 @@ export default function MultiCheckBoxContainer({
 		<View style={{ marginHorizontal: 20, rowGap: 8 }}>
 			<Text
 				style={{
-					fontFamily: 'Outfit',
-					width: '100%',
-					fontSize: 12,
-					fontWeight: '600'
+					fontFamily: styles.font.family,
+					fontSize: styles.font.size.md,
+					fontWeight: styles.font.weight.semi_bold,
+					color: styles.theme.colors[activeTheme].text
 				}}
 			>
 				{choiceLabel}
@@ -50,6 +52,7 @@ export default function MultiCheckBoxContainer({
 				{options?.map((item) => {
 					return (
 						<OptionItem
+							activeTheme={activeTheme}
 							key={item.id}
 							item={item}
 							isSelected={isSelected}

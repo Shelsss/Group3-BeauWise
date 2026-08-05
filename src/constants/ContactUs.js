@@ -19,7 +19,7 @@ export default [
 	},
 	{
 		title: 'How to Contact Us',
-		content: ['For all inquiries, please email:', 'support@beauwise.app'],
+		content: ['For all inquiries, please email:', 'support@beauwise.tech'],
 		additional_content: ['Suggested subject line:', 'BeauWise Support Request']
 	},
 	{

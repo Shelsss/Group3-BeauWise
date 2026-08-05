@@ -39,3 +39,8 @@ yarn-error.*
 /android
 
 
+google-services.json
+sign-keys.txt
+test.js
+.env
+checklist-before-deployments.txt

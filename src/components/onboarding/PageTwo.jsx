@@ -1,4 +1,4 @@
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Text, TouchableOpacity, useColorScheme, View } from 'react-native';
 import Animated, {
 	useAnimatedStyle,
 	useSharedValue,
@@ -14,8 +14,16 @@ import { useDebouncedCallback } from 'use-debounce';
 import { useEffect } from 'react';
 import Sparks from '../icons/Sparks';
 import Colors from '@/constants/Colors';
+import { useThemeStore } from '@/stores/useThemeStore';
+import styles from '@/config/styles';
 
 const Badge = ({ color, text }) => {
+	const systemTheme = useColorScheme() ?? 'light';
+
+	const themeMode = useThemeStore((state) => state.themeMode);
+
+	const activeTheme = themeMode === 'system' ? systemTheme : themeMode;
+
 	return (
 		<View
 			style={{
@@ -23,8 +31,9 @@ const Badge = ({ color, text }) => {
 				alignItems: 'center',
 				flexDirection: 'row',
 				columnGap: 6,
-				backgroundColor: '#fff',
-
+				borderWidth: 1,
+				backgroundColor: styles.theme.colors[activeTheme].card_background,
+				borderColor: styles.theme.colors[activeTheme].card_border,
 				shadowColor: '#00000075',
 				shadowOffset: {
 					width: 0,
@@ -41,7 +50,15 @@ const Badge = ({ color, text }) => {
 			<View
 				style={{ aspectRatio: 1, width: 6, backgroundColor: color, borderRadius: 50 }}
 			/>
-			<Text style={{ fontFamily: 'Outfit', fontSize: 12 }}>{text}</Text>
+			<Text
+				style={{
+					fontFamily: styles.font.family,
+					fontSize: 12,
+					color: styles.theme.colors[activeTheme].text
+				}}
+			>
+				{text}
+			</Text>
 		</View>
 	);
 };
@@ -177,8 +194,8 @@ export default function PageTwo({ isActive }) {
 			200,
 			withRepeat(
 				withSequence(
-					withTiming(-160, { duration: 1200 }),
-					withTiming(-170, { duration: 1200 })
+					withTiming(-50, { duration: 1200 }),
+					withTiming(-60, { duration: 1200 })
 				),
 				-1,
 				true
@@ -189,8 +206,8 @@ export default function PageTwo({ isActive }) {
 			400,
 			withRepeat(
 				withSequence(
-					withTiming(-20, { duration: 1200 }),
-					withTiming(-30, { duration: 1200 })
+					withTiming(80, { duration: 1200 }),
+					withTiming(70, { duration: 1200 })
 				),
 				-1,
 				true
@@ -201,8 +218,8 @@ export default function PageTwo({ isActive }) {
 			600,
 			withRepeat(
 				withSequence(
-					withTiming(-70, { duration: 1200 }),
-					withTiming(-80, { duration: 1200 })
+					withTiming(50, { duration: 1200 }),
+					withTiming(40, { duration: 1200 })
 				),
 				-1,
 				true
@@ -255,7 +272,7 @@ export default function PageTwo({ isActive }) {
 				<Badge text={'Retinol'} color={Colors.secondary} />
 			</Animated.View>
 
-			<View style={{ marginBottom: 280 }}>
+			<View style={{ marginBottom: 160 }}>
 				<View
 					style={{
 						borderRadius: 28,

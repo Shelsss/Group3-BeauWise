@@ -1,12 +1,9 @@
-import Colors from '@/constants/Colors';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
-
 import { useRef, useState } from 'react';
 import Animated, { FadeIn } from 'react-native-reanimated';
-import { Shadow } from 'react-native-shadow-2';
 import ProfileView from '@/components/profile/ProfileView';
 import SettingsView from '@/components/profile/SettingsView';
-import SingleSidedShadow from '@/components/SingleSidedShadow';
+import styles from '@/config/styles';
 
 export default function ProfileScreen() {
 	const scrollViewRef = useRef(null);
@@ -20,43 +17,28 @@ export default function ProfileScreen() {
 	const resetScroll = () => {
 		scrollViewRef.current?.scrollTo({ x: 0, y: 0 });
 	};
+
 	return (
 		<View style={{ flex: 1 }}>
-			<SingleSidedShadow hasDefaultStyle={true}>
-				<View
-					style={{
-						backgroundColor: Colors.backgroundColor,
-						flexDirection: 'row',
-						borderBottomStartRadius: 16,
-						borderBottomEndRadius: 16,
+			<View
+				style={{
+					backgroundColor: styles.theme.colors.primary,
+					paddingTop: 78.4,
+					paddingBottom: styles.spacing.double_xxl,
+					flexDirection: 'row'
+				}}
+			>
+				<TouchableOpacity style={STYLES.container} onPress={handlePress(0)}>
+					<Animated.Text style={[STYLES.buttonText]}>Profile</Animated.Text>
+					{activeTab === 0 && <ActiveIndicator />}
+				</TouchableOpacity>
 
-						shadowColor: '#000',
-						shadowOffset: { width: 1, height: 1 },
-						shadowOpacity: 0.4,
-						shadowRadius: 3,
-						elevation: 8
-					}}
-				>
-					<TouchableOpacity style={STYLES.container} onPress={handlePress(0)}>
-						<Animated.Text
-							style={[STYLES.buttonText, activeTab === 0 && STYLES.buttonActiveText]}
-						>
-							Profile
-						</Animated.Text>
-						{activeTab === 0 && <ActiveIndicator />}
-					</TouchableOpacity>
+				<TouchableOpacity style={STYLES.container} onPress={handlePress(1)}>
+					<Animated.Text style={[STYLES.buttonText]}>Settings</Animated.Text>
 
-					<TouchableOpacity style={STYLES.container} onPress={handlePress(1)}>
-						<Animated.Text
-							style={[STYLES.buttonText, activeTab === 1 && STYLES.buttonActiveText]}
-						>
-							Settings
-						</Animated.Text>
-
-						{activeTab === 1 && <ActiveIndicator />}
-					</TouchableOpacity>
-				</View>
-			</SingleSidedShadow>
+					{activeTab === 1 && <ActiveIndicator />}
+				</TouchableOpacity>
+			</View>
 
 			<ScrollView
 				ref={scrollViewRef}
@@ -65,6 +47,9 @@ export default function ProfileScreen() {
 					if (nativeEvent.contentOffset.y < 0) {
 						scrollViewRef.current?.scrollTo({ x: 0, y: 0 });
 					}
+				}}
+				contentContainerStyle={{
+					paddingBottom: 80
 				}}
 			>
 				<ProfileView key={'profile-view'} isVisible={activeTab === 0} />
@@ -79,12 +64,12 @@ function ActiveIndicator() {
 		<Animated.View
 			entering={FadeIn}
 			style={{
-				backgroundColor: Colors.primary,
-				height: 3,
-				width: '50%',
-				marginTop: 15,
-				borderTopStartRadius: 100,
-				borderTopEndRadius: 100
+				position: 'absolute',
+				bottom: -16,
+				backgroundColor: styles.background_color._04,
+				height: 4,
+				width: '38%',
+				borderRadius: 1.2
 			}}
 		/>
 	);
@@ -93,19 +78,13 @@ function ActiveIndicator() {
 const STYLES = StyleSheet.create({
 	container: {
 		flex: 1,
-		paddingTop: 50,
 		alignItems: 'center'
 	},
 
 	buttonText: {
-		fontFamily: 'Outfit',
-		fontSize: 16,
-		fontWeight: 500,
-		color: Colors.textColor,
-		transitionDuration: 150
-	},
-
-	buttonActiveText: {
-		color: Colors.primary
+		fontFamily: styles.font.family,
+		fontSize: styles.font.size.lg,
+		fontWeight: styles.font.weight.semi_bold,
+		color: styles.font.colors._04
 	}
 });

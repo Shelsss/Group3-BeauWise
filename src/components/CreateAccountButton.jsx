@@ -2,6 +2,7 @@ import { Text, TouchableOpacity, View } from 'react-native';
 import Colors from '@/constants/Colors';
 import { ArrowRight } from 'lucide-react-native';
 import { router } from 'expo-router';
+import styles from '@/config/styles';
 export default function CreateAccountButton() {
 	return (
 		<TouchableOpacity
@@ -13,21 +14,26 @@ export default function CreateAccountButton() {
 				paddingHorizontal: 20,
 				flexDirection: 'row',
 				alignItems: 'center',
-				backgroundColor: Colors.primary,
+				backgroundColor: styles.theme.colors.primary,
 				padding: 16,
-				borderRadius: 10
+				borderRadius: styles.border.radius.size.sm
 			}}
 		>
 			<View>
 				<Text
-					style={{ fontFamily: 'Outfit', fontWeight: 600, color: Colors.backgroundColor }}
+					style={{
+						fontSize: styles.font.size.md,
+						fontFamily: styles.font.family,
+						fontWeight: styles.font.weight.bold,
+						color: Colors.backgroundColor
+					}}
 				>
 					Create Your Account
 				</Text>
 				<Text
 					style={{
-						fontFamily: 'Outfit',
-						fontSize: 12,
+						fontFamily: styles.font.family,
+						fontSize: styles.font.size.sm,
 						color: Colors.backgroundColor,
 						marginLeft: 'auto'
 					}}
@@ -38,8 +44,8 @@ export default function CreateAccountButton() {
 
 			<ArrowRight
 				style={{ marginLeft: 'auto' }}
-				color={Colors.backgroundColor}
-				size={18}
+				color={styles.background_color._04}
+				size={styles.icon.size.xl}
 			/>
 		</TouchableOpacity>
 	);

@@ -1,3 +1,4 @@
+import styles from '@/config/styles';
 import Colors from '@/constants/Colors';
 import PagePadding from '@/constants/PagePadding';
 import PrivacyPolicy from '@/constants/PrivacyPolicy';
@@ -5,20 +6,25 @@ import { Circle } from 'lucide-react-native';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-export default function Policy({ handleAgree }) {
-	const { bottom } = useSafeAreaInsets();
+export default function Policy({ handleAgree, activeTheme }) {
 	return (
-		<View style={{ overflow: 'hidden', zIndex: -1, paddingBottom: bottom + 10 }}>
+		<View
+			style={{
+				overflow: 'hidden',
+				zIndex: -1,
+				backgroundColor: styles.theme.colors[activeTheme].card_background
+			}}
+		>
 			<Text
 				style={{
-					fontFamily: 'Outfit',
-					fontSize: 18,
-					color: Colors.textColor,
-					fontWeight: 700,
+					fontFamily: styles.font.family,
+					fontSize: styles.font.size.xl,
+					color: styles.theme.colors[activeTheme].text,
+					fontWeight: styles.font.weight.bold,
 					borderBottomWidth: 0.5,
-					borderBottomColor: Colors.textColor + '1a',
-					paddingHorizontal: PagePadding.config.paddingHorizontal,
-					paddingVertical: PagePadding.config.paddingTop
+					borderBottomColor: styles.theme.colors[activeTheme].seperator,
+					paddingHorizontal: styles.spacing.one_xl,
+					paddingVertical: styles.spacing.three_xl
 				}}
 			>
 				Privacy Policy
@@ -26,19 +32,19 @@ export default function Policy({ handleAgree }) {
 
 			<View
 				style={{
-					paddingHorizontal: PagePadding.config.paddingHorizontal,
+					paddingHorizontal: styles.spacing.double_xl,
 					paddingTop: PagePadding.config.paddingTop,
-					rowGap: 20
+					rowGap: styles.spacing.three_xl
 				}}
 			>
 				{PrivacyPolicy.map((item, index) => (
 					<View key={item.title}>
 						<Text
 							style={{
-								fontFamily: 'Outfit',
-								fontWeight: 700,
-								fontSize: 16,
-								color: Colors.textColor
+								fontFamily: styles.font.family,
+								fontWeight: styles.font.weight.semi_bold,
+								fontSize: styles.font.size.md,
+								color: styles.theme.colors[activeTheme].text
 							}}
 						>
 							{index + 1}. {item.title}
@@ -47,8 +53,9 @@ export default function Policy({ handleAgree }) {
 						<View style={{ rowGap: 20 }}>
 							<Text
 								style={{
-									fontFamily: 'Outfit',
-									color: Colors.textColor + '9a',
+									fontSize: styles.font.size.md,
+									fontFamily: styles.font.family,
+									color: styles.theme.colors[activeTheme].text_secondary,
 									lineHeight: 20
 								}}
 								key={index}
@@ -71,14 +78,15 @@ export default function Policy({ handleAgree }) {
 									>
 										<Circle
 											strokeWidth={0}
-											fill={Colors.textColor}
-											style={{ marginTop: 7 }}
+											fill={styles.theme.colors[activeTheme].icon}
+											style={{ marginTop: 8 }}
 											size={6}
 										/>
 										<Text
 											style={{
-												fontFamily: 'Outfit',
-												color: Colors.textColor + '9a',
+												fontSize: styles.font.size.md,
+												fontFamily: styles.font.family,
+												color: styles.theme.colors[activeTheme].text_secondary,
 												lineHeight: 20
 											}}
 										>
@@ -93,8 +101,9 @@ export default function Policy({ handleAgree }) {
 							<View style={{ rowGap: 20, marginTop: 20 }}>
 								<Text
 									style={{
-										fontFamily: 'Outfit',
-										color: Colors.textColor + '9a',
+										fontSize: styles.font.size.md,
+										fontFamily: styles.font.family,
+										color: styles.theme.colors[activeTheme].text_secondary,
 										lineHeight: 20
 									}}
 									key={index}
@@ -107,14 +116,24 @@ export default function Policy({ handleAgree }) {
 				))}
 
 				<TouchableOpacity onPress={handleAgree} activeOpacity={0.5} style={STYLES.button}>
-					<Text style={{ fontFamily: 'Outfit', color: '#fff' }}>I Agree</Text>
+					<Text
+						style={{
+							fontFamily: styles.font.family,
+							color: styles.font.colors._04,
+							fontSize: styles.font.size.md
+						}}
+					>
+						I Agree
+					</Text>
 				</TouchableOpacity>
 
 				<Text
 					style={{
-						fontFamily: 'Outfit',
-						color: Colors.textColor + '7a',
-						textAlign: 'center'
+						fontSize: styles.font.size.md,
+						fontFamily: styles.font.family,
+						color: styles.theme.colors[activeTheme].text_secondary,
+						lineHeight: 20,
+						marginBottom: styles.spacing.xxl
 					}}
 				>
 					By clicking "I Agree", you acknowledge that you have read and understood our
@@ -127,13 +146,12 @@ export default function Policy({ handleAgree }) {
 
 const STYLES = StyleSheet.create({
 	button: {
-		flex: 1,
-		paddingVertical: 16,
+		paddingVertical: styles.spacing.xxl,
 		columnGap: 6,
 		alignItems: 'center',
 		justifyContent: 'center',
 		flexDirection: 'row',
-		backgroundColor: Colors.primary,
-		borderRadius: 10
+		backgroundColor: styles.theme.colors.primary,
+		borderRadius: styles.border.radius.size.sm
 	}
 });

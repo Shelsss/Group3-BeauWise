@@ -1,0 +1,20 @@
+import * as React from 'react';
+import Svg, { Path } from 'react-native-svg';
+const PasswordQuestion = ({ size = 24, color = 'black' }) => (
+	<Svg
+		xmlns='http://www.w3.org/2000/svg'
+		viewBox='0 0 24 24'
+		width={size}
+		height={size}
+		color={color}
+		fill='none'
+		stroke={color}
+		strokeWidth={1.5}
+		strokeLinecap='round'
+		strokeLinejoin='round'
+	>
+		<Path d='M17 9.59a3.4 3.4 0 0 0-1.605-.49 95 95 0 0 0-4.424-.1c-1.58 0-3.013.034-4.424.1-1.678.076-3.056 1.385-3.28 3.055C3.12 13.245 3 14.362 3 15.5s.12 2.255.267 3.345c.224 1.67 1.602 2.979 3.28 3.056 1.411.065 2.845.099 4.424.099 1.432 0 2.744-.028 4.029-.082' />
+		<Path d='M6.5 9V6.5a4.5 4.5 0 0 1 9 0V9m-3.375 6.5H12m.25 0a.25.25 0 1 1-.5 0 .25.25 0 0 1 .5 0m6.875 6.25H19m.25 0a.25.25 0 1 1-.5 0 .25.25 0 0 1 .5 0M8.125 15.5H8m.25 0a.25.25 0 1 1-.5 0 .25.25 0 0 1 .5 0M17 15a2 2 0 1 1 3.363 1.463C19.757 17.028 19 17.672 19 18.5' />
+	</Svg>
+);
+export default PasswordQuestion;

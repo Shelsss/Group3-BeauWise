@@ -1,507 +1,940 @@
-import Header from '@/components/batch/Header';
-import PressableBadge from '@/components/scanner/PressableBadge';
-import SearchBar from '@/components/SearchBar';
-import Colors from '@/constants/Colors';
 import PagePadding from '@/constants/PagePadding';
-import { ArrowRight } from 'lucide-react-native';
-import { useCallback, useRef, useState } from 'react';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ChevronLeft, Eye, EyeClosed, Info, Search, X } from 'lucide-react-native';
+
+import {
+	StyleSheet,
+	Text,
+	TouchableOpacity,
+	useColorScheme,
+	View,
+	TextInput
+} from 'react-native';
 import Animated, {
+	createAnimatedComponent,
+	Extrapolation,
+	FadeIn,
+	FadeOut,
+	interpolate,
 	LinearTransition,
 	useAnimatedStyle,
 	useSharedValue,
+	withSpring,
 	withTiming
 } from 'react-native-reanimated';
 
 import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Controller, useForm } from 'react-hook-form';
-import Input from '@/components/Input';
-import { router } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Fuse from 'fuse.js';
-import ingredients from '@/constants/Ingredients';
-import {
-	BottomSheetBackdrop,
-	BottomSheetModal,
-	BottomSheetView,
-	useBottomSheetModal
-} from '@gorhom/bottom-sheet';
-import WarnFill from '@/components/icons/WarnFill';
-import PrimaryButton from '@/components/PrimaryButton';
-import { useScanStore } from '@/stores/useScanStore';
 
-const fuse = new Fuse(ingredients, {
-	distance: 200
-});
-const fieldSchema = z.object({
-	productName: z.string().min(4, { error: 'This field is required.' }),
-	brand: z.string(),
-	notes: z.string()
+import { router } from 'expo-router';
+
+import styles from '@/config/styles';
+import { useThemeStore } from '@/stores/useThemeStore';
+import { Controller, useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect, useRef, useState } from 'react';
+import Warn from '@/components/icons/hugeicons/Warn';
+import { useScanStore } from '@/stores/useScanStore';
+import ArrowRight from '@/components/icons/hugeicons/ArrowRight';
+import {
+	entryScaleHeight,
+	entrySpringDown,
+	exitScaleAnimation,
+	exitSpringUp
+} from '@/utility/animations';
+import Edit from '@/components/icons/hugeicons/Edit';
+import Edit2 from '@/components/icons/hugeicons/Edit2';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { analyzeIngredients, searchEngine } from '@/services/cloudFunctions';
+import SearchResultBottomSheet from '@/components/scanner/SearchBottomSheet';
+import { ActivityIndicator, Modal, Portal } from 'react-native-paper';
+import LottieView from 'lottie-react-native';
+import InfiniteFade from '@/components/InfiniteFade';
+import AiBeautify from '@/components/icons/hugeicons/AiBeautify';
+import Results from '@/components/scanner/Result';
+import { useBackHandler } from '@react-native-community/hooks';
+import Toast from 'react-native-toast-message';
+
+const AnimatedTouchableOpacity = createAnimatedComponent(TouchableOpacity);
+
+const formSchema = z.object({
+	name: z.string().min(4, { error: 'This field is required.' }),
+	brand: z.string().optional(),
+	notes: z.string().optional()
 });
 
 export default function ScannerDetails() {
-	const { control, handleSubmit } = useForm({
-		resolver: zodResolver(fieldSchema),
+	const queryClient = useQueryClient();
+	const { control, handleSubmit, watch, getValues } = useForm({
+		resolver: zodResolver(formSchema),
 		mode: 'onSubmit',
 		reValidateMode: 'onChange',
 		defaultValues: {
-			productName: '',
-			brand: '',
-			notes: ''
+			name: ''
 		}
 	});
 
-	const [queryResult, setQueryResult] = useState(null);
+	const productName = watch('name');
 
-	const { dismiss } = useBottomSheetModal();
-	const { bottom } = useSafeAreaInsets();
-	const bottomSheetRef = useRef(null);
-	const scrollViewRef = useRef(null);
-	const productNameRef = useRef(null);
-	const brandRef = useRef(null);
-	const notesRef = useRef(null);
+	const analyze = useMutation({
+		mutationFn: analyzeIngredients,
+		onError: (err) => {
+			Toast.show({
+				type: 'errorToast',
+				text1: 'Analysis Failed. Please try again',
+				visibilityTime: 8000
+			});
+		},
+		onSuccess: (data) => {
+			if (!data) {
+				throw new Error('Something went wrong.');
+			}
+
+			queryClient.invalidateQueries({ queryKey: ['analysis_history'] });
+			queryClient.invalidateQueries({ queryKey: ['metrics'] });
+			queryClient.invalidateQueries({ queryKey: ['recent-analysis'] });
+		}
+	});
+
+	const systemTheme = useColorScheme() ?? 'light';
+	const themeMode = useThemeStore((state) => state.themeMode);
+	const activeTheme = themeMode === 'system' ? systemTheme : themeMode;
+
+	const searchQuery = useMutation({
+		mutationFn: searchEngine,
+		onSuccess: () => {
+			searchRef.current?.present();
+		},
+
+		onError: (e) => {
+			Toast.show({
+				type: 'errorToast',
+				text1: 'Something went wrong. Please try again',
+				visibilityTime: 8000
+			});
+		}
+	});
+
+	const [modalVisible, setModalVisible] = useState(false);
+	const [inputIngredientVisible, setInputIngredientVisible] = useState(true);
+	const [ingredientsVisible, setIngredientsVisible] = useState(false);
 
 	const ingredients = useScanStore((state) => state.ingredients);
 	const setIngredients = useScanStore((state) => state.setIngredients);
+	const searchRef = useRef(null);
+	const brandInputRef = useRef(null);
+	const notesInputRef = useRef(null);
 
-	const queryResultOpacity = useSharedValue(0);
-	const queryResultTransform = useSharedValue(0);
-
-	const showQueryResults = () => {
-		queryResultOpacity.value = 0;
-		queryResultTransform.value = -5;
-
-		queryResultOpacity.value = withTiming(1, { duration: 300 });
-		queryResultTransform.value = withTiming(0, { duration: 400 });
-	};
-
-	const closeQueryResults = () => {
-		queryResultOpacity.value = withTiming(0, { duration: 300 });
-		queryResultTransform.value = withTiming(-5, { duration: 400 });
-	};
-
-	const handleRemoveIngredients = (removedId) => () => {
-		setIngredients(ingredients.filter((item) => item.id !== removedId));
-	};
-
-	const handleQuery = (value) => () => {
-		if (value.length <= 0) {
-			closeQueryResults();
-			return;
-		}
-
-		const result = fuse.search(value).slice(0, 3);
-
-		setQueryResult(result);
-		showQueryResults();
-	};
-
-	const onSubmit = (data) => {
-		if (ingredients.length <= 0) {
-			bottomSheetRef.current.present();
-			return;
-		}
-
-		router.push({
-			pathname: 'scanner/analysis_processing',
-			params: {
-				name: data.productName,
-				brand: data.brand,
-				notes: data.notes,
-				ingredients: ingredients.map((item) => item.name).join(', ')
+	const onNextProductInput = () => {
+		setInputIngredientVisible((prev) => {
+			let status;
+			if (prev) {
+				status = false;
+			} else {
+				status = true;
 			}
+
+			return status;
 		});
 	};
 
-	const animatedQueryResult = useAnimatedStyle(() => {
-		return {
-			opacity: queryResultOpacity.value,
-			transform: [{ translateY: queryResultTransform.value }],
-			zIndex: queryResultOpacity.value === 0 ? 1 : 2
-		};
-	});
+	const onShowOnlyIngredients = () => {
+		setIngredientsVisible((prev) => !prev);
+	};
+	const onRemoveIngredient = (id) => () => {
+		const newItems = ingredients.filter((item) => item?.id !== id);
 
-	const renderBackdrop = useCallback(
-		(props) => <BottomSheetBackdrop {...props} opacity={0.7} disappearsOnIndex={-1} />,
-		[]
-	);
+		setIngredients(newItems);
+	};
+	const onSearchIngredient = (query) => {
+		if (query?.length <= 0) {
+			return;
+		}
 
-	return (
+		searchQuery.mutate({ query, collectionKey: 'ingredients' });
+	};
+	const onAnalyzeIngredients = (data) => {
+		const parsedIngredients = ingredients.map((item) => item.name);
+
+		analyze.mutate({
+			ingredients: parsedIngredients,
+			product: { ...data },
+			clientTimeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+		});
+	};
+
+	const formatSearchResults = () => {
+		return searchQuery.data?.searchedData.map((item) => item);
+	};
+
+	const animationDriver = useSharedValue(0);
+
+	useEffect(() => {
+		animationDriver.value = withSpring(inputIngredientVisible ? 1 : 0, {
+			damping: 200
+		});
+	}, [inputIngredientVisible]);
+
+	useBackHandler(() => {
+		if (analyze.isPending) {
+			setModalVisible(true);
+			return true;
+		}
+	}, [analyze.isPending, modalVisible, analyze.data]);
+
+	const isVisible = inputIngredientVisible && ingredients.length > 0;
+	return analyze.data && !analyze.isError ? (
 		<>
-			<Header title={'Ingredient Details'} />
-			<Animated.ScrollView
-				ref={scrollViewRef}
-				showsVerticalScrollIndicator={false}
-				onScroll={({ nativeEvent }) => {
-					if (nativeEvent.contentOffset.y <= 0) {
-						scrollViewRef.current?.scrollTo({ x: 0, y: 0 });
-					}
-				}}
-				contentContainerStyle={{
-					paddingHorizontal: PagePadding.config.paddingHorizontal,
-					paddingBottom: bottom + 20,
-					transitionDuration: 200
+			<Animated.View
+				style={{
+					backgroundColor: styles.theme.colors.primary,
+					paddingHorizontal: styles.spacing.double_xl,
+					paddingTop: 62,
+					paddingBottom: styles.spacing.double_xxl,
+					flexDirection: 'row',
+					alignItems: 'center'
 				}}
 			>
-				<View
+				<TouchableOpacity
+					onPress={router.back}
 					style={{
-						backgroundColor: '#E8F5E9',
-						padding: 20,
-						borderRadius: 16,
-						marginVertical: 20
+						paddingRight: styles.spacing.xxl
+					}}
+				>
+					<ChevronLeft color={styles.icon.colors._05} size={styles.icon.size.xl} />
+				</TouchableOpacity>
+				<View>
+					<Text
+						style={{
+							fontFamily: styles.font.family,
+							fontSize: styles.font.size.xl,
+							fontWeight: styles.font.weight.bold,
+							color: styles.font.colors._04
+						}}
+					>
+						Analysis Results
+					</Text>
+				</View>
+			</Animated.View>
+			<Results
+				analyzedIngredients={analyze?.data?.results}
+				product={{ ...getValues() }}
+			/>
+		</>
+	) : analyze.isPending ? (
+		<View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+			<Animated.View entering={FadeIn.delay(300)} exiting={FadeOut}>
+				<LottieView
+					style={{
+						aspectRatio: 1,
+						width: 400
+					}}
+					resizeMode='contain'
+					autoPlay
+					loop={true}
+					source={require('assets/lottie/loader-particles.json')}
+				/>
+			</Animated.View>
+
+			<InfiniteFade>
+				<Animated.Text
+					style={{
+						fontFamily: styles.font.family,
+						bottom: 200,
+						alignSelf: 'center',
+						color: styles.theme.colors[activeTheme].text,
+						fontSize: styles.font.size.md
+					}}
+				>
+					Analyzing...
+				</Animated.Text>
+			</InfiniteFade>
+		</View>
+	) : (
+		<>
+			<SearchResultBottomSheet
+				ref={searchRef}
+				activeTheme={activeTheme}
+				items={formatSearchResults()}
+			/>
+
+			<Animated.View
+				style={{
+					backgroundColor: styles.theme.colors.primary,
+					paddingHorizontal: styles.spacing.double_xl,
+					paddingTop: 62,
+					paddingBottom: styles.spacing.double_xxl,
+					flexDirection: 'row',
+					alignItems: 'center'
+				}}
+			>
+				<TouchableOpacity
+					onPress={router.back}
+					style={{
+						paddingRight: styles.spacing.xxl
+					}}
+				>
+					<ChevronLeft color={styles.icon.colors._05} size={styles.icon.size.xl} />
+				</TouchableOpacity>
+				<View>
+					<Text
+						style={{
+							fontFamily: styles.font.family,
+							fontSize: styles.font.size.xl,
+							fontWeight: styles.font.weight.bold,
+							color: styles.font.colors._04
+						}}
+					>
+						Manual Input
+					</Text>
+				</View>
+			</Animated.View>
+
+			<Animated.View
+				entering={FadeIn}
+				exiting={FadeOut}
+				style={{
+					rowGap: styles.spacing.one_xl,
+					padding: styles.spacing.one_xl,
+					backgroundColor: styles.theme.colors[activeTheme].screen_background,
+					flex: 1
+				}}
+			>
+				<Animated.View
+					layout={LinearTransition.springify().damping(120)}
+					style={{
+						position: 'static',
+						overflow: 'hidden',
+						padding: styles.spacing.one_xl,
+						borderWidth: 1,
+						borderColor: styles.theme.colors[activeTheme].card_border,
+						backgroundColor: styles.theme.colors[activeTheme].card_background,
+						borderRadius: styles.border.radius.size.sm,
+						rowGap: styles.spacing.md,
+						paddingBottom: styles.spacing.one_xl
 					}}
 				>
 					<Text
 						style={{
-							fontFamily: 'Outfit',
-							fontSize: 12,
-							color: Colors.textColor,
-							lineHeight: 18
+							fontWeight: styles.font.weight.semi_bold,
+							fontSize: styles.font.size.md,
+							fontFamily: styles.font.family,
+							color: styles.theme.colors[activeTheme].text
 						}}
 					>
-						<Text
-							style={{ fontFamily: 'Outfit', fontWeight: 600, color: Colors.textColor }}
-						>
-							Tip:{' '}
-						</Text>
-						Search and add ingredients exactly as they appear on the product label. Press
-						'Enter' or select from the list to add each ingredient as a tag.
+						Input Ingredients
 					</Text>
-				</View>
 
-				<View style={{ marginBottom: 25 }}>
-					<SearchBar
-						closeQueryResults={closeQueryResults}
-						handleQuery={handleQuery}
-						placeholder='Type an ingredient...'
-						style={[STYLES.inputStyle, STYLES.shadow]}
-					/>
+					{!inputIngredientVisible && (
+						<AnimatedTouchableOpacity
+							entering={FadeIn}
+							exiting={FadeOut.duration(180)}
+							disabled={ingredients.length <= 0}
+							activeOpacity={0.7}
+							onPress={onNextProductInput}
+							style={[
+								{
+									position: 'absolute',
+									right: 70,
+									alignSelf: 'center',
+									flexDirection: 'row',
+									marginTop: styles.spacing.xl,
+									width: 70,
+									height: 28,
+									paddingVertical: styles.spacing.sm,
 
-					<Animated.View
-						style={[
-							{
-								borderRadius: 30,
-								padding: 16,
-								top: 40,
-								backgroundColor: Colors.backgroundColor,
-								borderTopWidth: 0,
-								borderTopLeftRadius: 0,
-								borderTopRightRadius: 0,
+									backgroundColor: styles.theme.colors.primary,
+									borderRadius: styles.border.radius.size.sm,
+									alignItems: 'center',
+									justifyContent: 'center',
+									columnGap: styles.spacing.sm
+								}
+							]}
+						>
+							<>
+								<Animated.Text
+									style={{
+										fontFamily: styles.font.family,
+										color: styles.font.colors._04,
+										fontSize: styles.font.size.sm
+									}}
+								>
+									Edit
+								</Animated.Text>
 
+								<Edit size={styles.icon.size.md} color={styles.icon.colors._05} />
+							</>
+						</AnimatedTouchableOpacity>
+					)}
+
+					{!inputIngredientVisible && (
+						<AnimatedTouchableOpacity
+							onPress={onShowOnlyIngredients}
+							entering={FadeIn}
+							exiting={FadeOut.duration(180)}
+							style={{
 								position: 'absolute',
-								width: '100%',
-								rowGap: 20
-							},
-							animatedQueryResult
-						]}
-					>
-						{queryResult?.length <= 0 && (
-							<Text style={{ fontFamily: 'Outfit', textAlign: 'center', fontSize: 10 }}>
-								No results found. Please try a different search term.
-							</Text>
-						)}
+								alignSelf: 'center',
+								zIndex: 999,
+								right: 40,
+								top: 34
+							}}
+						>
+							{ingredientsVisible ? (
+								<Eye
+									color={styles.theme.colors[activeTheme].icon}
+									size={styles.icon.size.xl}
+								/>
+							) : (
+								<EyeClosed
+									color={styles.theme.colors[activeTheme].icon}
+									size={styles.icon.size.xl}
+								/>
+							)}
+						</AnimatedTouchableOpacity>
+					)}
 
-						{queryResult?.map(({ item, refIndex }) => (
-							<TouchableOpacity
-								onPress={() => {
-									if (!ingredients.some((prevItem) => prevItem.id === refIndex)) {
-										setIngredients([...ingredients, { name: item, id: refIndex }]);
-									}
+					{inputIngredientVisible && (
+						<Animated.View
+							entering={entryScaleHeight}
+							exiting={exitScaleAnimation}
+							style={{
+								alignItems: 'center',
+								flexDirection: 'row',
+								borderWidth: 1,
+								borderColor: styles.theme.colors[activeTheme].card_border,
+								backgroundColor: styles.theme.colors[activeTheme].input_background,
+								borderRadius: styles.border.radius.size.sm,
+								padding: styles.spacing.sm,
+								columnGap: styles.spacing.sm,
+								overflow: 'hidden'
+							}}
+						>
+							<Search
+								style={{ marginLeft: styles.spacing.md }}
+								strokeWidth={1.5}
+								color={styles.theme.colors[activeTheme].icon}
+								size={styles.icon.size.xl}
+							/>
+							<TextInput
+								selectionColor={styles.theme.colors.primary}
+								cursorColor={styles.theme.colors.primary}
+								style={{
+									flexGrow: 1,
 
-									closeQueryResults();
+									fontFamily: styles.font.family,
+									fontSize: styles.font.size.md,
+									color: styles.theme.colors[activeTheme].text
 								}}
-								key={item}
-								style={{ flexDirection: 'row', alignItems: 'center' }}
+								placeholderTextColor={styles.theme.colors[activeTheme].text + '9a'}
+								onSubmitEditing={(e) => {
+									onSearchIngredient(e.nativeEvent.text);
+								}}
+								maxLength={32}
+								enterKeyHint='search'
+								autoCapitalize='characters'
+								underlineStyle={{ display: 'none' }}
+								placeholder='Type an ingredients here...'
+							/>
+
+							{searchQuery.isPending && (
+								<Animated.View
+									style={{ position: 'absolute', right: 16 }}
+									entering={FadeIn}
+									exiting={FadeOut}
+								>
+									<ActivityIndicator
+										size={styles.icon.size.xl * 1.2}
+										color={styles.theme.colors.primary}
+									/>
+								</Animated.View>
+							)}
+						</Animated.View>
+					)}
+
+					{inputIngredientVisible && ingredients.length === 0 && (
+						<Animated.View
+							entering={entryScaleHeight}
+							exiting={exitScaleAnimation}
+							style={{
+								marginVertical: styles.spacing.lg
+							}}
+							layout={LinearTransition.springify().damping(200)}
+						>
+							<View
+								style={{
+									padding: styles.spacing.lg,
+									borderRadius: styles.border.radius.size.sm,
+									backgroundColor: styles.theme.colors[activeTheme].disclaimer_background,
+									borderWidth: 1,
+									borderColor: styles.theme.colors[activeTheme].disclaimer_border
+								}}
 							>
 								<Text
 									style={{
-										fontFamily: 'Outfit',
-										color: Colors.textColor,
-										fontWeight: 800,
-										width: 180
+										color: styles.theme.colors[activeTheme].disclaimer_text,
+										fontWeight: styles.font.weight.bold,
+										fontFamily: styles.font.family,
+										fontSize: styles.font.size.sm
 									}}
 								>
-									{item}
+									Your ingredient list is empty.
 								</Text>
-							</TouchableOpacity>
-						))}
-					</Animated.View>
-				</View>
+								<Text
+									style={{
+										color: styles.theme.colors[activeTheme].disclaimer_text,
+										fontFamily: styles.font.family,
+										fontSize: styles.font.size.sm
+									}}
+								>
+									Use the search bar to find and add ingredient.
+								</Text>
+							</View>
+						</Animated.View>
+					)}
 
-				<View style={{ rowGap: 6 }}>
-					<Text style={{ fontFamily: 'Outfit', fontSize: 18, fontWeight: 700 }}>
-						Ingredients
-					</Text>
-					<View
-						style={{
-							alignItems: 'flex-start',
-							flexDirection: 'row',
-							rowGap: 12,
-							gap: 10,
-							flexWrap: 'wrap',
-							zIndex: 1
-						}}
-					>
-						{ingredients.length === 0 && (
-							<Text style={{ fontFamily: 'Outfit', color: Colors.textColor + '7a' }}>
-								No ingredients listed. Search to add.
-							</Text>
-						)}
-						{ingredients.length > 0 &&
-							ingredients?.map((item) => (
-								<Animated.View key={item.name} layout={LinearTransition}>
-									<PressableBadge
-										name={item.name}
-										handlePress={handleRemoveIngredients(item.id)}
+					{(isVisible || ingredientsVisible) && (
+						<Animated.View
+							entering={entryScaleHeight}
+							exiting={exitScaleAnimation}
+							layout={LinearTransition.springify().damping(200).stiffness()}
+							style={{
+								flexDirection: 'row',
+								flexWrap: 'wrap',
+								marginTop: styles.spacing.xxl,
+								gap: styles.spacing.lg
+							}}
+						>
+							{ingredients?.map(({ name, id }) => {
+								return (
+									<AnimatedTouchableOpacity
+										onPress={onRemoveIngredient(id)}
+										layout={LinearTransition.springify().damping(120)}
+										activeOpacity={0.7}
+										disabled={!inputIngredientVisible && ingredientsVisible}
+										style={{
+											backgroundColor: styles.theme.colors.primary,
+											opacity: !inputIngredientVisible && ingredientsVisible ? 0.5 : 1,
+											borderRadius: styles.border.radius.size.pill,
+											transitionDuration: 200,
+											flexDirection: 'row',
+											alignItems: 'center',
+											paddingVertical: styles.spacing.md,
+											paddingHorizontal: styles.spacing.xl,
+											justifyContent: 'center',
+											columnGap: styles.spacing.sm
+										}}
+										key={name}
+									>
+										<Text
+											style={{
+												fontFamily: styles.font.family,
+												fontSize: styles.font.size.sm,
+												color: styles.font.colors._04
+											}}
+										>
+											{name}
+										</Text>
+
+										{inputIngredientVisible && (
+											<Animated.View entering={FadeIn}>
+												<X
+													size={styles.icon.size.md}
+													strokeWidth={1.5}
+													color={styles.icon.colors._05}
+												/>
+											</Animated.View>
+										)}
+									</AnimatedTouchableOpacity>
+								);
+							})}
+						</Animated.View>
+					)}
+					{inputIngredientVisible && (
+						<Animated.View
+							entering={entryScaleHeight}
+							exiting={exitScaleAnimation}
+							style={{
+								marginTop: styles.spacing.xl,
+								borderRadius: styles.border.radius.size.sm,
+								borderWidth: 1,
+								borderColor: styles.theme.colors[activeTheme].tip_border,
+								backgroundColor: styles.theme.colors[activeTheme].tip_background
+							}}
+						>
+							<View
+								style={{
+									flexDirection: 'row',
+									columnGap: styles.spacing.md,
+									padding: styles.spacing.md
+								}}
+							>
+								<View
+									style={{
+										marginTop: styles.spacing.md
+									}}
+								>
+									<Info
+										size={styles.icon.size.md}
+										color={styles.theme.colors[activeTheme].tip_icon}
 									/>
-								</Animated.View>
-							))}
-					</View>
-				</View>
+								</View>
 
-				<View style={{ marginTop: 25 }}>
+								<Text
+									style={{
+										fontSize: styles.font.size.sm,
+										fontFamily: styles.font.family,
+										color: styles.theme.colors[activeTheme].tip_text,
+										paddingRight: styles.spacing.double_xl
+									}}
+								>
+									Tip:{' '}
+									<Text>
+										Type ingredients exactly as they appear on the label. Select from the
+										suggestions or tap 'Add' to include them.
+									</Text>
+								</Text>
+							</View>
+						</Animated.View>
+					)}
+
+					{inputIngredientVisible && (
+						<Animated.View
+							style={{
+								marginTop: styles.spacing.lg,
+								paddingVertical: styles.spacing.xl,
+								borderRadius: styles.border.radius.size.sm,
+								backgroundColor: styles.theme.colors.primary,
+								opacity: ingredients.length <= 0 ? 0.5 : 1
+							}}
+						>
+							<TouchableOpacity
+								entering={FadeIn}
+								exiting={FadeOut.duration(180)}
+								disabled={ingredients.length <= 0}
+								activeOpacity={0.7}
+								onPress={onNextProductInput}
+								style={[
+									{
+										flexDirection: 'row',
+										alignItems: 'center',
+										justifyContent: 'center',
+										columnGap: styles.spacing.xs
+									}
+								]}
+							>
+								<>
+									<Animated.Text
+										style={{
+											fontFamily: styles.font.family,
+											color: styles.font.colors._04,
+											fontSize: styles.font.size.md
+										}}
+									>
+										Next
+									</Animated.Text>
+
+									<ArrowRight size={styles.icon.size.lg} color={styles.icon.colors._05} />
+								</>
+							</TouchableOpacity>
+						</Animated.View>
+					)}
+				</Animated.View>
+				<Animated.View
+					layout={LinearTransition.springify().damping(120)}
+					style={{
+						padding: styles.spacing.one_xl,
+						borderWidth: 1,
+						borderColor: styles.theme.colors[activeTheme].card_border,
+						backgroundColor: styles.theme.colors[activeTheme].card_background,
+						borderRadius: styles.border.radius.size.sm,
+						rowGap: styles.spacing.md
+					}}
+				>
 					<Text
 						style={{
-							fontFamily: 'Outfit',
-							fontSize: 18,
-							fontWeight: 700
+							fontWeight: styles.font.weight.semi_bold,
+							fontSize: styles.font.size.md,
+							fontFamily: styles.font.family,
+							color: styles.theme.colors[activeTheme].text
 						}}
 					>
 						Product Information
 					</Text>
 
-					<View style={{ marginTop: 20, rowGap: 16 }}>
-						<View style={STYLES.fieldContainer}>
-							<View style={STYLES.field}>
+					{!inputIngredientVisible && (
+						<Animated.View
+							entering={entryScaleHeight}
+							exiting={FadeOut.duration(120)}
+							style={{ zIndex: -999, rowGap: styles.spacing.xxl }}
+						>
+							<View
+								style={{
+									rowGap: styles.spacing.sm,
+									marginTop: styles.spacing.sm,
+									zIndex: -999
+								}}
+							>
 								<Text
 									style={{
-										fontFamily: 'Outfit',
-										fontWeight: 500
+										fontSize: styles.font.size.sm,
+										fontFamily: styles.font.family,
+										color: styles.theme.colors[activeTheme].text
 									}}
-									onPress={() => productNameRef.current.focus()}
 								>
-									Product Name
+									Name <Text style={{ color: styles.theme.colors.status.red }}>*</Text>
 								</Text>
-								<Text style={{ fontFamily: 'Outfit', color: 'red' }}>*</Text>
+								<Controller
+									control={control}
+									name='name'
+									render={({ field: { value, onChange }, fieldState: { error } }) => {
+										return (
+											<Animated.View
+												style={{
+													borderWidth: 0.5,
+													borderColor: error
+														? styles.theme.colors.status.red
+														: 'transparent',
+													borderRadius: styles.border.radius.size.sm,
+													backgroundColor:
+														styles.theme.colors[activeTheme].input_background,
+													transitionDuration: 220
+												}}
+											>
+												<TextInput
+													onSubmitEditing={() => brandInputRef.current?.focus()}
+													selectionColor={styles.theme.colors.primary}
+													cursorColor={styles.theme.colors.primary}
+													style={{
+														flexGrow: 1,
+														paddingHorizontal: styles.spacing.lg,
+
+														fontFamily: styles.font.family,
+														fontSize: styles.font.size.sm,
+														color: styles.theme.colors[activeTheme].text
+													}}
+													value={value}
+													placeholderTextColor={
+														styles.theme.colors[activeTheme].text + '9a'
+													}
+													onChangeText={onChange}
+													maxLength={100}
+													submitBehavior='submit'
+													enterKeyHint='next'
+													autoCapitalize='characters'
+													autoFocus={true}
+													placeholder='e.g., Hydrating Sunscreen'
+												/>
+											</Animated.View>
+										);
+									}}
+								/>
 							</View>
 
-							<Controller
-								control={control}
-								render={({
-									field: { onChange, onBlur, value },
-									fieldState: { error }
-								}) => (
-									<Input
-										ref={productNameRef}
-										onChangeText={onChange}
-										value={value}
-										placeholder='e.g., Hydrating Sunscreen'
-										error={error}
-									/>
-								)}
-								name='productName'
-							/>
-						</View>
-
-						<View style={STYLES.fieldContainer}>
-							<View style={STYLES.field}>
+							<View
+								style={{
+									rowGap: styles.spacing.sm,
+									marginTop: styles.spacing.sm,
+									zIndex: -999
+								}}
+							>
 								<Text
 									style={{
-										fontFamily: 'Outfit',
-										fontWeight: 500
+										fontSize: styles.font.size.sm,
+										fontFamily: styles.font.family,
+										color: styles.theme.colors[activeTheme].text
 									}}
-									onPress={() => brandRef.current.focus()}
 								>
-									Brand
+									Brand{' '}
+									<Text
+										style={{
+											color: styles.theme.colors[activeTheme].text_secondary + '7a'
+										}}
+									>
+										(optional)
+									</Text>
 								</Text>
-								<Text style={{ fontFamily: 'Outfit', color: Colors.textColor + '7a' }}>
-									(Optional)
-								</Text>
+
+								<Controller
+									control={control}
+									name='brand'
+									render={({ field: { value, onChange } }) => {
+										return (
+											<TextInput
+												value={value}
+												ref={brandInputRef}
+												onSubmitEditing={() => notesInputRef.current?.focus()}
+												selectionColor={styles.theme.colors.primary}
+												cursorColor={styles.theme.colors.primary}
+												style={{
+													flexGrow: 1,
+													paddingHorizontal: styles.spacing.lg,
+													borderRadius: styles.border.radius.size.sm,
+													backgroundColor:
+														styles.theme.colors[activeTheme].input_background,
+													fontFamily: styles.font.family,
+													fontSize: styles.font.size.sm,
+													color: styles.theme.colors[activeTheme].text
+												}}
+												submitBehavior='submit'
+												placeholderTextColor={
+													styles.theme.colors[activeTheme].text + '9a'
+												}
+												onChangeText={onChange}
+												maxLength={100}
+												enterKeyHint='next'
+												autoCapitalize='characters'
+												placeholder='e.g., BeauWise Naturals'
+											/>
+										);
+									}}
+								/>
 							</View>
 
-							<Controller
-								control={control}
-								render={({ field: { onChange, value } }) => (
-									<Input
-										onChangeText={onChange}
-										value={value}
-										ref={brandRef}
-										placeholder='e.g., BeauWise Naturals'
-									/>
-								)}
-								name='brand'
-							/>
-						</View>
-
-						<View style={STYLES.fieldContainer}>
-							<View style={STYLES.field}>
+							<View
+								style={{
+									rowGap: styles.spacing.sm,
+									marginTop: styles.spacing.sm,
+									zIndex: -999
+								}}
+							>
 								<Text
 									style={{
-										fontFamily: 'Outfit',
-										fontWeight: 500
+										fontSize: styles.font.size.sm,
+										fontFamily: styles.font.family,
+										color: styles.theme.colors[activeTheme].text
 									}}
-									onPress={() => notesRef.current.focus()}
 								>
-									Notes
+									Notes{' '}
+									<Text
+										style={{
+											color: styles.theme.colors[activeTheme].text_secondary + '7a'
+										}}
+									>
+										(optional)
+									</Text>
 								</Text>
-								<Text style={{ color: Colors.textColor + '7a' }}>(Optional)</Text>
+
+								<Controller
+									control={control}
+									name='notes'
+									render={({ field: { value, onChange } }) => {
+										return (
+											<TextInput
+												value={value}
+												onChangeText={onChange}
+												ref={notesInputRef}
+												selectionColor={styles.theme.colors.primary}
+												cursorColor={styles.theme.colors.primary}
+												style={{
+													flexGrow: 1,
+													paddingHorizontal: styles.spacing.lg,
+													borderRadius: styles.border.radius.size.sm,
+													backgroundColor:
+														styles.theme.colors[activeTheme].input_background,
+													fontFamily: styles.font.family,
+													fontSize: styles.font.size.sm,
+													color: styles.theme.colors[activeTheme].text
+												}}
+												placeholderTextColor={
+													styles.theme.colors[activeTheme].text + '9a'
+												}
+												multiline={true}
+												submitBehavior='blurAndSubmit'
+												enterKeyHint='done'
+												autoCapitalize='characters'
+												placeholder='Any specific concerns or details...'
+											/>
+										);
+									}}
+								/>
 							</View>
+						</Animated.View>
+					)}
+				</Animated.View>
+				<TouchableOpacity
+					disabled={productName.length <= 0 || ingredients.length <= 0}
+					onPress={handleSubmit(onAnalyzeIngredients)}
+					activeOpacity={0.7}
+					style={[
+						{
+							opacity: productName.length <= 0 || ingredients.length <= 0 ? 0.5 : 1,
+							position: 'absolute',
+							bottom: 90,
+							marginTop: styles.spacing.xl,
+							backgroundColor: styles.theme.colors.primary,
+							borderRadius: styles.border.radius.size.pill,
+							alignSelf: 'center',
+							padding: styles.spacing.xxl
+						},
+						styles.shadow.md
+					]}
+				>
+					<Text
+						style={{
+							fontFamily: styles.font.family,
+							color: styles.font.colors._04,
+							fontSize: styles.font.size.md
+						}}
+					>
+						<AiBeautify color={styles.icon.colors._05} />
+					</Text>
+				</TouchableOpacity>
+			</Animated.View>
 
-							<Controller
-								control={control}
-								render={({ field: { onChange, value } }) => (
-									<TextInput
-										onChangeText={onChange}
-										value={value}
-										ref={notesRef}
-										multiline={true}
-										numberOfLines={5}
-										style={[
-											STYLES.inputStyle,
-											STYLES.shadow,
-											{ height: 100, textAlignVertical: 'top' }
-										]}
-										placeholder='Any specific concerns or details...'
-									/>
-								)}
-								name='notes'
-							/>
-						</View>
-					</View>
-
-					<TouchableOpacity
-						onPress={handleSubmit(onSubmit)}
-						activeOpacity={0.7}
-						style={STYLES.button}
+			<Portal>
+				<Modal visible={modalVisible}>
+					<View
+						style={{
+							rowGap: styles.spacing.one_xl,
+							padding: styles.spacing.one_xxl,
+							alignSelf: 'center',
+							backgroundColor: styles.theme.colors[activeTheme].screen_background,
+							borderRadius: styles.border.radius.size.sm
+						}}
 					>
 						<Text
 							style={{
-								fontFamily: 'Outfit',
-								fontSize: 16,
-								fontWeight: 600,
-								color: Colors.backgroundColor
+								fontFamily: styles.font.family,
+								color: styles.theme.colors[activeTheme].text
 							}}
 						>
-							Analyze Ingredients
+							Are you sure you want to cancel the analysis?
 						</Text>
-						<ArrowRight color={'#fff'} size={16} />
-					</TouchableOpacity>
-				</View>
-			</Animated.ScrollView>
 
-			<BottomSheetModal
-				backdropComponent={renderBackdrop}
-				enableOverDrag={false}
-				handleIndicatorStyle={{ display: 'none' }}
-				ref={bottomSheetRef}
-			>
-				<BottomSheetView>
-					<View
-						style={{
-							paddingBottom: bottom,
-							paddingHorizontal: PagePadding.config.paddingHorizontal
-						}}
-					>
-						<View style={{ alignItems: 'center', marginBottom: 10 }}>
-							<WarnFill size={60} color='#ff8183' />
+						<View style={{ flexDirection: 'row', alignSelf: 'flex-end' }}>
+							<TouchableOpacity
+								onPress={() => setModalVisible(false)}
+								activeOpacity={0.7}
+								style={{
+									paddingVertical: styles.spacing.lg,
+									paddingHorizontal: styles.spacing.three_xxl,
+									borderRadius: styles.border.radius.size.sm
+								}}
+							>
+								<Text style={{ color: styles.theme.colors[activeTheme].text }}>No</Text>
+							</TouchableOpacity>
+							<TouchableOpacity
+								onPress={router.back}
+								activeOpacity={0.7}
+								style={{
+									paddingVertical: styles.spacing.lg,
+									backgroundColor: styles.theme.colors.primary,
+									paddingHorizontal: styles.spacing.one_xxl,
+									borderRadius: styles.border.radius.size.sm
+								}}
+							>
+								<Text
+									style={{
+										fontFamily: styles.font.family,
+										color: styles.font.colors._04
+									}}
+								>
+									Yes
+								</Text>
+							</TouchableOpacity>
 						</View>
-
-						<View style={{ paddingBottom: 18 }}>
-							<Text
-								style={{
-									fontFamily: 'Outfit',
-									textAlign: 'center',
-									fontSize: 18,
-									fontWeight: 700,
-									color: Colors.textColor
-								}}
-							>
-								No ingredients are listed
-							</Text>
-							<Text
-								style={{
-									fontFamily: 'Outfit',
-									textAlign: 'center',
-									color: Colors.textColor + '9a'
-								}}
-							>
-								Please add some ingredients to analyze
-							</Text>
-						</View>
-
-						<TouchableOpacity
-							onPress={() => dismiss()}
-							style={{ alignItems: 'center', paddingVertical: 10 }}
-						>
-							<Text
-								style={{
-									fontFamily: 'Outfit',
-									fontSize: 12,
-									fontWeight: 700,
-									color: '#000'
-								}}
-							>
-								CLOSE
-							</Text>
-						</TouchableOpacity>
 					</View>
-				</BottomSheetView>
-			</BottomSheetModal>
+				</Modal>
+			</Portal>
 		</>
 	);
 }
-
-const STYLES = StyleSheet.create({
-	button: {
-		columnGap: 6,
-		flexDirection: 'row',
-		justifyContent: 'center',
-		alignItems: 'center',
-		backgroundColor: Colors.primary,
-		padding: 16,
-		borderRadius: 16,
-		marginTop: 30,
-
-		shadowColor: '#00000071',
-		shadowOffset: {
-			width: 0,
-			height: 2
-		},
-		shadowOpacity: 0.25,
-		shadowRadius: 3.84,
-
-		elevation: 5
-	},
-	fieldContainer: {
-		rowGap: 6
-	},
-
-	field: {
-		flexDirection: 'row',
-		columnGap: 4
-	},
-	inputStyle: {
-		flexDirection: 'row',
-		alignItems: 'center',
-
-		backgroundColor: Colors.backgroundColor,
-
-		borderRadius: 16,
-		columnGap: 2,
-		paddingHorizontal: 20,
-		paddingVertical: 8
-	},
-
-	shadow: {
-		shadowColor: '#00000086',
-		shadowOffset: {
-			width: 0,
-			height: 1
-		},
-		shadowOpacity: 0.2,
-		shadowRadius: 1.41,
-
-		elevation: 2
-	}
-});

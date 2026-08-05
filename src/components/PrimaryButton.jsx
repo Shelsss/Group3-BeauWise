@@ -1,6 +1,13 @@
 import Colors from '@/constants/Colors';
 import { TouchableOpacity, View } from 'react-native';
+import {
+	createAnimatedComponent,
+	FadeIn,
+	FadeOut,
+	LinearTransition
+} from 'react-native-reanimated';
 
+const AnimatedTouchableOpacity = createAnimatedComponent(TouchableOpacity);
 export default function PrimaryButton({
 	children,
 	handlePress,
@@ -9,13 +16,16 @@ export default function PrimaryButton({
 	disabled
 }) {
 	return (
-		<TouchableOpacity
+		<AnimatedTouchableOpacity
+			layout={LinearTransition.springify().damping(120)}
+			entering={FadeIn}
+			exiting={FadeOut.duration(180)}
 			activeOpacity={0.7}
 			style={[
 				{
 					backgroundColor: Colors.primary,
 					padding: 16,
-					borderRadius: 24,
+					borderRadius: 10,
 					overflow: 'hidden',
 					shadowColor: '#00000052',
 					shadowOffset: {
@@ -24,27 +34,14 @@ export default function PrimaryButton({
 					},
 					shadowOpacity: 0.17,
 					shadowRadius: 3.05,
-					elevation: 4,
-					opacity: disabled ? 0.6 : 1
+					elevation: 4
 				},
-				{ ...containerStyle }
+				{ ...styles }
 			]}
 			disabled={disabled}
 			onPress={handlePress}
 		>
-			<View
-				style={[
-					{
-						display: 'flex',
-						flexDirection: 'row',
-						justifyContent: 'center',
-						alignItems: 'center'
-					},
-					{ ...styles }
-				]}
-			>
-				{children}
-			</View>
-		</TouchableOpacity>
+			{children}
+		</AnimatedTouchableOpacity>
 	);
 }

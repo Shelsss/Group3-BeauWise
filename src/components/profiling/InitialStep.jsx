@@ -1,4 +1,11 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import {
+	View,
+	Text,
+	StyleSheet,
+	TouchableOpacity,
+	ScrollView,
+	useColorScheme
+} from 'react-native';
 import { Sparkles, Circle } from 'lucide-react-native';
 import Colors from '../../constants/Colors';
 import Animated, { FadeInUp } from 'react-native-reanimated';
@@ -7,6 +14,10 @@ import PagePadding from '@/constants/PagePadding';
 import { Checkbox } from 'expo-checkbox';
 import { useRef } from 'react';
 import { useProfilingStore } from '@/stores/useProfilingStore';
+import styles from '@/config/styles';
+import { useThemeStore } from '@/stores/useThemeStore';
+import { staggerCardAnimation } from '@/utility/animations';
+import AiUser from '../icons/hugeicons/AiUser';
 
 const initialStepSchema = [
 	{
@@ -27,8 +38,21 @@ const initialStepSchema = [
 	}
 ];
 
+const medical_disclaimer_schema = {
+	title: 'Medical Disclaimer & Consent',
+	disclaimers: [
+		'BeauWise provides educational cosmetic ingredient analysis and does not provide medical advice, diagnosis, or treatment.',
+		'If you are pregnant, breastfeeding, using prescription skin medications, or have a diagnosed skin or scalp condition, consult a licensed healthcare professional before trying new cosmetic products.',
+		'Profile-based recommendations are intended for informational purposes only and may not reflect individual medical conditions, allergies, sensitivities, or treatment needs.'
+	]
+};
+
 export default function InitialStep() {
+	const systemTheme = useColorScheme() ?? 'light';
+	const themeMode = useThemeStore((state) => state.themeMode);
+	const activeTheme = themeMode === 'system' ? systemTheme : themeMode;
 	const { top } = useSafeAreaInsets();
+
 	const scrollViewRef = useRef(null);
 	const setIsInitialStepButtonActive = useProfilingStore(
 		(state) => state.setIsInitialStepButtonActive
@@ -48,11 +72,13 @@ export default function InitialStep() {
 			}}
 			showsVerticalScrollIndicator={false}
 			contentContainerStyle={{
-				paddingHorizontal: PagePadding.config.paddingHorizontal + 20
+				paddingHorizontal: PagePadding.config.paddingHorizontal + 20,
+				backgroundColor: styles.theme.colors[activeTheme].screen_background,
+				paddingBottom: 130
 			}}
 		>
 			<Animated.View
-				entering={FadeInUp.delay(100).duration(200)}
+				entering={staggerCardAnimation(1)}
 				style={{
 					display: 'flex',
 					alignItems: 'center',
@@ -60,29 +86,30 @@ export default function InitialStep() {
 					marginBottom: 20
 				}}
 			>
-				<Sparkles fill={'#ffffff'} color={Colors.primary} size={48} />
+				<AiUser color={styles.theme.colors.primary} size={styles.icon.size.xl * 6} />
 			</Animated.View>
 
 			<Animated.View
-				entering={FadeInUp.delay(200).duration(200)}
+				entering={staggerCardAnimation(2)}
 				style={{ display: 'flex', alignItems: 'center', rowGap: 8 }}
 			>
 				<Text
 					style={{
-						fontFamily: 'Outfit',
-						fontWeight: '800',
-						fontSize: 24,
-						color: Colors.primary,
+						fontFamily: styles.font.family,
+						fontWeight: styles.font.weight.semi_bold,
+						fontSize: styles.font.size.lg,
+						color: styles.theme.colors.primary,
 						textAlign: 'center'
 					}}
 				>
 					Let's Personalize Your Experience
 				</Text>
+
 				<Text
 					style={{
-						fontFamily: 'Outfit',
-						color: '#6B7280',
-						lineHeight: 25
+						fontSize: styles.font.size.md,
+						fontFamily: styles.font.family,
+						color: styles.theme.colors[activeTheme].text
 					}}
 				>
 					Help us understand your unique beauty profile
@@ -90,26 +117,26 @@ export default function InitialStep() {
 			</Animated.View>
 
 			<Animated.Text
-				entering={FadeInUp.delay(300).duration(200)}
+				entering={staggerCardAnimation(3)}
 				style={{
-					fontFamily: 'Outfit',
-					marginTop: 30,
-					color: Colors.textColor,
-					lineHeight: 20
+					fontSize: styles.font.size.md,
+					fontFamily: styles.font.family,
+					marginTop: styles.spacing.double_xxl,
+					color: styles.theme.colors[activeTheme].text
 				}}
 			>
 				To provide you with a profile-based ingredient analysis, we need to understand
 				your general skin and hair traits.
 			</Animated.Text>
 
-			<View style={{ rowGap: 20, marginTop: 25 }}>
-				<Animated.View entering={FadeInUp.delay(400).duration(100)} style={STYLES.card}>
+			{/* <View style={{ rowGap: 20, marginTop: 25 }}>
+				<Animated.View entering={staggerCardAnimation(4)} style={STYLES.card}>
 					<Text
 						style={{
-							fontFamily: 'Outfit',
-							fontWeight: 600,
-							fontSize: 16,
-							color: Colors.textColor
+							fontFamily: styles.font.family,
+							fontWeight: styles.font.weight.semi_bold,
+							fontSize: styles.font.size.lg,
+							color: styles.theme.colors[activeTheme].text
 						}}
 					>
 						{initialStepSchema[0].name}
@@ -119,7 +146,11 @@ export default function InitialStep() {
 							<View key={item} style={STYLES.cardItemStyle}>
 								<Circle size={6} fill={Colors.primary} strokeWidth={0} />
 								<Text
-									style={{ fontFamily: 'Outfit', fontSize: 12, color: Colors.textColor }}
+									style={{
+										fontFamily: styles.font.family,
+										fontSize: styles.font.size.md,
+										color: styles.theme.colors[activeTheme].text
+									}}
 								>
 									{item}
 								</Text>
@@ -128,13 +159,13 @@ export default function InitialStep() {
 					</View>
 				</Animated.View>
 
-				<Animated.View entering={FadeInUp.delay(500).duration(200)} style={STYLES.card}>
+				<Animated.View entering={staggerCardAnimation(5)} style={STYLES.card}>
 					<Text
 						style={{
-							fontFamily: 'Outfit',
-							fontWeight: 600,
-							fontSize: 16,
-							color: Colors.textColor
+							fontFamily: styles.font.family,
+							fontWeight: styles.font.weight.semi_bold,
+							fontSize: styles.font.size.lg,
+							color: styles.theme.colors[activeTheme].text
 						}}
 					>
 						{initialStepSchema[1].name}
@@ -143,7 +174,11 @@ export default function InitialStep() {
 						{initialStepSchema[1].items.map((item) => (
 							<View key={item} style={STYLES.cardItemStyle}>
 								<Text
-									style={{ fontFamily: 'Outfit', fontSize: 12, color: Colors.textColor }}
+									style={{
+										fontFamily: styles.font.family,
+										fontSize: styles.font.size.md,
+										color: styles.theme.colors[activeTheme].text
+									}}
 								>
 									✗ {item}
 								</Text>
@@ -151,61 +186,80 @@ export default function InitialStep() {
 						))}
 					</View>
 				</Animated.View>
-			</View>
+			</View> */}
 
 			<Animated.View
-				entering={FadeInUp.delay(600).duration(200)}
+				entering={staggerCardAnimation(4)}
 				style={{
-					backgroundColor: '#e8f5e9',
-					padding: 16,
-					borderRadius: 16,
-					marginTop: 18
+					backgroundColor: styles.theme.colors[activeTheme].card_background,
+					borderWidth: 1,
+					borderColor: styles.theme.colors[activeTheme].card_border,
+					borderRadius: styles.border.radius.size.sm,
+					padding: styles.spacing.one_xl,
+					marginTop: 18,
+					rowGap: styles.spacing.md
 				}}
 			>
-				<Text style={{ fontFamily: 'Outfit', fontWeight: 600, color: Colors.textColor }}>
-					Medical Disclaimer & Consent:
-				</Text>
 				<Text
 					style={{
-						fontFamily: 'Outfit',
-						fontSize: 12,
-						color: Colors.textColor + '9a'
+						fontSize: styles.font.size.md,
+						fontFamily: styles.font.family,
+						fontWeight: styles.font.weight.bold,
+						color: styles.theme.colors[activeTheme].text
 					}}
 				>
-					The following questions are designed to estimate general cosmetic compatibility.
-					This is not a medical assessment. If you are pregnant, lactating, or have an
-					existing diagnosed skin or scalp condition (such as severe acne, atopic
-					dermatitis, or psoriasis), please consult your dermatologist before using new
-					cosmetic products. The analysis provided by BeauWise may not apply to
-					specialized medical conditions.
+					{medical_disclaimer_schema.title}
 				</Text>
+
+				<View style={{ rowGap: styles.spacing.double_xl }}>
+					{medical_disclaimer_schema.disclaimers.map((disclaimer) => (
+						<Text
+							key={disclaimer}
+							style={{
+								fontSize: styles.font.size.md,
+								fontFamily: styles.font.family,
+								color: styles.theme.colors[activeTheme].text
+							}}
+						>
+							{disclaimer}
+						</Text>
+					))}
+				</View>
 			</Animated.View>
 
-			<TouchableOpacity
-				onPress={() => setIsInitialStepButtonActive(!isInitialStepButtonActive)}
-				style={{ flexDirection: 'row', columnGap: 6, marginTop: 20 }}
-				activeOpacity={0.5}
-			>
-				<Checkbox
-					value={!isInitialStepButtonActive}
-					color={!isInitialStepButtonActive ? Colors.primary : undefined}
-					style={{
-						aspectRatio: 1,
-						width: 15,
-						pointerEvents: 'none',
-						borderRadius: 4,
-						marginTop: 4,
-						backgroundColor: '#f9f8f8c4'
-					}}
-				/>
+			<Animated.View entering={staggerCardAnimation(5)}>
+				<TouchableOpacity
+					onPress={() => setIsInitialStepButtonActive(!isInitialStepButtonActive)}
+					style={{ flexDirection: 'row', columnGap: 6, marginTop: 20 }}
+					activeOpacity={0.5}
+				>
+					<Checkbox
+						value={!isInitialStepButtonActive}
+						color={!isInitialStepButtonActive ? Colors.primary : undefined}
+						style={{
+							aspectRatio: 1,
+							width: 15,
+							pointerEvents: 'none',
+							borderRadius: 4,
+							marginTop: 4
+						}}
+					/>
 
-				<View>
-					<Text style={{ fontFamily: 'Outfit', fontSize: 12, paddingRight: 20 }}>
-						I understand that BeauWise is an educational tool and not a substitute for
-						professional medical advice.
-					</Text>
-				</View>
-			</TouchableOpacity>
+					<View>
+						<Text
+							style={{
+								color: styles.theme.colors[activeTheme].text,
+								fontFamily: styles.font.family,
+								fontSize: styles.font.size.sm,
+								paddingRight: 20
+							}}
+						>
+							I understand that BeauWise is an educational tool and not a substitute for
+							professional medical advice.
+						</Text>
+					</View>
+				</TouchableOpacity>
+			</Animated.View>
 		</ScrollView>
 	);
 }
@@ -213,18 +267,7 @@ export default function InitialStep() {
 const STYLES = StyleSheet.create({
 	card: {
 		rowGap: 8,
-		backgroundColor: Colors.backgroundColor,
-		borderRadius: 12,
-		padding: 20,
-		shadowColor: '#000000a0',
-		shadowOffset: {
-			width: 0,
-			height: 2
-		},
-		shadowOpacity: 0.2,
-		shadowRadius: 1.41,
-
-		elevation: 2
+		borderRadius: 12
 	},
 
 	cardItemStyle: {

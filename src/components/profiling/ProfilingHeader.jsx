@@ -1,13 +1,23 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useColorScheme } from 'react-native';
 import Animated, { FadeIn, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Questionnaire from '@/constants/Questionnaire';
 import Colors from '@/constants/Colors';
-import { ArrowLeft } from 'lucide-react-native';
+import { ArrowLeft, ChevronLeft } from 'lucide-react-native';
 import { router } from 'expo-router';
+import { useThemeStore } from '@/stores/useThemeStore';
+import styles from '@/config/styles';
 
-export default function ProfilingHeader({ currentStep, isTransition }) {
+export default function ProfilingHeader({
+	currentStep,
+	isTransition,
+	setSlideDirection
+}) {
+	const systemTheme = useColorScheme() ?? 'light';
+	const themeMode = useThemeStore((state) => state.themeMode);
+	const activeTheme = themeMode === 'system' ? systemTheme : themeMode;
+
 	const totalQuestions = Questionnaire.length;
 	const { top } = useSafeAreaInsets();
 
@@ -22,10 +32,21 @@ export default function ProfilingHeader({ currentStep, isTransition }) {
 	return (
 		currentStep > 0 &&
 		!isTransition && (
-			<Animated.View entering={FadeIn} style={{ paddingTop: top + 10, width: '100%' }}>
+			<Animated.View
+				entering={FadeIn}
+				style={{
+					paddingTop: top + 10,
+					width: '100%',
+					position: 'absolute',
+					backgroundColor: styles.theme.colors[activeTheme].screen_background
+				}}
+			>
 				<View style={STYLES.container}>
 					<TouchableOpacity
-						onPress={router.back}
+						onPress={() => {
+							router.back();
+							setSlideDirection('backward');
+						}}
 						style={{
 							position: 'absolute',
 							bottom: 20,
@@ -37,17 +58,27 @@ export default function ProfilingHeader({ currentStep, isTransition }) {
 							zIndex: 1
 						}}
 					>
-						<ArrowLeft size={18} />
+						<ChevronLeft size={18} color={styles.theme.colors[activeTheme].icon} />
 					</TouchableOpacity>
 					<Text style={STYLES.headerStyle}>{headerTitle}</Text>
 
-					<Text style={STYLES.stepStyle}>
+					<Text
+						style={[
+							STYLES.stepStyle,
+							{ color: styles.theme.colors[activeTheme].text_secondary }
+						]}
+					>
 						Step {currentStep} of {totalQuestions}
 					</Text>
 
-					<View style={STYLES.progressTrack}>
+					<View
+						style={[
+							STYLES.progressTrack,
+							{ backgroundColor: activeTheme === 'light' ? '#e6e6e6' : '#1E293B' }
+						]}
+					>
 						<Animated.View style={[STYLES.progressFillWrapper, animatedProgressStyle]}>
-							<View style={STYLES.progressFill} />
+							<View style={[STYLES.progressFill]} />
 						</Animated.View>
 					</View>
 				</View>
@@ -63,15 +94,15 @@ const STYLES = StyleSheet.create({
 	},
 
 	headerStyle: {
-		fontFamily: 'Outfit',
+		fontFamily: styles.font.family,
 		textAlign: 'center',
 		color: Colors.primary,
 		fontSize: 12,
-		fontWeight: '700'
+		fontWeight: styles.font.weight.bold
 	},
 
 	stepStyle: {
-		fontFamily: 'Outfit',
+		fontFamily: styles.font.family,
 		textAlign: 'center',
 		fontSize: 9,
 		color: '#9d9a9a'

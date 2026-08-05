@@ -1,28 +1,32 @@
-import Colors from '@/constants/Colors';
+import styles from '@/config/styles';
 import { useProfilingStore } from '@/stores/useProfilingStore';
-import Slider from '@react-native-community/slider';
 import { Text, View } from 'react-native';
+import Slider from './Slider';
 
 export default function SliderQuestion({
+	activeTheme,
 	options,
 	choiceLabel,
 	section,
 	questionIdentifier
 }) {
 	const updateProfile = useProfilingStore((state) => state.setProfile);
-
 	const currentChoiceValue = useProfilingStore(
 		(state) => state.profile[section][questionIdentifier]
 	);
 
 	const currentChoiceRawObj = options.find((item) => item.value === currentChoiceValue);
-	const currentChoiceIndex = options.indexOf(currentChoiceRawObj) + 1 ?? 1;
+	const currentChoiceIndex = options.indexOf(currentChoiceRawObj);
 
 	const onValueChange = (value) => {
-		const selectedValue = options[value - 1].value;
+		const selectedValue = options[value].value;
 
 		updateProfile(section, questionIdentifier, selectedValue);
 	};
+
+	const labels = options.map(({ label }, index) =>
+		questionIdentifier === 'wash_frequency' ? index + 1 : label
+	);
 
 	return (
 		<View
@@ -34,9 +38,11 @@ export default function SliderQuestion({
 		>
 			<Text
 				style={{
-					fontFamily: 'Outfit',
-					fontSize: 12,
-					fontWeight: '600'
+					fontFamily: styles.font.family,
+					width: '100%',
+					fontSize: styles.font.size.sm,
+					fontWeight: styles.font.weight.semi_bold,
+					color: styles.theme.colors[activeTheme].text
 				}}
 			>
 				{choiceLabel}
@@ -44,37 +50,41 @@ export default function SliderQuestion({
 
 			<View style={{}}>
 				<Slider
-					step={1}
-					value={currentChoiceIndex}
+					currentIndex={currentChoiceIndex}
+					labels={labels}
+					activeTheme={activeTheme}
 					onValueChange={onValueChange}
-					style={{ width: 280, position: 'absolute', transform: [{ translateX: -2 }] }}
-					minimumValue={1}
-					maximumValue={options.length}
-					minimumTrackTintColor={Colors.primary}
-					maximumTrackTintColor={Colors.primary}
-					tapToSeek={true}
-					thumbTintColor={Colors.primary}
 				/>
 
 				<View
 					style={{
-						flexDirection: 'row',
-						columnGap: options.length < 5 ? 40 : 34,
-						position: 'absolute',
-						transform: [{ translateX: -3 }, { translateY: 20 }]
+						marginTop: styles.spacing.three_xxl * 1.8,
+						rowGap: styles.spacing.double_xl
 					}}
 				>
-					{options.map((item) => (
-						<View key={item.id}>
+					{options.map((item, index) => (
+						<View key={item.id} style={{ flexDirection: 'row' }}>
 							<Text
 								style={{
-									textAlign: 'center',
-									width: options.length < 5 ? 40 : 30,
-									fontFamily: 'Outfit',
-									fontSize: 10
+									fontFamily: styles.font.family,
+									fontSize: styles.font.size.sm,
+									color: styles.theme.colors[activeTheme].text,
+									fontWeight: styles.font.weight.semi_bold
 								}}
 							>
-								{item.label}
+								{questionIdentifier === 'wash_frequency'
+									? `${index + 1}:  `
+									: `${item.label}:  `}
+							</Text>
+
+							<Text
+								style={{
+									fontFamily: styles.font.family,
+									fontSize: styles.font.size.sm,
+									color: styles.theme.colors[activeTheme].text
+								}}
+							>
+								{item.description}
 							</Text>
 						</View>
 					))}

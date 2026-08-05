@@ -4,15 +4,8 @@ import ToS from '@/components/TermsOfService';
 import Colors from '@/constants/Colors';
 import PagePadding from '@/constants/PagePadding';
 import PrivacyPolicy from '@/components/PrivacyPolicy';
-import {
-	BottomSheetBackdrop,
-	BottomSheetModal,
-	BottomSheetScrollView,
-	useBottomSheetModal
-} from '@gorhom/bottom-sheet';
 import Checkbox from 'expo-checkbox';
 import { router } from 'expo-router';
-import { UserRound } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
 	View,
@@ -20,48 +13,23 @@ import {
 	TouchableOpacity,
 	StyleSheet,
 	BackHandler,
-	ScrollView
+	ScrollView,
+	useColorScheme
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { googleSignIn, signUp } from '@/services/auth';
-import Toast from 'react-native-toast-message';
-import { Image } from 'expo-image';
 import { checkProfilingCompletion } from '@/utility/checkProfilingCompletion';
-import Lock from '@/components/icons/hugeicons/Lock';
-import Mail from '@/components/icons/hugeicons/Mail';
-import Logo from '@/components/icons/Logo';
-import User from '@/components/icons/hugeicons/User';
 import { Swing } from 'react-native-animated-spinkit';
 import { Modal, Portal } from 'react-native-paper';
+import styles from '@/config/styles';
+import { onScroll } from '@/utility/scrollView';
+import { useThemeStore } from '@/stores/useThemeStore';
+import { ChevronLeft } from 'lucide-react-native';
+import { storage } from '@/config/mmkv';
 
-const size = 18;
-
-const safetyNoticeSchema = [
-	{
-		name: 'Educational Tool Only',
-		description:
-			'BeauWise provides cosmetic ingredient analysis with no approved therapeutic claims.'
-	},
-
-	{
-		name: 'No Medical Diagnosis',
-		description:
-			'This system does not treat skin conditions. Do not use it to self-diagnose or self-medicate.'
-	},
-
-	{
-		name: 'Expert Consultation',
-		description: 'Always consult a board-certified dermatologist for medical concerns.'
-	},
-
-	{
-		name: 'Data Privacy',
-		description: 'Your data is handled securely and kept private.'
-	}
-];
 const formSchema = z.object({
 	userName: z.string().min(2, { error: 'Name is required' }),
 	email: z.email({ error: 'Invalid email' }),
@@ -84,6 +52,11 @@ const formSchema = z.object({
 });
 
 export default function SignIn() {
+	const systemTheme = useColorScheme() ?? 'light';
+
+	const themeMode = useThemeStore((state) => state.themeMode);
+
+	const activeTheme = themeMode === 'system' ? systemTheme : themeMode;
 	const { control, handleSubmit } = useForm({
 		resolver: zodResolver(formSchema),
 		mode: 'onSubmit',
@@ -95,22 +68,32 @@ export default function SignIn() {
 		}
 	});
 
-	const { dismiss } = useBottomSheetModal();
-	const { top, bottom } = useSafeAreaInsets();
+	const scrollRef = useRef(null);
+	const privacyScrollRef = useRef(null);
+
+	const inputEmailRef = useRef(null);
+	const inputPasswordRef = useRef(null);
+
 	const [isOlder, setIsOlder] = useState(false);
 	const [isAgreeOnTerms, setIsAgreeOnTerms] = useState(false);
 	const [isAgreeOnPrivacy, setIsAgreeOnPrivacy] = useState(false);
 	const scrollViewRef = useRef(null);
-	const tosRef = useRef(null);
-	const privacyPolicyRef = useRef(null);
 	const handleValueChange = (isModal, value, setter) => () => {
 		setter(!value);
 	};
 
 	const [visible, setVisible] = useState(false);
+	const [privacyVisible, setPrivacyVisible] = useState(false);
+	const [termsServiceVisible, setTermsServiceVisible] = useState(false);
 
 	const showModal = () => setVisible(true);
 	const hideModal = () => setVisible(false);
+
+	const showPrivacyPolicy = () => setPrivacyVisible(true);
+	const hidePrivacyPolicy = () => setPrivacyVisible(false);
+
+	const showTermsService = () => setTermsServiceVisible(true);
+	const hideTermsService = () => setTermsServiceVisible(false);
 
 	const handleOpenModal = () => {
 		if (isAgreeOnPrivacy && isAgreeOnTerms) {
@@ -121,30 +104,19 @@ export default function SignIn() {
 		}
 
 		if (isAgreeOnTerms) {
-			privacyPolicyRef.current.present();
+			showPrivacyPolicy();
 			return;
 		}
 
-		tosRef.current.present();
+		showTermsService();
 	};
 
-	const renderBackdrop = useCallback(
-		(props) => <BottomSheetBackdrop {...props} opacity={0.7} disappearsOnIndex={-1} />,
-		[]
-	);
-
-	useEffect(() => {
-		const backAction = () => {
-			return dismiss();
-		};
-
-		const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
-
-		return () => backHandler.remove();
-	}, []);
+	const focusNextInput = (inputRef) => () => {
+		inputRef?.current?.focus();
+	};
 
 	const onSubmit = async (data) => {
-		const isSuccess = await signUp(
+		const result = await signUp(
 			data.email,
 			data.password,
 			data.userName,
@@ -152,23 +124,27 @@ export default function SignIn() {
 			hideModal
 		);
 
-		if (!isSuccess) return;
-
-		router.dismissAll();
-		router.replace('profiling');
+		if (result?.isEmailVerificationRequired) {
+			return router.push({
+				pathname: '/authentication/email-verification',
+				params: {
+					userInfo: JSON.stringify(result.userInfo)
+				}
+			});
+		}
 	};
 
 	const handleGoogleSignIn = async () => {
-		const isSignIn = await googleSignIn(true, showModal, hideModal).call();
+		const result = await googleSignIn(true, showModal, hideModal).call();
 
-		const isProfilingCompleted = await checkProfilingCompletion();
-
-		if (!isSignIn) return;
-
-		router.dismissAll();
-		if (isProfilingCompleted) {
-			router.replace('(tabs)');
-		} else router.replace('profiling');
+		if (result?.isEmailVerificationRequired) {
+			return router.push({
+				pathname: '/authentication/email-verification',
+				params: {
+					userInfo: JSON.stringify(result.userInfo)
+				}
+			});
+		}
 	};
 
 	const handlePress = () => {
@@ -191,31 +167,47 @@ export default function SignIn() {
 				}}
 				showsVerticalScrollIndicator={false}
 				contentContainerStyle={{
-					paddingTop: top + 22,
-					paddingBottom: bottom,
-					paddingHorizontal: PagePadding.config.paddingHorizontal
+					flex: 1,
+					justifyContent: 'center',
+					paddingHorizontal: styles.spacing.xxl
 				}}
 			>
-				<View style={{ alignItems: 'center', marginBottom: 26 }}>
-					<Logo size={100} />
-
-					<Text
+				{router.canGoBack() && (
+					<TouchableOpacity
+						activeOpacity={0.7}
+						onPress={router.back}
 						style={{
-							fontFamily: 'Outfit',
-							fontSize: 20,
-							textAlign: 'center',
-							fontWeight: 700,
-							color: Colors.textColor
+							paddingRight: styles.spacing.one_xl,
+							position: 'absolute',
+							top: 50,
+							left: 10
 						}}
 					>
-						Find what your skin loves
+						<ChevronLeft color={activeTheme === 'dark' ? '#fff' : '#000'} />
+					</TouchableOpacity>
+				)}
+
+				<View style={{ alignItems: 'center', marginBottom: styles.spacing.double_xxl }}>
+					<Text
+						style={{
+							fontFamily: styles.font.family,
+							fontSize: styles.font.size.double_xl,
+							textAlign: 'center',
+							fontWeight: styles.font.weight.extra_bold,
+							color: styles.theme.colors.primary
+						}}
+					>
+						Join BeauWise
 					</Text>
 				</View>
-				<View style={{ rowGap: 10 }}>
+				<View style={{ rowGap: styles.spacing.lg }}>
 					<Controller
 						control={control}
 						render={({ field: { onChange, onBlur, value }, fieldState: { error } }) => (
 							<Input
+								focusNextInput={focusNextInput(inputEmailRef)}
+								enterKeyHint='next'
+								activeTheme={activeTheme}
 								label={'Full Name'}
 								placeholder={'Full Name'}
 								contentType={'username'}
@@ -223,9 +215,7 @@ export default function SignIn() {
 								onBlur={onBlur}
 								onChangeText={onChange}
 								error={error}
-							>
-								<User size={size} color={Colors.textColor + '7a'} />
-							</Input>
+							/>
 						)}
 						name='userName'
 					/>
@@ -233,6 +223,10 @@ export default function SignIn() {
 						control={control}
 						render={({ field: { onChange, onBlur, value }, fieldState: { error } }) => (
 							<Input
+								focusNextInput={focusNextInput(inputPasswordRef)}
+								ref={inputEmailRef}
+								enterKeyHint='next'
+								activeTheme={activeTheme}
 								label={'Email'}
 								placeholder={'Email address'}
 								contentType={'email'}
@@ -240,9 +234,7 @@ export default function SignIn() {
 								onBlur={onBlur}
 								onChangeText={onChange}
 								error={error}
-							>
-								<Mail size={size} color={Colors.textColor + '7a'} />
-							</Input>
+							/>
 						)}
 						name='email'
 					/>
@@ -251,6 +243,8 @@ export default function SignIn() {
 						control={control}
 						render={({ field: { onChange, onBlur, value }, fieldState: { error } }) => (
 							<Input
+								ref={inputPasswordRef}
+								activeTheme={activeTheme}
 								label={'Password'}
 								isPassword={true}
 								placeholder={'Password'}
@@ -259,40 +253,48 @@ export default function SignIn() {
 								onBlur={onBlur}
 								onChangeText={onChange}
 								error={error}
-							>
-								<Lock size={size} color={Colors.textColor + '7a'} />
-							</Input>
+							/>
 						)}
 						name='password'
 					/>
 				</View>
 
-				<View style={{ marginVertical: 20, rowGap: 8 }}>
+				<View style={{ marginVertical: styles.spacing.double_xl, rowGap: 8 }}>
 					<TouchableOpacity
-						style={{ flexDirection: 'row', alignItems: 'center', columnGap: 6 }}
+						style={{
+							flexDirection: 'row',
+							alignItems: 'center',
+							columnGap: styles.spacing.md
+						}}
 						onPress={handleValueChange(false, isOlder, setIsOlder)}
 						activeOpacity={0.5}
 					>
 						<Checkbox
-							color={isOlder ? Colors.primary : undefined}
+							color={isOlder ? styles.theme.colors.primary : undefined}
 							value={isOlder}
 							style={{
 								aspectRatio: 1,
-								width: 15,
+								width: 14,
 								pointerEvents: 'none',
-								borderRadius: 4
+								borderRadius: 2
 							}}
 						/>
 
 						<View>
-							<Text style={{ fontFamily: 'Outfit', fontSize: 12 }}>
+							<Text
+								style={{
+									fontFamily: styles.font.family,
+									fontSize: styles.font.size.sm,
+									color: styles.theme.colors[activeTheme].text
+								}}
+							>
 								I confirm that I am 18 years of age or older
 							</Text>
 							<Text
 								style={{
-									fontFamily: 'Outfit',
-									fontSize: 10,
-									color: Colors.textColor + '7a'
+									fontFamily: styles.font.family,
+									fontSize: styles.font.size.sm,
+									color: styles.theme.colors[activeTheme].text + '9a'
 								}}
 							>
 								BeauWise provides cosmetic analysis that requires adult discretion
@@ -301,31 +303,53 @@ export default function SignIn() {
 					</TouchableOpacity>
 
 					<TouchableOpacity
-						style={{ flexDirection: 'row', alignItems: 'center', columnGap: 6 }}
+						style={{
+							flexDirection: 'row',
+							alignItems: 'center',
+							columnGap: styles.spacing.md
+						}}
 						onPress={handleOpenModal}
 						activeOpacity={0.5}
 					>
 						<Checkbox
-							color={isAgreeOnPrivacy && isAgreeOnTerms ? Colors.primary : undefined}
+							color={
+								isAgreeOnPrivacy && isAgreeOnTerms
+									? styles.theme.colors.primary
+									: undefined
+							}
 							value={isAgreeOnPrivacy && isAgreeOnTerms}
 							style={{
 								aspectRatio: 1,
 								width: 15,
 								pointerEvents: 'none',
-								borderRadius: 4
+								borderRadius: 2
 							}}
 						/>
 
-						<Text style={{ fontFamily: 'Outfit', fontSize: 12 }}>
+						<Text
+							style={{
+								fontFamily: styles.font.family,
+								fontSize: styles.font.size.sm,
+								color: styles.theme.colors[activeTheme].text
+							}}
+						>
 							I have read and agree to the{' '}
 							<Text
-								style={{ fontFamily: 'Outfit', color: Colors.primary, fontWeight: 500 }}
+								style={{
+									fontFamily: styles.font.family,
+									color: Colors.primary,
+									fontWeight: styles.font.weight.regular
+								}}
 							>
 								Terms of Service
 							</Text>{' '}
 							and{' '}
 							<Text
-								style={{ fontFamily: 'Outfit', color: Colors.primary, fontWeight: 500 }}
+								style={{
+									fontFamily: styles.font.family,
+									color: Colors.primary,
+									fontWeight: styles.font.weight.regular
+								}}
 							>
 								Privacy Policy
 							</Text>
@@ -333,32 +357,9 @@ export default function SignIn() {
 					</TouchableOpacity>
 				</View>
 
-				{/* <View
-					style={{
-						borderRadius: 16,
-						rowGap: 10,
-						backgroundColor: Colors.primary + '2a',
-						padding: 20
-					}}
+				<View
+					style={{ rowGap: styles.spacing.one_xl, marginTop: styles.spacing.three_xxl }}
 				>
-					<View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 4 }}>
-						<Info color={'#20C997'} size={16} />
-						<Text style={{ fontWeight: 600, color: Colors.textColor }}>
-							Important Safety Notice
-						</Text>
-					</View>
-
-					<View style={{ rowGap: 20 }}>
-						{safetyNoticeSchema.map(({ name, description }) => (
-							<Text style={{ fontSize: 12, paddingRight: 30 }} key={name}>
-								<Text style={{ fontWeight: 600, color: Colors.textColor }}>{name}: </Text>
-								{description}
-							</Text>
-						))}
-					</View>
-				</View> */}
-
-				<View style={{ rowGap: 14, marginTop: 10 }}>
 					<TouchableOpacity
 						style={[
 							STYLES.button,
@@ -370,10 +371,10 @@ export default function SignIn() {
 					>
 						<Text
 							style={{
-								fontFamily: 'Outfit',
-								fontSize: 12,
-								fontWeight: 600,
-								color: '#fff'
+								fontFamily: styles.font.family,
+								fontSize: styles.font.size.sm,
+								fontWeight: styles.font.weight.bold,
+								color: styles.font.colors._04
 							}}
 						>
 							Sign Up
@@ -387,17 +388,31 @@ export default function SignIn() {
 							justifyContent: 'space-between'
 						}}
 					>
-						<View style={[STYLES.seperator]} />
+						<View
+							style={[
+								STYLES.seperator,
+								{
+									backgroundColor: styles.theme.colors[activeTheme].seperator
+								}
+							]}
+						/>
 						<Text
 							style={{
-								fontFamily: 'Outfit',
-								color: Colors.textColor + '7a',
-								fontSize: 11
+								fontFamily: styles.font.family,
+								color: styles.theme.colors[activeTheme].text_seperator,
+								fontSize: styles.font.size.sm
 							}}
 						>
-							Or sign up with
+							OR
 						</Text>
-						<View style={[STYLES.seperator]} />
+						<View
+							style={[
+								STYLES.seperator,
+								{
+									backgroundColor: styles.theme.colors[activeTheme].seperator
+								}
+							]}
+						/>
 					</View>
 
 					<TouchableOpacity
@@ -407,57 +422,78 @@ export default function SignIn() {
 						style={[
 							STYLES.button,
 							{
-								backgroundColor: '#fff',
-								columnGap: 8,
+								backgroundColor: styles.theme.colors[activeTheme].card_background,
+								borderWidth: 1,
+								borderColor: styles.theme.colors[activeTheme].card_border,
+								columnGap: styles.spacing.lg,
 								justifyContent: 'center',
 								opacity: isAgreeOnPrivacy && isAgreeOnTerms && isOlder ? 1 : 0.5
 							}
 						]}
 					>
 						<View>
-							<Google />
+							<Google size={styles.icon.size.lg} />
 						</View>
 
 						<Text
 							style={{
-								fontFamily: 'Outfit',
-								fontSize: 12,
-								fontWeight: 600,
-								color: '#4B5563'
+								fontFamily: styles.font.family,
+								fontSize: styles.font.size.sm,
+								fontWeight: styles.font.weight.bold,
+								color: styles.theme.colors[activeTheme].text
 							}}
 						>
-							Google
+							Continue with Google
+						</Text>
+					</TouchableOpacity>
+
+					<TouchableOpacity
+						onPress={() => {
+							if (router.canGoBack()) {
+								router.back();
+							} else {
+								router.replace('(tabs)');
+							}
+						}}
+						style={{ alignSelf: 'center', marginTop: styles.spacing.three_xl }}
+					>
+						<Text
+							style={{
+								fontFamily: styles.font.family,
+								color: styles.theme.colors.primary,
+								fontSize: styles.font.size.lg
+							}}
+						>
+							Continue as Guest
 						</Text>
 					</TouchableOpacity>
 
 					<View
 						style={{
-							marginTop: 8,
 							flexDirection: 'row',
-							columnGap: 10,
+							columnGap: styles.spacing.md,
 							alignSelf: 'center',
-							alignItems: 'center',
-							paddingBottom: 8
+							alignItems: 'center'
 						}}
 					>
-						<Text style={{ fontFamily: 'Outfit', color: Colors.textColor + '7a' }}>
+						<Text
+							style={{
+								fontSize: styles.font.size.lg,
+								fontFamily: styles.font.family,
+								color: styles.theme.colors[activeTheme].text + '9a'
+							}}
+						>
 							Already have an account?
 						</Text>
 
-						<TouchableOpacity
-							style={{
-								backgroundColor: '#8b78ff2a',
-								borderRadius: 8,
-								paddingVertical: 8,
-								paddingHorizontal: 16
-							}}
-							onPress={() => router.replace('authentication/sign-in')}
-						>
+						<TouchableOpacity onPress={() => router.replace('authentication/sign-in')}>
 							<Text
 								style={{
-									fontFamily: 'Outfit',
-									fontWeight: 400,
-									color: Colors.primary
+									fontSize: styles.font.size.lg,
+									fontFamily: styles.font.family,
+									fontWeight: styles.font.weight.regular,
+									color: styles.theme.colors[activeTheme].text,
+									textDecorationLine: 'underline'
 								}}
 							>
 								Sign In
@@ -467,57 +503,58 @@ export default function SignIn() {
 				</View>
 			</ScrollView>
 
-			<BottomSheetModal
-				enableOverDrag={false}
-				style={STYLES.sheet}
-				ref={tosRef}
-				snapPoints={['95%']}
-				topInset={top - 4}
-				backgroundStyle={{
-					borderRadius: 16
-				}}
-				backdropComponent={renderBackdrop}
-				handleStyle={{
-					padding: 0
-				}}
-				handleIndicatorStyle={{ display: 'none' }}
-			>
-				<BottomSheetScrollView showsVerticalScrollIndicator={false}>
-					<ToS
-						handleClose={() => dismiss()}
-						handleAgree={() => {
-							privacyPolicyRef.current.present();
-							setIsAgreeOnTerms(true);
+			<Portal>
+				<Modal
+					visible={termsServiceVisible}
+					dismissable={false}
+					dismissableBackButton={true}
+				>
+					<ScrollView
+						ref={scrollRef}
+						onScroll={onScroll(scrollRef)}
+						style={{
+							marginTop: styles.spacing.lg,
+							marginHorizontal: styles.spacing.double_xl,
+							borderRadius: styles.border.radius.size.sm
 						}}
-					/>
-				</BottomSheetScrollView>
-			</BottomSheetModal>
+						showsVerticalScrollIndicator={false}
+					>
+						<ToS
+							activeTheme={activeTheme}
+							handleClose={hideTermsService}
+							handleAgree={() => {
+								showPrivacyPolicy();
+								hideTermsService();
+								setIsAgreeOnTerms(true);
+							}}
+						/>
+					</ScrollView>
+				</Modal>
+			</Portal>
 
-			<BottomSheetModal
-				stackBehavior='replace'
-				enableOverDrag={false}
-				style={STYLES.sheet}
-				ref={privacyPolicyRef}
-				snapPoints={['95%']}
-				topInset={top - 4}
-				backgroundStyle={{
-					borderRadius: 16
-				}}
-				backdropComponent={renderBackdrop}
-				handleStyle={{
-					padding: 0
-				}}
-				handleIndicatorStyle={{ display: 'none' }}
-			>
-				<BottomSheetScrollView showsVerticalScrollIndicator={false}>
-					<PrivacyPolicy
-						handleAgree={() => {
-							dismiss();
-							setIsAgreeOnPrivacy(true);
+			<Portal>
+				<Modal visible={privacyVisible} dismissable={false} dismissableBackButton={false}>
+					<ScrollView
+						ref={privacyScrollRef}
+						onScroll={onScroll(privacyScrollRef)}
+						style={{
+							marginTop: styles.spacing.lg,
+							marginBottom: styles.spacing.double_xl,
+							marginHorizontal: styles.spacing.double_xl,
+							borderRadius: styles.border.radius.size.sm
 						}}
-					/>
-				</BottomSheetScrollView>
-			</BottomSheetModal>
+						showsVerticalScrollIndicator={false}
+					>
+						<PrivacyPolicy
+							activeTheme={activeTheme}
+							handleAgree={() => {
+								hidePrivacyPolicy();
+								setIsAgreeOnPrivacy(true);
+							}}
+						/>
+					</ScrollView>
+				</Modal>
+			</Portal>
 
 			<Portal>
 				<Modal
@@ -534,18 +571,20 @@ export default function SignIn() {
 				>
 					<View
 						style={{
-							padding: 18,
-							borderRadius: 10,
-							backgroundColor: Colors.backgroundColor,
+							padding: styles.spacing.xxl,
+							borderRadius: styles.border.radius.size.sm,
+							backgroundColor: styles.theme.colors[activeTheme].card_background,
 							alignItems: 'center',
-							rowGap: 8
+							rowGap: styles.spacing.sm
 						}}
 					>
-						<Swing size={28} color={Colors.primary} />
+						<Swing size={styles.icon.size.xl} color={styles.theme.colors.primary} />
 						<Text
 							style={{
-								fontFamily: 'Outfit',
-								fontWeight: 500
+								fontSize: styles.font.size.md,
+								fontFamily: styles.font.family,
+								fontWeight: styles.font.weight.regular,
+								color: styles.theme.colors[activeTheme].text
 							}}
 						>
 							Signing up...
@@ -559,29 +598,18 @@ export default function SignIn() {
 
 const STYLES = StyleSheet.create({
 	seperator: {
-		width: '30%',
+		width: '40%',
 		height: 0.4,
 
 		backgroundColor: Colors.textColor + '7a'
 	},
 	button: {
-		paddingVertical: 16,
-		columnGap: 6,
+		paddingVertical: styles.spacing.xxl,
 		alignItems: 'center',
 		justifyContent: 'center',
 		flexDirection: 'row',
-		backgroundColor: Colors.primary,
-		borderRadius: 16
-
-		// shadowColor: '#000',
-		// shadowOffset: {
-		// 	width: 0,
-		// 	height: 12
-		// },
-		// shadowOpacity: 0.58,
-		// shadowRadius: 16.0,
-
-		// elevation: 24
+		backgroundColor: styles.theme.colors.primary,
+		borderRadius: styles.border.radius.size.md
 	},
 
 	sheet: {

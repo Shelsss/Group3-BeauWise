@@ -1,7 +1,7 @@
 import Colors from '@/constants/Colors';
 import PagePadding from '@/constants/PagePadding';
 import { useProfilingStore } from '@/stores/useProfilingStore';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, useColorScheme } from 'react-native';
 import { Shadow } from 'react-native-shadow-2';
 import EditBottomSheet from '@/components/EditBottomSheet';
 import EditCard from '@/components/EditCard';
@@ -11,27 +11,27 @@ import { icons } from '@/constants/IconTheme';
 
 import { useAuthStore } from '@/stores/useAuthStore';
 import GuessModeView from './GuessModeView';
-import {
-	doc,
-	getDoc,
-	getFirestore,
-	query,
-	setDoc,
-	updateDoc
-} from '@react-native-firebase/firestore';
+import { doc, getDoc, query, setDoc } from '@react-native-firebase/firestore';
 import { auth } from '@/services/auth';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { UserRound } from 'lucide-react-native';
 import { Swing } from 'react-native-animated-spinkit';
 import Retry from '../Retry';
 import { Modal, Portal } from 'react-native-paper';
 import Warn from '../icons/hugeicons/Warn';
-import { useBottomSheetModal } from '@gorhom/bottom-sheet';
-import Questionnaire from '@/constants/Questionnaire';
+import Questions from '@/constants/Questionnaire';
 import Toast from 'react-native-toast-message';
-
-const db = getFirestore();
+import { db } from '@/services/firestore';
+import User from '../icons/hugeicons/User';
+import Profile from '../icons/hugeicons/Profile';
+import Profile2 from '../icons/hugeicons/Profile2';
+import { useThemeStore } from '@/stores/useThemeStore';
+import styles from '@/config/styles';
+import Profile2Solid from '../icons/hugeicons/Profile2Solid';
+import { storage } from '@/config/mmkv';
+import Skeleton from '../Skeleton';
+import RetryError from '../RetryError';
 
 const fetchData = async () => {
 	const queryOption = query(doc(db, 'users', auth.currentUser.uid));
@@ -62,7 +62,7 @@ const arraysEqual = (a, b) => {
 const formatArrayChanges = (items, section, key, value) => {
 	let currentArray = [...items];
 
-	const foo = Questionnaire.find((item) => item.section === section)
+	const foo = Questions.find((item) => item.section === section)
 		.questions.find(({ identifier }) => identifier === key)
 		.options.find(({ label }) => label.includes('None'));
 
@@ -89,13 +89,16 @@ const formatArrayChanges = (items, section, key, value) => {
 };
 
 export default function ProfileView({ isVisible }) {
+	const systemTheme = useColorScheme() ?? 'light';
+	const themeMode = useThemeStore((state) => state.themeMode);
+	const activeTheme = themeMode === 'system' ? systemTheme : themeMode;
 	const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 	const editSheetModalRef = useRef(null);
 	const [selectedSection, setSelectedSection] = useState('');
 	const profileData = useProfilingStore((state) => state.profile);
 	const updateProfile = useProfilingStore((state) => state.setProfile);
 	const populateProfile = useProfilingStore((state) => state.populateProfile);
-	const isProfilingComplete = useProfilingStore((state) => state.isProfilingComplete);
+	const isProfilingComplete = storage.getBoolean('isProfilingComplete');
 
 	const [unSaveChanges, setUnSaveChanges] = useState({});
 
@@ -111,6 +114,8 @@ export default function ProfileView({ isVisible }) {
 			queryFn: fetchData,
 			enabled: !!isAuthenticated && isProfilingComplete
 		});
+
+	console.log(isLoading);
 
 	const profileMutation = useMutation({
 		mutationFn: async (newChanges) => {
@@ -137,7 +142,11 @@ export default function ProfileView({ isVisible }) {
 				type: 'errorToast',
 				text1: 'Oops, save failed!',
 				text2: 'Please verify your connection and attempt to save again.',
-				bottomOffset: 20
+				bottomOffset: 120,
+				position: 'bottom',
+				props: {
+					activeTheme
+				}
 			});
 		},
 		onSuccess: () => {
@@ -165,7 +174,11 @@ export default function ProfileView({ isVisible }) {
 				type: 'successToast',
 				text1: 'Changes saved.',
 				text2: 'Your profile has been successfully updated.',
-				bottomOffset: 20
+				bottomOffset: 120,
+				position: 'bottom',
+				props: {
+					activeTheme
+				}
 			});
 		}
 	});
@@ -180,7 +193,7 @@ export default function ProfileView({ isVisible }) {
 			throwOnError: true
 		});
 
-	const handlePresentModalPress = (section) => () => {
+	const onEdit = (section) => () => {
 		setSelectedSection(section);
 		editSheetModalRef.current?.present();
 	};
@@ -282,33 +295,30 @@ export default function ProfileView({ isVisible }) {
 		>
 			{isError && isAuthenticated && (
 				<View style={{ flex: 1, marginTop: '68%' }}>
-					<Retry refetch={retry} />
+					<RetryError refetch={refetch} />
 				</View>
 			)}
 
 			{!isAuthenticated && <GuessModeView />}
 			{isLoading && isAuthenticated ? (
-				<View
-					style={{
-						flex: 1,
-						padding: 18,
-						borderRadius: 10,
-						marginTop: '40%',
-						justifyContent: 'center',
-						alignItems: 'center',
-						rowGap: 8
-					}}
-				>
-					<Swing size={28} color={Colors.primary} />
-					<Text
-						style={{
-							fontFamily: 'Outfit',
-							fontWeight: 500
-						}}
-					>
-						Loading...
-					</Text>
-				</View>
+				<>
+					<Skeleton
+						width={'100%'}
+						height={160}
+						borderRadius={styles.border.radius.size.md}
+					/>
+
+					<View style={{ rowGap: styles.spacing.xxl }}>
+						{[...Array(7)].map((_, index) => (
+							<Skeleton
+								key={index}
+								width={'100%'}
+								height={12}
+								borderRadius={styles.border.radius.size.sm}
+							/>
+						))}
+					</View>
+				</>
 			) : (
 				<View
 					style={{
@@ -320,18 +330,11 @@ export default function ProfileView({ isVisible }) {
 							<View
 								style={{
 									padding: 24,
-									backgroundColor: Colors.backgroundColor,
-									borderRadius: 16,
-									alignItems: 'center',
-
-									shadowColor: '#0000009f',
-									shadowOffset: {
-										width: 0,
-										height: 1
-									},
-									shadowOpacity: 0.15,
-									shadowRadius: 1.0,
-									elevation: 1
+									backgroundColor: styles.theme.colors[activeTheme].card_background,
+									borderRadius: styles.border.radius.size.sm,
+									borderWidth: 1,
+									borderColor: styles.theme.colors[activeTheme].card_border,
+									alignItems: 'center'
 								}}
 							>
 								{auth?.currentUser?.photoURL ? (
@@ -348,55 +351,71 @@ export default function ProfileView({ isVisible }) {
 								) : (
 									<View
 										style={{
-											backgroundColor: Colors.primary + '1a',
+											backgroundColor: styles.theme.colors[activeTheme].card_background,
+											borderWidth: 1,
+											borderColor: styles.theme.colors[activeTheme].card_border,
 											padding: 16,
-											borderRadius: 30,
+											borderRadius: styles.border.radius.size.pill,
 											marginBottom: 16,
 											overflow: 'hidden'
 										}}
 									>
-										<UserRound size={28} color={Colors.primary} />
+										<Profile2Solid size={28} color={Colors.primary} />
 									</View>
 								)}
 
 								<Text
 									style={{
-										fontFamily: 'Outfit',
-										fontSize: 20,
-										fontWeight: 600,
-										color: Colors.textColor
+										fontFamily: styles.font.family,
+
+										fontWeight: styles.font.weight.bold,
+										fontSize: styles.font.size.lg,
+										color: styles.theme.colors[activeTheme].text
 									}}
 								>
 									{auth?.currentUser?.displayName}
 								</Text>
 								<Text
 									style={{
-										fontSize: 14,
-										color: Colors.textColor + '7a',
-										fontFamily: 'Outfit'
+										fontSize: styles.font.size.md,
+										color: styles.theme.colors[activeTheme].text_secondary,
+										fontFamily: styles.font.family
 									}}
 								>
 									{auth?.currentUser?.email}
 								</Text>
 							</View>
 
+							<View>
+								<Text
+									style={{
+										color: styles.theme.colors[activeTheme].text,
+										marginTop: styles.spacing.xxl,
+										fontFamily: styles.font.family,
+										textAlign: 'center',
+										fontWeight: styles.font.weight.bold
+									}}
+								>
+									Profiling
+								</Text>
+							</View>
 							{data?.profiling &&
 								Object.keys(profileData).map((section, index) => (
 									<EditCard
+										activeTheme={activeTheme}
 										profileData={profileData}
 										label={formatSnakeToTitle(section)}
+										questions={Questions}
 										section={section}
 										key={section}
-										sectionValue={Object.entries(profileData[section])}
-										handlePresentModalPress={handlePresentModalPress}
+										onEdit={onEdit(section)}
 										iconProp={getIcon(section)}
-										iconColor={Colors.primary}
 									/>
 								))}
 						</>
 					)}
 
-					{isAuthenticated && (
+					{/* {isAuthenticated && (
 						<View
 							style={{
 								backgroundColor: '#e8f5e9',
@@ -405,13 +424,17 @@ export default function ProfileView({ isVisible }) {
 							}}
 						>
 							<Text
-								style={{ fontWeight: 600, color: Colors.textColor, fontFamily: 'Outfit' }}
+								style={{
+									fontWeight: 600,
+									color: Colors.textColor,
+									fontFamily: styles.font.family
+								}}
 							>
 								Profile Notice
 							</Text>
 							<Text
 								style={{
-									fontFamily: 'Outfit',
+									fontFamily: styles.font.family,
 									fontSize: 12,
 									color: Colors.textColor + '9a'
 								}}
@@ -421,12 +444,13 @@ export default function ProfileView({ isVisible }) {
 								dermatologist for skin conditions or medical concerns.
 							</Text>
 						</View>
-					)}
+					)} */}
 				</View>
 			)}
 
 			{data?.profiling && (
 				<EditBottomSheet
+					activeTheme={activeTheme}
 					unSaveChanges={unSaveChanges}
 					onClose={onClose}
 					onSaveToDB={onSaveToDB}
@@ -449,9 +473,9 @@ export default function ProfileView({ isVisible }) {
 						style={{
 							rowGap: 8,
 							alignItems: 'center',
-							backgroundColor: Colors.backgroundColor,
+							backgroundColor: styles.theme.colors[activeTheme].card_background,
 							padding: 16,
-							borderRadius: 8
+							borderRadius: styles.border.radius.size.sm
 						}}
 					>
 						<Warn color='#ff7a7c' size={40} />
@@ -459,16 +483,25 @@ export default function ProfileView({ isVisible }) {
 						<View>
 							<Text
 								style={{
-									fontFamily: 'Outfit',
-									fontWeight: 500,
+									fontFamily: styles.font.family,
+									fontWeight: styles.font.weight.semi_bold,
 									textAlign: 'center',
-									fontSize: 16
+									fontSize: styles.font.size.lg,
+									color: styles.theme.colors[activeTheme].text
 								}}
 							>
 								Hang on a second.
 							</Text>
 
-							<Text style={{ fontFamily: 'Outfit' }}>
+							<Text
+								style={{
+									fontFamily: styles.font.family,
+									fontWeight: styles.font.weight.semi_bold,
+									textAlign: 'center',
+									fontSize: styles.font.size.md,
+									color: styles.theme.colors[activeTheme].text_secondary
+								}}
+							>
 								Any edits you made here will be lost.
 							</Text>
 						</View>
@@ -491,20 +524,38 @@ export default function ProfileView({ isVisible }) {
 									borderRadius: 8
 								}}
 							>
-								<Text style={{ fontFamily: 'Outfit', color: '#ff7a7c' }}>Discard</Text>
+								<Text
+									style={{
+										fontFamily: styles.font.family,
+										color: '#ff7a7c',
+										fontSize: styles.font.size.md
+									}}
+								>
+									Discard
+								</Text>
 							</TouchableOpacity>
 
 							<TouchableOpacity
 								onPress={closeModal}
 								activeOpacity={0.7}
 								style={{
-									backgroundColor: Colors.primary,
+									borderWidth: 1,
+									borderColor: styles.theme.colors[activeTheme].card_border,
+									backgroundColor: styles.theme.colors[activeTheme].card_background,
 									paddingVertical: 14,
 									paddingHorizontal: 16,
 									borderRadius: 8
 								}}
 							>
-								<Text style={{ fontFamily: 'Outfit', color: '#fff' }}>Keep Editing</Text>
+								<Text
+									style={{
+										fontFamily: styles.font.family,
+										color: styles.theme.colors[activeTheme].text,
+										fontSize: styles.font.size.md
+									}}
+								>
+									Keep Editing
+								</Text>
 							</TouchableOpacity>
 						</View>
 					</View>
@@ -525,16 +576,18 @@ export default function ProfileView({ isVisible }) {
 						style={{
 							padding: 18,
 							borderRadius: 10,
-							backgroundColor: Colors.backgroundColor,
+							backgroundColor: styles.theme.colors[activeTheme].card_background,
 							alignItems: 'center',
 							rowGap: 8
 						}}
 					>
-						<Swing size={28} color={Colors.primary} />
+						<Swing size={styles.icon.size.xl} color={styles.theme.colors.primary} />
 						<Text
 							style={{
-								fontFamily: 'Outfit',
-								fontWeight: 500
+								fontSize: styles.font.size.md,
+								fontFamily: styles.font.family,
+								fontWeight: styles.font.weight.light,
+								color: styles.theme.colors[activeTheme].text
 							}}
 						>
 							Saving changes...

@@ -1,3 +1,4 @@
+import styles from '@/config/styles';
 import { Pressable } from 'react-native';
 import { Shadow } from 'react-native-shadow-2';
 
@@ -9,19 +10,8 @@ export default function Card({ handleNavigate, children, containerStyle }) {
 			style={[
 				{
 					flex: 1,
-					borderRadius: 16,
-					padding: 16,
-					overflow: 'hidden',
-
-					shadowColor: '#00000023',
-					shadowOffset: {
-						width: 0,
-						height: 1
-					},
-					shadowOpacity: 0.2,
-					shadowRadius: 1.41,
-
-					elevation: 2
+					borderRadius: styles.border.radius.size.md,
+					overflow: 'hidden'
 				},
 				containerStyle
 			]}

@@ -61,8 +61,6 @@ export const useProfilingStore = create(
 						return;
 					}
 
-					console.log(value);
-
 					const currentArray = state.profile[section][key];
 					const foo = Questionnaire.find((item) => item.section === section)
 						.questions.find(({ identifier }) => identifier === key)
@@ -110,6 +108,9 @@ export const useProfilingStore = create(
 		setShowProfileZoom: (showProfileZoom) => set(() => ({ showProfileZoom })),
 
 		imageZoomSrc: null,
-		setImageZoomSrc: (value) => set(() => ({ imageZoomSrc: value }))
+		setImageZoomSrc: (value) => set(() => ({ imageZoomSrc: value })),
+
+		slideDirection: 'forward',
+		setSlideDirection: (value) => set(() => ({ slideDirection: value }))
 	}))
 );

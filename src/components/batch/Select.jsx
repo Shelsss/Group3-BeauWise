@@ -1,34 +1,60 @@
+import styles from '@/config/styles';
 import Colors from '@/constants/Colors';
 import { ChevronDown } from 'lucide-react-native';
-import { Pressable, Text } from 'react-native';
+import { Pressable, Text, TouchableOpacity, View } from 'react-native';
+import { createAnimatedComponent } from 'react-native-reanimated';
 
-export default function BatchSelect({ handleSelect, brandValue }) {
+const AnimatedTouchableOpacity = createAnimatedComponent(TouchableOpacity);
+
+export default function BatchSelect({
+	handleSelect,
+	brandText,
+	activeTheme,
+	error = undefined
+}) {
 	return (
-		<Pressable
-			onPress={handleSelect}
-			style={{
-				flexDirection: 'row',
-				alignItems: 'center',
-				backgroundColor: Colors.primary + '1a',
-				borderWidth: 1,
-				borderColor: Colors.primary + '4a',
-				paddingVertical: 14,
-				paddingHorizontal: 16,
-				borderRadius: 16,
-				marginTop: 8
-			}}
-		>
+		<View style={{ rowGap: styles.spacing.sm }}>
 			<Text
 				style={{
-					fontFamily: 'Outfit',
-					fontSize: 16,
-					marginRight: 'auto',
-					color: brandValue ? Colors.textColor : Colors.textColor + '7a'
+					fontFamily: styles.font.family,
+					fontSize: styles.font.size.sm,
+					color: styles.theme.colors[activeTheme].text
 				}}
 			>
-                {brandValue ? brandValue.text : "Select Brand" }
+				Select Brand
 			</Text>
-			<ChevronDown size={18} color={Colors.textColor + '7a'} />
-		</Pressable>
+
+			<AnimatedTouchableOpacity
+				activeOpacity={0.7}
+				onPress={handleSelect}
+				style={{
+					flexDirection: 'row',
+					alignItems: 'center',
+					backgroundColor: styles.theme.colors[activeTheme].input_background,
+					borderWidth: 1,
+					borderColor: error
+						? styles.theme.colors.status.red
+						: styles.theme.colors[activeTheme].input_border,
+					paddingVertical: 14,
+					paddingHorizontal: 16,
+					borderRadius: styles.border.radius.size.sm,
+					transitionDuration: 300
+				}}
+			>
+				<Text
+					style={{
+						fontFamily: styles.font.family,
+						fontSize: styles.font.size.md,
+						marginRight: 'auto',
+						color: brandText
+							? styles.theme.colors.batch
+							: styles.theme.colors[activeTheme].text_secondary
+					}}
+				>
+					{brandText ? brandText : 'e.g., Sunsilk, CeraVe'}
+				</Text>
+				<ChevronDown size={18} color={styles.theme.colors[activeTheme].icon + '7a'} />
+			</AnimatedTouchableOpacity>
+		</View>
 	);
 }

@@ -1,75 +1,88 @@
+// Note:
+// This route is not being used anymore.
+// Please look at the "processing.jsx" route instead.
+// It is kept for git history purposes.
+
 import Colors from '@/constants/Colors';
-import { useQuery } from '@tanstack/react-query';
+import { useGlobalSearchParams, router } from 'expo-router';
 import LottieView from 'lottie-react-native';
 import { useEffect } from 'react';
 import { Text, ToastAndroid, View } from 'react-native';
-import { useProfilingStore } from '@/stores/useProfilingStore';
 import { GoogleGenAI } from '@google/genai';
 import { z } from 'zod';
-import { router, useGlobalSearchParams } from 'expo-router';
+
 import {
-    collection,
-    doc,
-    getDoc,
-    getFirestore,
-    query
+	collection,
+	doc,
+	getDoc,
+	getFirestore,
+	query
 } from '@react-native-firebase/firestore';
 import { auth } from '@/services/auth';
-import { profileTags, exfoliantNames, emollientNames, emulsifierNames, skinLighteningNames, moisturizerNames, retinoidNames, skinRestoringNames } from '@/constants/ProfileTags';
+import {
+	profileTags,
+	exfoliantNames,
+	emollientNames,
+	emulsifierNames,
+	skinLighteningNames,
+	moisturizerNames,
+	retinoidNames,
+	skinRestoringNames
+} from '@/constants/ProfileTags';
 
 export default function Processing() {
-    const { name, brand, notes, ingredients } = useGlobalSearchParams();
-    const db = getFirestore();
+	const { name, brand, notes, ingredients } = useGlobalSearchParams();
+	const db = getFirestore();
 
-    const fetchData = async () => {
-        const queryOption = query(doc(db, 'users', auth.currentUser.uid));
+	const fetchData = async () => {
+		const queryOption = query(doc(db, 'users', auth.currentUser.uid));
 
-        const documentSnapshot = await getDoc(queryOption);
+		const documentSnapshot = await getDoc(queryOption);
 
-        return documentSnapshot.data().profiling;
-    };
+		return documentSnapshot.data().profiling;
+	};
 
-    const fetchIngredients = async () => {
-        const queryOption = query(collection(db, 'ingredients_glossary'));
+	const fetchIngredients = async () => {
+		const queryOption = query(collection(db, 'ingredients_glossary'));
 
-        const collectionSnapshot = await getDocs(queryOption);
+		const collectionSnapshot = await getDocs(queryOption);
 
-        return collectionSnapshot.docs.map(doc => doc.data());
-    };
+		return collectionSnapshot.docs.map((doc) => doc.data());
+	};
 
-    const ai = new GoogleGenAI({
-        apiKey: process.env.EXPO_PUBLIC_GEMINI_API_KEY,
-    });
+	const ai = new GoogleGenAI({
+		apiKey: process.env.EXPO_PUBLIC_GEMINI_API_KEY
+	});
 
-    const flaggedIngredientSchema = z.object({
-        status: z.enum(['restricted', 'aligned', 'attention', 'base', 'unrecognized']),
-        ingredientName: z.string(),
-        ingredientDescription: z.string(),
-    });
+	const flaggedIngredientSchema = z.object({
+		status: z.enum(['restricted', 'aligned', 'attention', 'base', 'unrecognized']),
+		ingredientName: z.string(),
+		ingredientDescription: z.string()
+	});
 
-    const contextURLs = [
-        "https://www.jessicaelizabethskincare.com/wp-content/uploads/2023/01/Pore-Clogging-Ingredients-.pdf",
-        "https://www.personalcarecouncil.org/wp-content/uploads/2023/03/INCI-Nomenclature-Conventions-and-Reference-Information-2023.pdf",
-        "https://asean.org/wp-content/uploads/2023/08/Annex-II-Release_5-Jun-2023.pdf",
-        "https://www.aseancosmetics.org/docdocs/technical.pdf",
-        "https://int.eucerin.com/about-skin/basic-skin-knowledge/skin-types",
-        "https://www.medicalnewstoday.com/articles/hair-types#hair-types",
-        "https://pmc.ncbi.nlm.nih.gov/articles/PMC6560912/pdf/12915_2019_Article_660.pdf",
-        "https://health.clevelandclinic.org/skin-care-ingredients-explained",
-        "https://www.researchgate.net/publication/334857152_Impact_of_Selected_Cosmetic_Ingredients_on_Common_Microorganisms_of_Healthy_Human_Skin/fulltext/5d439a27299bf1995b5e6729/Impact-of-Selected-Cosmetic-Ingredients-on-Common-Microorganisms-of-Healthy-Human-Skin.pdf?_tp=eyJjb250ZXh0Ijp7ImZpcnN0UGFnZSI6InB1YmxpY2F0aW9uIiwicGFnZSI6InB1YmxpY2F0aW9uIn19",
-        "https://www.clinikally.com/blogs/news/harmful-hair-care-ingredients-to-avoid",
-        "https://dela.pl/a-guide-to-active-ingredients-in-cosmetics-understand-and-use-to-your-advantage/"
-    ]
+	const contextURLs = [
+		'https://www.jessicaelizabethskincare.com/wp-content/uploads/2023/01/Pore-Clogging-Ingredients-.pdf',
+		'https://www.personalcarecouncil.org/wp-content/uploads/2023/03/INCI-Nomenclature-Conventions-and-Reference-Information-2023.pdf',
+		'https://asean.org/wp-content/uploads/2023/08/Annex-II-Release_5-Jun-2023.pdf',
+		'https://www.aseancosmetics.org/docdocs/technical.pdf',
+		'https://int.eucerin.com/about-skin/basic-skin-knowledge/skin-types',
+		'https://www.medicalnewstoday.com/articles/hair-types#hair-types',
+		'https://pmc.ncbi.nlm.nih.gov/articles/PMC6560912/pdf/12915_2019_Article_660.pdf',
+		'https://health.clevelandclinic.org/skin-care-ingredients-explained',
+		'https://www.researchgate.net/publication/334857152_Impact_of_Selected_Cosmetic_Ingredients_on_Common_Microorganisms_of_Healthy_Human_Skin/fulltext/5d439a27299bf1995b5e6729/Impact-of-Selected-Cosmetic-Ingredients-on-Common-Microorganisms-of-Healthy-Human-Skin.pdf?_tp=eyJjb250ZXh0Ijp7ImZpcnN0UGFnZSI6InB1YmxpY2F0aW9uIiwicGFnZSI6InB1YmxpY2F0aW9uIn19',
+		'https://www.clinikally.com/blogs/news/harmful-hair-care-ingredients-to-avoid',
+		'https://dela.pl/a-guide-to-active-ingredients-in-cosmetics-understand-and-use-to-your-advantage/'
+	];
 
-    const outputSchema = z.object({
-        flagged_ingredients: z.array(flaggedIngredientSchema),
-    });
+	const outputSchema = z.object({
+		flagged_ingredients: z.array(flaggedIngredientSchema)
+	});
 
-    //TODO: implement storage of scan history in Firebase, and retrieval of scan history in history screen
+	//TODO: implement storage of scan history in Firebase, and retrieval of scan history in history screen
 
-    const analyzeIngredients = async (input) => {
-        const { ingredients, userProfile, contextURLs } = input;
-        const prompt = `You are an objective cosmetic data-matching engine. Your task is to categorize a provided list of cosmetic ingredients based strictly on established cosmetic literature (such as the ASEAN Cosmetic Directive, FDA guidelines, and standard comedogenic scales) and cross-reference them with the user's self-reported skin and hair profile. 
+	const analyzeIngredients = async (input) => {
+		const { ingredients, userProfile, contextURLs } = input;
+		const prompt = `You are an objective cosmetic data-matching engine. Your task is to categorize a provided list of cosmetic ingredients based strictly on established cosmetic literature (such as the ASEAN Cosmetic Directive, FDA guidelines, and standard comedogenic scales) and cross-reference them with the user's self-reported skin and hair profile. 
 
     CRITICAL RULES:
     1. DO NOT act as a dermatologist or a medical professional.
@@ -123,217 +136,229 @@ export default function Processing() {
           "description": "Brief, objective reasoning based on cosmetic literature and the user profile."
         }
       ]
-    }`
+    }`;
 
-        const response = ai.models.generateContent({
-            model: "gemini-3-flash-preview",
-            contents: prompt,
-            config: {
-                responseMimeType: "application/json",
-                responseJsonSchema: z.toJSONSchema(outputSchema),
-            },
-        });
+		const response = ai.models.generateContent({
+			model: 'gemini-3-flash-preview',
+			contents: prompt,
+			config: {
+				responseMimeType: 'application/json',
+				responseJsonSchema: z.toJSONSchema(outputSchema)
+			}
+		});
 
-        return response;
-    }
+		return response;
+	};
 
-    const startAnalysis = async () => {
-        try {
-            const userData = await fetchData();
-            const result = await analyzeIngredients({
-                ingredients: ingredients.split(',').map((item) => item.trim()),
-                userProfile: userData,
-                contextURLs: contextURLs,
-            });
+	const startAnalysis = async () => {
+		try {
+			const userData = await fetchData();
+			const result = await analyzeIngredients({
+				ingredients: ingredients.split(',').map((item) => item.trim()),
+				userProfile: userData,
+				contextURLs: contextURLs
+			});
 
-            const parsedResult = outputSchema.parse(JSON.parse(result.text));
-            const recommendations = await generateRecommendations();
-            parsedResult = parsedResult.concat(recommendations);
-            return parsedResult;
-        } catch (err) {
-            ToastAndroid.show('An error occurred during analysis. ' + err.message, ToastAndroid.LONG);
-            console.error('Error during analysis:', err);
-            router.back();
-        }
-    }
+			const parsedResult = outputSchema.parse(JSON.parse(result.text));
+			const recommendations = await generateRecommendations();
+			parsedResult = parsedResult.concat(recommendations);
+			return parsedResult;
+		} catch (err) {
+			ToastAndroid.show(
+				'An error occurred during analysis. ' + err.message,
+				ToastAndroid.LONG
+			);
+			console.error('Error during analysis:', err);
+			router.back();
+		}
+	};
 
+	const generateProfileTagWeights = async () => {
+		const userProfile = await fetchData();
+		let profileWeights = {};
+		let userProfileTags = [];
+		for (const section in userProfile) {
+			if (section === 'about_you') {
+				continue;
+			}
+			for (const question in userProfile[section]) {
+				if (
+					Array.isArray(userProfile[section][question]) &&
+					userProfile[section][question].length < 1
+				) {
+					continue;
+				}
+				if (question === 'chemical_treatments') {
+					for (const items of userProfile[section][question]) {
+						userProfileTags = userProfileTags.concat(
+							profileTags[section][question][items]
+						);
+					}
+				} else {
+					const answer = userProfile[section][question];
+					userProfileTags = userProfileTags.concat(
+						profileTags[section][question][answer]
+					);
+				}
+			}
+		}
 
-    const generateProfileTagWeights = async () => {
-        const userProfile = await fetchData();
-        let profileWeights = {};
-        let userProfileTags = [];
-        for (const section in userProfile) {
-            if (section === 'about_you') {
-                continue;
-            }
-            for (const question in userProfile[section]) {
-                if (Array.isArray(userProfile[section][question]) && userProfile[section][question].length < 1) {
-                    continue;
-                }
-                if (question === 'chemical_treatments') {
-                    for (const items of userProfile[section][question]) {
-                        userProfileTags = userProfileTags.concat(profileTags[section][question][items]);
-                    }
-                } else {
-                    const answer = userProfile[section][question];
-                    userProfileTags = userProfileTags.concat(profileTags[section][question][answer]);
-                }
-            }
-        }
+		for (const tag of userProfileTags) {
+			if (tag === 'Exfoliant') {
+				const removeIndex = userProfileTags.indexOf(tag);
+				if (removeIndex > -1) {
+					userProfileTags = userProfileTags.splice(removeIndex, 1);
+				}
+				userProfileTags = userProfileTags.concat(exfoliantNames);
+			}
+			if (tag === 'Emollient') {
+				const removeIndex = userProfileTags.indexOf(tag);
+				if (removeIndex > -1) {
+					userProfileTags = userProfileTags.splice(removeIndex, 1);
+				}
+				userProfileTags = userProfileTags.concat(emollientNames);
+			}
+			if (tag === 'Emulsifier') {
+				const removeIndex = userProfileTags.indexOf(tag);
+				if (removeIndex > -1) {
+					userProfileTags = userProfileTags.splice(removeIndex, 1);
+				}
+				userProfileTags = userProfileTags.concat(emulsifierNames);
+			}
+			if (tag === 'Skin Lightening') {
+				const removeIndex = userProfileTags.indexOf(tag);
+				if (removeIndex > -1) {
+					userProfileTags = userProfileTags.splice(removeIndex, 1);
+				}
+				userProfileTags = userProfileTags.concat(skinLighteningNames);
+			}
+			if (tag === 'Moisturizer') {
+				const removeIndex = userProfileTags.indexOf(tag);
+				if (removeIndex > -1) {
+					userProfileTags = userProfileTags.splice(removeIndex, 1);
+				}
+				userProfileTags = userProfileTags.concat(moisturizerNames);
+			}
+			if (tag === 'Retinoid') {
+				const removeIndex = userProfileTags.indexOf(tag);
+				if (removeIndex > -1) {
+					userProfileTags = userProfileTags.splice(removeIndex, 1);
+				}
+				userProfileTags = userProfileTags.concat(retinoidNames);
+			}
+			if (tag === 'Skin Restoring') {
+				const removeIndex = userProfileTags.indexOf(tag);
+				if (removeIndex > -1) {
+					userProfileTags = userProfileTags.splice(removeIndex, 1);
+				}
+				userProfileTags = userProfileTags.concat(skinRestoringNames);
+			}
+		}
 
-        for (const tag of userProfileTags) {
-            if (tag === 'Exfoliant') {
-                const removeIndex = userProfileTags.indexOf(tag)
-                if (removeIndex > -1) {
-                    userProfileTags = userProfileTags.splice(removeIndex, 1)
-                }
-                userProfileTags = userProfileTags.concat(exfoliantNames);
-            }
-            if (tag === 'Emollient') {
-                const removeIndex = userProfileTags.indexOf(tag)
-                if (removeIndex > -1) {
-                    userProfileTags = userProfileTags.splice(removeIndex, 1)
-                }
-                userProfileTags = userProfileTags.concat(emollientNames);
-            }
-            if (tag === 'Emulsifier') {
-                const removeIndex = userProfileTags.indexOf(tag)
-                if (removeIndex > -1) {
-                    userProfileTags = userProfileTags.splice(removeIndex, 1)
-                }
-                userProfileTags = userProfileTags.concat(emulsifierNames);
-            }
-            if (tag === 'Skin Lightening') {
-                const removeIndex = userProfileTags.indexOf(tag)
-                if (removeIndex > -1) {
-                    userProfileTags = userProfileTags.splice(removeIndex, 1)
-                }
-                userProfileTags = userProfileTags.concat(skinLighteningNames);
-            }
-            if (tag === 'Moisturizer') {
-                const removeIndex = userProfileTags.indexOf(tag)
-                if (removeIndex > -1) {
-                    userProfileTags = userProfileTags.splice(removeIndex, 1)
-                }
-                userProfileTags = userProfileTags.concat(moisturizerNames);
-            }
-            if (tag === 'Retinoid') {
-                const removeIndex = userProfileTags.indexOf(tag)
-                if (removeIndex > -1) {
-                    userProfileTags = userProfileTags.splice(removeIndex, 1)
-                }
-                userProfileTags = userProfileTags.concat(retinoidNames);
-            }
-            if (tag === 'Skin Restoring') {
-                const removeIndex = userProfileTags.indexOf(tag)
-                if (removeIndex > -1) {
-                    userProfileTags = userProfileTags.splice(removeIndex, 1)
-                }
-                userProfileTags = userProfileTags.concat(skinRestoringNames);
-            }
-        }
+		for (const tag of userProfileTags) {
+			if (profileWeights[tag]) {
+				profileWeights[tag] += 1;
+			} else {
+				profileWeights[tag] = 1;
+			}
+		}
 
-        for (const tag of userProfileTags) {
-            if (profileWeights[tag]) {
-                profileWeights[tag] += 1
-            } else {
-                profileWeights[tag] = 1
-            }
-        }
+		return profileWeights;
+	};
 
+	const generateRecommendations = async () => {
+		const profileWeights = await generateProfileTagWeights();
+		let rankedIngredients = [];
 
-        return profileWeights;
+		//TODO: convert to fetch ingredients in a seperate function
+		const queryOption = query(collection(db, 'ingredients_glossary'));
 
-    }
+		const collectionSnapshot = await getDocs(queryOption);
 
-    const generateRecommendations = async () => {
-        const profileWeights = await generateProfileTagWeights();
-        let rankedIngredients = [];
+		collectionSnapshot.forEach((doc) => {
+			let ranking = 0;
+			if (doc.data().ingredient_name === 'Chemical X') {
+				return; //NOTE: Skip chemical X from recommendations, its in DB
+			}
+			for (const category of doc.data().category) {
+				if (profileWeights[category]) {
+					ranking += profileWeights[category];
+				}
+			}
+			const rankedIngredient = {
+				ingredient: doc.data().ingredient_name,
+				flag: 'recommended',
+				ranking: ranking
+			};
+			rankedIngredients = [...rankedIngredients, rankedIngredient];
+		});
 
-        //TODO: convert to fetch ingredients in a seperate function
-        const queryOption = query(collection(db, 'ingredients_glossary'));
+		rankedIngredients.sort((a, b) => {
+			if (a.ranking < b.ranking) return 1;
+			if (a.ranking > b.ranking) return -1;
+			return 0;
+		});
 
-        const collectionSnapshot = await getDocs(queryOption);
+		return rankedIngredients;
+	};
 
-        collectionSnapshot.forEach((doc) => {
-            let ranking = 0;
-            if (doc.data().ingredient_name === "Chemical X") {
-                return; //NOTE: Skip chemical X from recommendations, its in DB
-            }
-            for (const category of doc.data().category) {
-                if (profileWeights[category]) {
-                    ranking += profileWeights[category]
-                }
-            }
-            const rankedIngredient = {
-                ingredient: doc.data().ingredient_name,
-                flag: "recommended",
-                ranking: ranking
-            };
-            rankedIngredients = [...rankedIngredients, rankedIngredient];
-        })
+	useEffect(() => {
+		startAnalysis()
+			.then((res) => {
+				//NOTE: for some reason, without this log it tries to route before the result even return, will investigate later
+				console.log('Analysis result:', res);
+				router.replace({
+					pathname: 'scanner/results',
+					params: {
+						name,
+						brand,
+						notes,
+						flaggedIngredients: JSON.stringify(res.flagged_ingredients)
+					}
+				});
+			})
+			.catch((err) => {
+				ToastAndroid.show(
+					'An error occurred during analysis. ' + err.message,
+					ToastAndroid.LONG
+				);
+				console.error('Error during analysis:', err);
+				router.back();
+			});
+	}, []);
 
-        rankedIngredients.sort((a, b) => {
-            if (a.ranking < b.ranking) return 1;
-            if (a.ranking > b.ranking) return -1;
-            return 0;
-        });
-
-        return rankedIngredients;
-    }
-
-    useEffect(() => {
-        startAnalysis().then((res) => {
-            //NOTE: for some reason, without this log it tries to route before the result even return, will investigate later
-            console.log('Analysis result:', res);
-            router.replace({
-                pathname: 'scanner/results',
-                params: {
-                    name,
-                    brand,
-                    notes,
-                    flaggedIngredients: JSON.stringify(res.flagged_ingredients),
-                }
-            });
-        }).catch((err) => {
-            ToastAndroid.show('An error occurred during analysis. ' + err.message, ToastAndroid.LONG);
-            console.error('Error during analysis:', err);
-            router.back();
-        });
-    }, []);
-
-    return (
-        <View
-            style={{
-                flex: 1,
-                justifyContent: 'center',
-                alignItems: 'center'
-            }}
-        >
-            <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-                <LottieView
-                    style={{
-                        aspectRatio: 1,
-                        width: 600
-                    }}
-                    resizeMode='contain'
-                    speed={1.5}
-                    autoPlay
-                    loop={true}
-                    source={require('assets/lottie/flask-loading.json')}
-                />
-                <Text
-                    style={{
-                        position: 'absolute',
-                        top: 400,
-                        fontSize: 30,
-                        fontWeight: 600,
-                        color: Colors.textColor
-                    }}
-                >
-                    Loading
-                </Text>
-            </View>
-        </View>
-    );
+	return (
+		<View
+			style={{
+				flex: 1,
+				justifyContent: 'center',
+				alignItems: 'center'
+			}}
+		>
+			<View style={{ alignItems: 'center', justifyContent: 'center' }}>
+				<LottieView
+					style={{
+						aspectRatio: 1,
+						width: 600
+					}}
+					resizeMode='contain'
+					speed={1.5}
+					autoPlay
+					loop={true}
+					source={require('assets/lottie/flask-loading.json')}
+				/>
+				<Text
+					style={{
+						position: 'absolute',
+						top: 400,
+						fontSize: 30,
+						fontWeight: 600,
+						color: Colors.textColor
+					}}
+				>
+					Loading
+				</Text>
+			</View>
+		</View>
+	);
 }

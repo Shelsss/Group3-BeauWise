@@ -4,34 +4,54 @@ import Colors from '@/constants/Colors';
 import { X } from 'lucide-react-native';
 import { StyleSheet, Text, View } from 'react-native';
 import { useSharedValue } from 'react-native-worklets-core';
+import styles from './styles';
+import Info from '@/components/icons/Info';
 
 export default {
 	successToast: ({ text1, text2, props }) => {
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const width = useSharedValue();
-
 		return (
 			<View
 				style={[
 					{
-						backgroundColor: Colors.primary
+						backgroundColor: styles.theme.colors[props?.activeTheme]?.screen_background,
+						borderWidth: props?.activeTheme === 'light' ? 2 : 0,
+						borderColor:
+							props?.activeTheme === 'light'
+								? styles.theme.colors.primary_tint
+								: 'transparent'
 					},
 					STYLES.base
 				]}
 			>
-				<Tick color='#fff' />
+				<Tick color={styles.theme.colors[props?.activeTheme]?.icon} />
 				<View>
-					<Text style={[{ fontSize: 12 }, STYLES.typography]}>{text1}</Text>
-					<Text style={[{ fontSize: 10 }, STYLES.typography]}>{text2}</Text>
+					<Text
+						style={[
+							{ fontSize: 12, color: styles.theme.colors[props?.activeTheme]?.text },
+							STYLES.typography
+						]}
+					>
+						{text1}
+					</Text>
+					{text2 && (
+						<Text
+							style={[
+								{
+									fontSize: 10,
+									color: styles.theme.colors[props?.activeTheme]?.text_secondary
+								},
+								STYLES.typography
+							]}
+						>
+							{text2}
+						</Text>
+					)}
 				</View>
 			</View>
 		);
 	},
 
 	errorToast: ({ text1, text2, props }) => {
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const width = useSharedValue();
-
 		return (
 			<View
 				style={[
@@ -42,11 +62,77 @@ export default {
 				]}
 			>
 				<Warn color='#fff' />
-				<View style={{ alignItems: 'center' }}>
-					<Text style={[{ fontSize: 12, textAlign: 'center' }, STYLES.typography]}>
+				<View style={{ alignItems: text2 ? 'flex-start' : 'center' }}>
+					<Text
+						style={[
+							{
+								fontSize: 12,
+
+								fontFamily: styles.font.family,
+								color: styles.font.colors._04
+							},
+							STYLES.typography
+						]}
+					>
 						{text1}
 					</Text>
-					{text2 && <Text style={[{ fontSize: 10 }, STYLES.typography]}>{text2}</Text>}
+					{text2 && (
+						<Text
+							style={[
+								{
+									fontSize: 10,
+									fontFamily: styles.font.family,
+									color: styles.font.colors._04
+								},
+								STYLES.typography
+							]}
+						>
+							{text2}
+						</Text>
+					)}
+				</View>
+			</View>
+		);
+	},
+	infoToast: ({ text1, text2, props }) => {
+		return (
+			<View
+				style={[
+					STYLES.base,
+					{
+						backgroundColor: styles.theme.colors.primary
+					}
+				]}
+			>
+				<Info color='#fff' />
+				<View style={{ alignItems: text2 ? 'flex-start' : 'center' }}>
+					<Text
+						style={[
+							{
+								fontSize: 12,
+
+								fontFamily: styles.font.family,
+								color: styles.font.colors._04
+							},
+							STYLES.typography
+						]}
+					>
+						{text1}
+					</Text>
+					{text2 && (
+						<Text
+							style={[
+								{
+									fontSize: 10,
+									fontFamily: styles.font.family,
+									color: styles.font.colors._04
+								},
+								STYLES.typography
+							]}
+						>
+							{text2}
+						</Text>
+					)}
 				</View>
 			</View>
 		);
@@ -65,8 +151,6 @@ const STYLES = StyleSheet.create({
 	},
 
 	typography: {
-		fontFamily: 'Outfit',
-
-		color: '#fff'
+		fontFamily: styles.font.family
 	}
 });

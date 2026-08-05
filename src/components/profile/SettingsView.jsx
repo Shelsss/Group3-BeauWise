@@ -1,21 +1,62 @@
 import Colors from '@/constants/Colors';
 import PagePadding from '@/constants/PagePadding';
-import { logOut } from '@/services/auth';
+import { auth, logOut } from '@/services/auth';
 import { useAuthStore } from '@/stores/useAuthStore';
 
 import { router } from 'expo-router';
-import { ChevronRight, LockKeyhole, LogOut } from 'lucide-react-native';
-import { useState } from 'react';
+import { ChevronRight } from 'lucide-react-native';
+import { useCallback, useRef, useState } from 'react';
 
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useColorScheme } from 'react-native';
 import { Modal, Portal } from 'react-native-paper';
 import Lock2 from '../icons/hugeicons/Lock2';
 import { useProfilingStore } from '@/stores/useProfilingStore';
+import styles from '@/config/styles';
+import { useThemeStore } from '@/stores/useThemeStore';
+import Warn2 from '../icons/hugeicons/Warn2';
+import File from '../icons/hugeicons/File';
+import Shield from '../icons/hugeicons/Shield';
+import Paint from '../icons/hugeicons/Paint';
+import Caduceaus from '../icons/hugeicons/Caduceaus';
+import Warn from '../icons/hugeicons/Warn';
+import AgentSupport from '../icons/hugeicons/AgentSupport';
+import {
+	BottomSheetBackdrop,
+	BottomSheetModal,
+	BottomSheetView,
+	useBottomSheetModal,
+	useBottomSheetSpringConfigs
+} from '@gorhom/bottom-sheet';
+import Sun from '../icons/hugeicons/Sun';
+import Moon from '../icons/hugeicons/Moon';
+import Settings from '../icons/hugeicons/Settings';
+import PasswordChange from '../icons/hugeicons/PasswordChange';
+import Email from '../icons/hugeicons/Email';
+import Logout from '../icons/hugeicons/Logout';
+import Remove from '../icons/hugeicons/Remove';
+
+const themes = [
+	{
+		value: 'light',
+		icon: (size, color) => <Sun size={size} color={color} />
+	},
+	{
+		value: 'dark',
+		icon: (size, color) => <Moon size={size} color={color} />
+	},
+	{
+		value: 'system',
+		icon: (size, color) => <Settings size={size} color={color} />
+	}
+];
 
 const settingSchema = [
 	{
 		title: 'Account',
 		hasAuthentication: true,
+		isVisible: () => {
+			return auth.currentUser?.providerData[0]?.providerId === 'password';
+		},
 		sets: [
 			{
 				name: 'Sign In / Create Account',
@@ -23,11 +64,31 @@ const settingSchema = [
 			},
 			{
 				name: 'Change Password',
-				action: () => {}
+				icon: (size, color) => <PasswordChange size={size} color={color} />,
+				action: () => {
+					router.push('/authentication/password-change');
+				}
 			},
 			{
 				name: 'Update Email',
-				action: () => {}
+				icon: (size, color) => <Email size={size} color={color} />,
+				action: () => {
+					router.push('/authentication/email-change');
+				}
+			}
+		]
+	},
+
+	{
+		title: 'Appearance',
+
+		sets: [
+			{
+				name: 'Theme',
+				icon: (size, color) => <Paint size={size} color={color} />,
+				action: (ref) => {
+					ref?.current?.present();
+				}
 			}
 		]
 	},
@@ -39,11 +100,15 @@ const settingSchema = [
 		sets: [
 			{
 				name: 'Log Out',
+				icon: (size, color) => <Logout size={size} color={color} />,
 				action: () => {}
 			},
 			{
 				name: 'Delete Account',
-				action: () => {}
+				icon: (size, color) => <Remove size={size} color={color} />,
+				action: () => {
+					router.push('/authentication/account-deletion/initial');
+				}
 			}
 		]
 	},
@@ -53,25 +118,30 @@ const settingSchema = [
 		group: 'legal-support',
 		sets: [
 			{
+				name: 'About BeauWise',
+				icon: (size, color) => <Warn size={size} color={color} />,
+				action: () => router.push('legal-support/about-us')
+			},
+			{
 				name: 'Terms of Service',
+				icon: (size, color) => <File size={size} color={color} />,
 				action: () => router.push('legal-support/terms-of-service')
 			},
 			{
 				name: 'Privacy Policy',
+				icon: (size, color) => <Shield size={size} color={color} />,
 				action: () => router.push('legal-support/privacy-policy')
-			},
-			{
-				name: 'About Us',
-				action: () => router.push('legal-support/about-us')
 			},
 
 			{
 				name: 'Medical Disclaimer',
+				icon: (size, color) => <Caduceaus size={size} color={color} />,
 				action: () => router.push('legal-support/medical-disclaimer')
 			},
 
 			{
 				name: 'Contact Support',
+				icon: (size, color) => <AgentSupport size={size} color={color} />,
 				action: () => router.push('legal-support/contact-support')
 			}
 		]
@@ -79,6 +149,17 @@ const settingSchema = [
 ];
 
 export default function SettingsView({ isVisible }) {
+	const systemTheme = useColorScheme() ?? 'light';
+	const themeMode = useThemeStore((state) => state.themeMode);
+	const setThemeMode = useThemeStore((state) => state.setThemeMode);
+	const activeTheme = themeMode === 'system' ? systemTheme : themeMode;
+
+	const themeModalRef = useRef(null);
+
+	const renderBackdropComponent = useCallback(
+		(props) => <BottomSheetBackdrop {...props} opacity={0.9} disappearsOnIndex={-1} />,
+		[]
+	);
 	const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 	const resetProfile = useProfilingStore((state) => state.resetProfile);
 	const [visible, setVisible] = useState(false);
@@ -86,13 +167,13 @@ export default function SettingsView({ isVisible }) {
 	const showModal = () => setVisible(true);
 	const hideModal = () => setVisible(false);
 
-	const handlePress = (name, action) => () => {
+	const handlePress = (name, action, ref) => () => {
 		if (name === 'Log Out') {
 			showModal();
 			return;
 		}
 
-		action.call();
+		action(ref);
 	};
 
 	const handleSignOut = async () => {
@@ -100,6 +181,11 @@ export default function SettingsView({ isVisible }) {
 		resetProfile();
 		hideModal();
 	};
+
+	const animationConfigs = useBottomSheetSpringConfigs({
+		damping: 120,
+		stiffness: 920
+	});
 
 	return (
 		<>
@@ -116,71 +202,143 @@ export default function SettingsView({ isVisible }) {
 			>
 				{!isAuthenticated && (
 					<View style={STYLES.container}>
-						<Text style={[STYLES.titleStyle]}>{settingSchema[0].title}</Text>
-						<View style={STYLES.itemContainerStyle}>
+						<Text
+							style={[
+								STYLES.titleStyle,
+								{ color: styles.theme.colors[activeTheme].text }
+							]}
+						>
+							{settingSchema[0].title}
+						</Text>
+						<View
+							style={[
+								STYLES.itemContainerStyle,
+								{
+									borderWidth: 1,
+									backgroundColor: styles.theme.colors[activeTheme].card_background,
+									borderColor: styles.theme.colors[activeTheme].card_border
+								}
+							]}
+						>
 							<View>
 								<TouchableOpacity
 									onPress={() => router.push('authentication/sign-in')}
 									style={[STYLES.itemStyle]}
 								>
 									<View style={{ marginRight: 8 }}>
-										<Lock2 color={Colors.textColor} size={14} />
+										<Lock2
+											color={styles.theme.colors[activeTheme].icon + '9a'}
+											size={styles.icon.size.lg}
+										/>
 									</View>
 
-									<Text style={[STYLES.itemTextStyle]}>Sign In / Create Account</Text>
-									<ChevronRight size={14} />
+									<Text
+										style={[
+											STYLES.itemTextStyle,
+											{ color: styles.theme.colors[activeTheme].text }
+										]}
+									>
+										Sign In / Create Account
+									</Text>
+									<ChevronRight
+										color={styles.theme.colors[activeTheme].icon}
+										size={styles.icon.size.md}
+									/>
 								</TouchableOpacity>
 							</View>
 						</View>
 					</View>
 				)}
 
-				{settingSchema.map(({ title, hasAuthentication, color, sets }, itemIndex) => {
-					if (hasAuthentication && !isAuthenticated) {
-						return null;
-					}
+				{settingSchema.map(
+					({ title, hasAuthentication, color, sets, isVisible }, itemIndex) => {
+						if (hasAuthentication && !isAuthenticated) {
+							return null;
+						}
 
-					return (
-						<View key={title + `-${itemIndex}`} style={STYLES.container}>
-							<Text style={[STYLES.titleStyle, color && { color: color }]}>{title}</Text>
-							<View style={STYLES.itemContainerStyle}>
-								{sets.map(
-									({ name, action }, index) =>
-										name !== 'Sign In / Create Account' && (
-											<View key={name + `-${index}`}>
-												<TouchableOpacity
-													onPress={handlePress(name, action)}
-													style={[STYLES.itemStyle]}
-												>
-													<Text style={[STYLES.itemTextStyle, color && { color: color }]}>
-														{name}
-													</Text>
-													<ChevronRight size={14} />
-												</TouchableOpacity>
-												{index !== sets.length - 1 && <Seperator />}
-											</View>
-										)
-								)}
+						if (isVisible !== undefined && !isVisible() && title === 'Account') {
+							return null;
+						}
+
+						return (
+							<View key={title + `-${itemIndex}`} style={STYLES.container}>
+								<Text
+									style={[
+										STYLES.titleStyle,
+										{ color: styles.theme.colors[activeTheme].text },
+										color && { color: color }
+									]}
+								>
+									{title}
+								</Text>
+								<View
+									style={[
+										STYLES.itemContainerStyle,
+										{
+											borderWidth: 1,
+											backgroundColor: styles.theme.colors[activeTheme].card_background,
+											borderColor: styles.theme.colors[activeTheme].card_border
+										}
+									]}
+								>
+									{sets.map(
+										({ name, action, icon }, index) =>
+											name !== 'Sign In / Create Account' && (
+												<View key={name + `-${index}`}>
+													<TouchableOpacity
+														onPress={handlePress(name, action, themeModalRef)}
+														style={[STYLES.itemStyle]}
+													>
+														<View style={{ marginRight: 8 }}>
+															{icon(
+																styles.icon.size.xl,
+																styles.theme.colors[activeTheme].icon + '9a'
+															)}
+														</View>
+
+														<Text
+															style={[
+																STYLES.itemTextStyle,
+																{
+																	color: styles.theme.colors[activeTheme].text,
+																	textTransform: 'capitalize'
+																}
+															]}
+														>
+															{name} {name === 'Theme' && `(${themeMode})`}
+														</Text>
+														<ChevronRight
+															color={styles.theme.colors[activeTheme].icon}
+															size={styles.icon.size.md}
+														/>
+													</TouchableOpacity>
+													{index !== sets.length - 1 && (
+														<Seperator activeTheme={activeTheme} />
+													)}
+												</View>
+											)
+									)}
+								</View>
 							</View>
-						</View>
-					);
-				})}
+						);
+					}
+				)}
 
 				<Text
 					style={{
-						color: Colors.textColor + '7a',
+						color: styles.font.colors._01 + '7a',
 						textAlign: 'center',
-						fontFamily: 'Outfit'
+						fontSize: styles.font.size.md,
+						fontFamily: styles.font.family
 					}}
 				>
 					BeauWise Version 1.0.0 {!isAuthenticated && '(Guest Mode)'}
 				</Text>
 			</View>
-
 			<Portal>
 				<Modal
 					style={{
-						marginHorizontal: PagePadding.config.paddingHorizontal
+						marginHorizontal: styles.spacing.one_xxl
 					}}
 					visible={visible}
 					onDismiss={hideModal}
@@ -189,47 +347,47 @@ export default function SettingsView({ isVisible }) {
 				>
 					<View
 						style={{
-							borderRadius: 20,
+							borderRadius: styles.border.radius.size.sm,
 							padding: 20,
 							rowGap: 20,
-							backgroundColor: Colors.backgroundColor
+							backgroundColor: styles.theme.colors[activeTheme].card_background
 						}}
 					>
 						<View
 							style={{
-								backgroundColor: '#ff4D4f1a',
 								padding: 20,
-								borderRadius: 40,
+								borderRadius: styles.border.radius.size.sm,
 								alignSelf: 'center'
 							}}
 						>
-							<LogOut size={28} color={'#ff4D4f'} />
+							<Logout size={styles.icon.size.xl * 2.7} color={'#ff4D4f'} />
 						</View>
 
 						<View
 							style={{
 								justifyContent: 'center',
-								alignItems: 'center'
+								alignItems: 'center',
+								rowGap: styles.spacing.lg
 							}}
 						>
 							<Text
 								style={{
-									fontFamily: 'Outfit',
-									color: '#000',
-									fontWeight: 700,
-									fontSize: 24
+									fontFamily: styles.font.family,
+									color: styles.theme.colors[activeTheme].text,
+									fontWeight: styles.font.weight.semi_bold,
+									fontSize: styles.font.size.xxl
 								}}
 							>
-								Log Out of BeauWise?
+								Log Out?
 							</Text>
 							<Text
 								style={{
 									lineHeight: 22,
-									fontFamily: 'Outfit',
+									fontFamily: styles.font.family,
 									width: '80%',
 									textAlign: 'center',
-									fontSize: 12,
-									color: Colors.textColor + '7a'
+									fontSize: styles.font.size.sm,
+									color: styles.theme.colors[activeTheme].text_secondary
 								}}
 							>
 								Are you sure you want to end your current session? You will need to enter
@@ -243,15 +401,16 @@ export default function SettingsView({ isVisible }) {
 								style={{
 									backgroundColor: '#ff4D4f',
 									paddingVertical: 16,
-									borderRadius: 10
+									borderRadius: styles.border.radius.size.sm
 								}}
 							>
 								<Text
 									style={{
-										fontFamily: 'Outfit',
-										color: '#fff',
-										textAlign: 'center',
-										fontWeight: 600
+										fontFamily: styles.font.family,
+										color: styles.font.colors._04,
+										fontWeight: styles.font.weight.semi_bold,
+										fontSize: styles.font.size.md,
+										textAlign: 'center'
 									}}
 								>
 									Log Out
@@ -261,17 +420,18 @@ export default function SettingsView({ isVisible }) {
 							<TouchableOpacity
 								onPress={hideModal}
 								style={{
-									backgroundColor: '#3e3579' + '1a',
+									borderWidth: 1,
+									borderColor: styles.theme.colors[activeTheme].card_background + '4a',
 									paddingVertical: 16,
-									borderRadius: 10
+									borderRadius: styles.border.radius.size.sm
 								}}
 							>
 								<Text
 									style={{
-										fontFamily: 'Outfit',
-										color: '#000',
-										fontWeight: 600,
-
+										fontFamily: styles.font.family,
+										color: styles.theme.colors[activeTheme].text,
+										fontWeight: styles.font.weight.semi_bold,
+										fontSize: styles.font.size.md,
 										textAlign: 'center'
 									}}
 								>
@@ -282,12 +442,71 @@ export default function SettingsView({ isVisible }) {
 					</View>
 				</Modal>
 			</Portal>
+			<BottomSheetModal
+				backdropComponent={renderBackdropComponent}
+				ref={themeModalRef}
+				enableDismissOnClose={true}
+				animationConfigs={animationConfigs}
+				handleComponent={null}
+				backgroundStyle={{
+					borderRadius: styles.border.radius.size.sm,
+					backgroundColor: styles.theme.colors[activeTheme].screen_background
+				}}
+			>
+				<BottomSheetView
+					style={{
+						paddingBottom: styles.spacing.three_xxl + 10
+					}}
+				>
+					{themes.map(({ value, icon }, index) => (
+						<TouchableOpacity
+							onPress={() => {
+								setThemeMode(value);
+							}}
+							key={value}
+							style={{
+								flexDirection: 'row',
+								alignItems: 'center',
+								justifyContent: 'center',
+								paddingVertical: styles.spacing.double_xxl,
+								flex: 1,
+								columnGap: styles.spacing.md,
+								backgroundColor:
+									themeMode === value ? styles.theme.colors.primary_tint : 'transparent'
+							}}
+						>
+							<View>
+								{icon(styles.icon.size.lg, styles.theme.colors[activeTheme].icon)}
+							</View>
+
+							<Text
+								style={{
+									color: styles.theme.colors[activeTheme].text,
+									fontSize: styles.font.size.md,
+									fontFamily: styles.font.family,
+									textTransform: 'capitalize',
+									textAlign: 'center'
+								}}
+							>
+								{value}
+							</Text>
+						</TouchableOpacity>
+					))}
+				</BottomSheetView>
+			</BottomSheetModal>
 		</>
 	);
 }
 
-function Seperator() {
-	return <View style={{ height: 1, backgroundColor: Colors.textColor + '1a' }} />;
+function Seperator({ activeTheme }) {
+	return (
+		<View
+			style={{
+				height: 1,
+				backgroundColor: styles.theme.colors[activeTheme].card_border
+			}}
+		/>
+	);
 }
 
 const STYLES = StyleSheet.create({
@@ -296,23 +515,14 @@ const STYLES = StyleSheet.create({
 	},
 
 	titleStyle: {
-		fontFamily: 'Outfit',
-		fontSize: 18,
-		fontWeight: '600',
+		fontFamily: styles.font.family,
+		fontSize: styles.font.size.md,
+		fontWeight: styles.font.weight.bold,
 		color: Colors.textColor
 	},
 
 	itemContainerStyle: {
-		borderRadius: 16,
-		backgroundColor: Colors.backgroundColor,
-		shadowColor: '#000000b8',
-		shadowOffset: {
-			width: 0,
-			height: 0.5
-		},
-		shadowOpacity: 0.15,
-		shadowRadius: 1.0,
-		elevation: 1
+		borderRadius: styles.border.radius.size.sm
 	},
 
 	itemStyle: {
@@ -323,9 +533,9 @@ const STYLES = StyleSheet.create({
 	},
 
 	itemTextStyle: {
-		fontFamily: 'Outfit',
-		fontSize: 16,
-		fontWeight: '400',
+		fontFamily: styles.font.family,
+		fontSize: styles.font.size.md,
+		fontWeight: styles.font.weight.light,
 		color: Colors.textColor,
 		marginRight: 'auto'
 	}

@@ -1,10 +1,16 @@
 import { Pressable } from 'react-native';
 import Colors from '@/constants/Colors';
 import Animated from 'react-native-reanimated';
+import styles from '@/config/styles';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-export default function PressableBadge({ label, handlePress, activeCondition }) {
+export default function PressableBadge({
+	label,
+	handlePress,
+	activeCondition,
+	activeTheme
+}) {
 	return (
 		<AnimatedPressable
 			onPress={() => {
@@ -13,9 +19,11 @@ export default function PressableBadge({ label, handlePress, activeCondition }) 
 			style={{
 				paddingHorizontal: 20,
 				paddingVertical: 6,
-				backgroundColor: activeCondition ? Colors.primary + '1A' : '#86efad2e',
+				backgroundColor: activeCondition ? Colors.primary + '1A' : 'transparent',
 				borderRadius: 20,
-				borderColor: activeCondition ? Colors.primary + '4D' : 'transparent',
+				borderColor: activeCondition
+					? Colors.primary + '4D'
+					: styles.theme.colors[activeTheme].card_border,
 				borderWidth: 1,
 				overflow: 'hidden',
 				transitionDuration: 200
@@ -25,9 +33,11 @@ export default function PressableBadge({ label, handlePress, activeCondition }) 
 			<Animated.Text
 				style={{
 					fontFamily: 'Outfit',
-					color: activeCondition ? Colors.primary : '#646464',
+					color: activeCondition
+						? Colors.primary
+						: styles.theme.colors[activeTheme].text + '9a',
 					fontSize: 12,
-					fontWeight: activeCondition ? '600' : '500',
+					fontWeight: styles.font.weight.light,
 					transitionDuration: 200
 				}}
 			>

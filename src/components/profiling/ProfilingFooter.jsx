@@ -1,13 +1,26 @@
-import Animated, { FadeIn } from 'react-native-reanimated';
+import Animated, {
+	FadeIn,
+	LinearTransition,
+	useAnimatedStyle,
+	useSharedValue
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter, useSegments } from 'expo-router';
+import {
+	useGlobalSearchParams,
+	useLocalSearchParams,
+	useRouter,
+	useSegments
+} from 'expo-router';
 
 import PrimaryButton from '@/components/PrimaryButton';
 import Questionnaire from '@/constants/Questionnaire';
 import { WandSparkles, ArrowRight } from 'lucide-react-native';
 
-import { View, Text } from 'react-native';
+import { View, Text, BackHandler } from 'react-native';
 import { useProfilingStore } from '@/stores/useProfilingStore';
+import styles from '@/config/styles';
+import { useEffect } from 'react';
+import { useDebouncedCallback } from 'use-debounce';
 
 export default function ProfilingFooter({
 	currentStep,
@@ -20,12 +33,18 @@ export default function ProfilingFooter({
 	const isInitialStepButtonActive = useProfilingStore(
 		(state) => state.isInitialStepButtonActive
 	);
+	const params = useGlobalSearchParams();
+	const isEdit = JSON.parse(params?.fromSummary ?? false);
+
+	const setSlideDirection = useProfilingStore((state) => state.setSlideDirection);
 
 	const router = useRouter();
 
 	const segment = useSegments();
 
 	const profile = useProfilingStore((state) => state.profile);
+
+	const debounceShowModal = useDebouncedCallback(showModal, 400);
 
 	const currentAnsweredQuestions = currentQuestions?.filter((question) => {
 		const answer = profile[currentSection][question.identifier];
@@ -46,8 +65,13 @@ export default function ProfilingFooter({
 			: currentAnsweredQuestions < numberOfCurrentQuestions;
 
 	const handleNextStep = (newStep) => () => {
+		if (isEdit) {
+			router.back();
+			return;
+		}
+
 		if (newStep === 1) {
-			showModal();
+			debounceShowModal();
 		}
 
 		if (currentStep === Questionnaire.length) {
@@ -66,57 +90,48 @@ export default function ProfilingFooter({
 		}
 
 		router.push(`/profiling/${newStep}`);
+		setSlideDirection('forward');
 	};
 
 	const { bottom } = useSafeAreaInsets();
+
 	return (
 		!segment.includes('summary') && (
 			<Animated.View
-				style={{
-					marginTop: 'auto',
-					marginBottom: bottom,
-					flexDirection: 'row',
-					padding: 20
-				}}
+				layout={LinearTransition.springify().damping(120)}
+				style={[
+					{
+						marginTop: 'auto',
+						marginBottom: bottom,
+						flexDirection: 'row',
+						padding: 20,
+						position: 'absolute',
+						bottom: 0
+					}
+				]}
 				entering={FadeIn}
 			>
 				<View style={{ flex: 1 }}>
-					<PrimaryButton
-						disabled={disabled}
-						styles={{
-							columnGap: 6
-						}}
-						handlePress={handleNextStep(currentStep + 1)}
-					>
-						{currentStep === 0 ? (
-							<View>
-								<View>
-									<Text style={[{ fontSize: 16, fontWeight: 600 }, STYLES.typography]}>
-										Start Profiling
-									</Text>
-									<Text style={[STYLES.typography, { fontWeight: 400, fontSize: 10 }]}>
-										Takes about 2-3 minutes
-									</Text>
-								</View>
-							</View>
-						) : (
-							<Animated.Text entering={FadeIn} style={STYLES.typography}>
-								{isTransition
-									? 'Continue'
-									: currentStep === Questionnaire.length
-										? 'Finish'
-										: 'Next'}
-							</Animated.Text>
-						)}
-
-						<Animated.View entering={FadeIn}>
-							{currentStep === Questionnaire.length ? (
-								<WandSparkles style={{ marginLeft: 4 }} size={18} color={'#ffffff'} />
+					{!disabled && (
+						<PrimaryButton
+							disabled={disabled}
+							styles={{
+								columnGap: 6,
+								borderRadius: styles.border.radius.size.sm
+							}}
+							handlePress={handleNextStep(currentStep + 1)}
+						>
+							{currentStep === 0 ? (
+								<Animated.Text entering={FadeIn} style={[STYLES.typography]}>
+									Start Profiling
+								</Animated.Text>
 							) : (
-								<ArrowRight size={18} color={'#ffffff'} />
+								<Animated.Text entering={FadeIn} style={STYLES.typography}>
+									{isTransition ? 'Continue' : isEdit ? 'Save' : 'Next'}
+								</Animated.Text>
 							)}
-						</Animated.View>
-					</PrimaryButton>
+						</PrimaryButton>
+					)}
 				</View>
 			</Animated.View>
 		)
@@ -125,9 +140,10 @@ export default function ProfilingFooter({
 
 const STYLES = {
 	typography: {
-		fontFamily: 'Outfit',
-		color: '#ffffff',
-		fontWeight: '700',
-		fontSize: 14
+		fontFamily: styles.font.family,
+		color: styles.font.colors._04,
+		fontWeight: styles.font.weight.bold,
+		fontSize: styles.font.size.md,
+		textAlign: 'center'
 	}
 };

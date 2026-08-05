@@ -1,24 +1,24 @@
 import Google from '@/components/icons/Google';
-import Lock from '@/components/icons/hugeicons/Lock';
-import Mail from '@/components/icons/hugeicons/Mail';
+import ArrowRight from '@/components/icons/hugeicons/ArrowRight';
 import Logo from '@/components/icons/Logo';
 import Input from '@/components/Input';
+import { storage } from '@/config/mmkv';
+import styles from '@/config/styles';
 import Colors from '@/constants/Colors';
 import PagePadding from '@/constants/PagePadding';
 import { googleSignIn, signIn } from '@/services/auth';
+import { useThemeStore } from '@/stores/useThemeStore';
 import { checkProfilingCompletion } from '@/utility/checkProfilingCompletion';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Image } from 'expo-image';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { ChevronLeft } from 'lucide-react-native';
+import { useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Fold, Swing } from 'react-native-animated-spinkit';
-import { ActivityIndicator, Modal, Portal } from 'react-native-paper';
+import { View, Text, TouchableOpacity, StyleSheet, useColorScheme } from 'react-native';
+import { Swing } from 'react-native-animated-spinkit';
+import { Modal, Portal } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { z } from 'zod';
-
-const size = 18;
 
 const formSchema = z.object({
 	email: z.email({ error: 'Invalid email' }),
@@ -26,7 +26,10 @@ const formSchema = z.object({
 });
 
 export default function SignIn() {
-	const { top } = useSafeAreaInsets();
+	const systemTheme = useColorScheme() ?? 'light';
+	const themeMode = useThemeStore((state) => state.themeMode);
+	const activeTheme = themeMode === 'system' ? systemTheme : themeMode;
+
 	const { control, handleSubmit } = useForm({
 		resolver: zodResolver(formSchema),
 		mode: 'onSubmit',
@@ -38,16 +41,20 @@ export default function SignIn() {
 	});
 
 	const [isLoading, setIsLoading] = useState(false);
-
 	const [visible, setVisible] = useState(false);
 
 	const showModal = () => setVisible(true);
 	const hideModal = () => setVisible(false);
 
+	const inputPasswordRef = useRef(null);
+
+	const focusNextInput = (inputRef) => () => {
+		inputRef?.current?.focus();
+	};
 	const onSubmit = async (data) => {
 		const isSignIn = await signIn(data.email, data.password, showModal, hideModal);
-
-		const isProfilingCompleted = await checkProfilingCompletion();
+		await checkProfilingCompletion();
+		const isProfilingCompleted = storage.getBoolean('isProfilingComplete');
 
 		if (!isSignIn) {
 			return;
@@ -66,58 +73,66 @@ export default function SignIn() {
 	};
 
 	const handleGoogleSignIn = async () => {
-		const isSignIn = await googleSignIn(false, showModal, hideModal).call();
+		const result = await googleSignIn(false, showModal, hideModal).call();
 
-		const isProfilingCompleted = await checkProfilingCompletion();
+		if (result?.isSignedIn) {
+			await checkProfilingCompletion();
+			const isProfilingCompleted = storage.getBoolean('isProfilingComplete');
 
-		if (!isSignIn) return;
-
-		if (isProfilingCompleted) {
-			if (router.canGoBack()) {
-				router.back();
-			} else {
-				router.replace('(tabs)');
-			}
-		} else {
 			router.dismissAll();
-			router.replace('profiling');
+			if (isProfilingCompleted) {
+				router.replace('(tabs)');
+			} else router.replace('profiling');
 		}
 	};
+
+	const onResetPassword = () => {
+		router.push('/authentication/password-reset');
+		// router.push('authentication/password-reset-verified');
+	};
+
 	return (
 		<>
-			<TouchableOpacity
-				onPress={() => {
-					if (router.canGoBack()) {
-						router.back();
-					} else {
-						router.replace('(tabs)');
-					}
-				}}
-				style={{ marginLeft: 16, position: 'absolute', top: top + 6 }}
-			>
-				<Text style={{ fontFamily: 'Outfit', color: Colors.primary }}>
-					Continue as Guest
-				</Text>
-			</TouchableOpacity>
 			<View
 				style={{
 					flex: 1,
-					paddingTop: top,
-					paddingHorizontal: PagePadding.config.paddingHorizontal,
+					paddingHorizontal: styles.spacing.xxl,
 					justifyContent: 'center'
 				}}
 			>
+				{router.canGoBack() && (
+					<TouchableOpacity
+						activeOpacity={0.7}
+						onPress={router.back}
+						style={{
+							paddingRight: styles.spacing.one_xl,
+							position: 'absolute',
+							top: 50,
+							left: 10
+						}}
+					>
+						<ChevronLeft color={activeTheme === 'dark' ? '#fff' : '#000'} />
+					</TouchableOpacity>
+				)}
+
 				<View
-					style={{ alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}
+					style={{
+						alignItems: 'center',
+						justifyContent: 'center',
+						marginBottom: styles.spacing.double_xxl
+					}}
 				>
 					<Logo size={120} />
 				</View>
 
-				<View style={{ rowGap: 10 }}>
+				<View style={{ rowGap: styles.spacing.lg }}>
 					<Controller
 						control={control}
 						render={({ field: { onChange, onBlur, value }, fieldState: { error } }) => (
 							<Input
+								enterKeyHint='next'
+								focusNextInput={focusNextInput(inputPasswordRef)}
+								activeTheme={activeTheme}
 								label={'Email'}
 								placeholder={'Email address'}
 								contentType={'email'}
@@ -125,9 +140,7 @@ export default function SignIn() {
 								onBlur={onBlur}
 								onChangeText={onChange}
 								error={error}
-							>
-								<Mail size={size} color={Colors.textColor + '7a'} />
-							</Input>
+							/>
 						)}
 						name='email'
 					/>
@@ -136,6 +149,8 @@ export default function SignIn() {
 						control={control}
 						render={({ field: { onChange, onBlur, value }, fieldState: { error } }) => (
 							<Input
+								ref={inputPasswordRef}
+								activeTheme={activeTheme}
 								label={'Password'}
 								isPassword={true}
 								placeholder={'Password'}
@@ -144,15 +159,41 @@ export default function SignIn() {
 								onBlur={onBlur}
 								onChangeText={onChange}
 								error={error}
-							>
-								<Lock size={size} color={Colors.textColor + '7a'} />
-							</Input>
+							/>
 						)}
 						name='password'
 					/>
 				</View>
 
-				<View style={{ rowGap: 14, marginTop: 35 }}>
+				<TouchableOpacity
+					onPress={onResetPassword}
+					style={[
+						{
+							marginTop: styles.spacing.xxl,
+							marginRight: styles.spacing.lg,
+							alignItems: 'flex-end'
+						}
+					]}
+					activeOpacity={0.7}
+				>
+					<Text
+						style={{
+							fontFamily: styles.font.family,
+							fontSize: styles.font.size.sm,
+							fontWeight: styles.font.weight.bold,
+							color: styles.theme.colors[activeTheme].text
+						}}
+					>
+						Forgot Password?
+					</Text>
+				</TouchableOpacity>
+
+				<View
+					style={{
+						rowGap: styles.spacing.one_xl,
+						marginTop: styles.spacing.three_xxl
+					}}
+				>
 					<TouchableOpacity
 						style={[
 							STYLES.button,
@@ -165,10 +206,10 @@ export default function SignIn() {
 					>
 						<Text
 							style={{
-								fontFamily: 'Outfit',
-								fontSize: 12,
-								fontWeight: 600,
-								color: '#fff'
+								fontFamily: styles.font.family,
+								fontSize: styles.font.size.sm,
+								fontWeight: styles.font.weight.bold,
+								color: styles.font.colors._04
 							}}
 						>
 							Sign In
@@ -182,17 +223,31 @@ export default function SignIn() {
 							justifyContent: 'space-between'
 						}}
 					>
-						<View style={[STYLES.seperator]} />
+						<View
+							style={[
+								STYLES.seperator,
+								{
+									backgroundColor: styles.theme.colors[activeTheme].seperator
+								}
+							]}
+						/>
 						<Text
 							style={{
-								fontFamily: 'Outfit',
-								color: Colors.textColor + '7a',
-								fontSize: 11
+								fontFamily: styles.font.family,
+								color: styles.theme.colors[activeTheme].text_seperator,
+								fontSize: styles.font.size.sm
 							}}
 						>
-							Or sign in with
+							OR
 						</Text>
-						<View style={[STYLES.seperator]} />
+						<View
+							style={[
+								STYLES.seperator,
+								{
+									backgroundColor: styles.theme.colors[activeTheme].seperator
+								}
+							]}
+						/>
 					</View>
 
 					<TouchableOpacity
@@ -200,58 +255,81 @@ export default function SignIn() {
 						style={[
 							STYLES.button,
 							{
-								backgroundColor: '#fff',
-								columnGap: 8,
+								backgroundColor: styles.theme.colors[activeTheme].card_background,
+								borderWidth: 1,
+								borderColor: styles.theme.colors[activeTheme].card_border,
+								columnGap: styles.spacing.lg,
 								justifyContent: 'center'
-							},
-							STYLES.shadow
+							}
 						]}
 						activeOpacity={0.7}
 					>
 						<View>
-							<Google />
+							<Google size={styles.icon.size.lg} />
 						</View>
 
 						<Text
 							style={{
-								fontFamily: 'Outfit',
-								fontSize: 12,
-								fontWeight: 600,
-								color: '#4B5563'
+								fontFamily: styles.font.family,
+								fontSize: styles.font.size.sm,
+								fontWeight: styles.font.weight.bold,
+								color: styles.theme.colors[activeTheme].text
 							}}
 						>
-							Google
+							Continue with Google
+						</Text>
+					</TouchableOpacity>
+
+					<TouchableOpacity
+						onPress={() => {
+							if (router.canGoBack()) {
+								router.back();
+							} else {
+								router.replace('(tabs)');
+							}
+						}}
+						style={{ alignSelf: 'center', marginTop: styles.spacing.three_xl }}
+					>
+						<Text
+							style={{
+								fontFamily: styles.font.family,
+								color: styles.theme.colors.primary,
+								fontSize: styles.font.size.lg
+							}}
+						>
+							Continue as Guest
 						</Text>
 					</TouchableOpacity>
 
 					<View
 						style={{
-							marginTop: 8,
 							flexDirection: 'row',
-							columnGap: 10,
+							columnGap: styles.spacing.md,
 							alignSelf: 'center',
 							alignItems: 'center'
 						}}
 					>
-						<Text style={{ fontFamily: 'Outfit', color: Colors.textColor + '7a' }}>
+						<Text
+							style={{
+								fontSize: styles.font.size.lg,
+								fontFamily: styles.font.family,
+								color: styles.theme.colors[activeTheme].text + '9a'
+							}}
+						>
 							Don't have an account?
 						</Text>
 
 						<TouchableOpacity
 							disabled={isLoading}
-							style={{
-								backgroundColor: '#8b78ff2a',
-								borderRadius: 8,
-								paddingVertical: 8,
-								paddingHorizontal: 16
-							}}
 							onPress={() => router.replace('authentication/sign-up')}
 						>
 							<Text
 								style={{
-									fontFamily: 'Outfit',
-									fontWeight: 400,
-									color: Colors.primary
+									fontSize: styles.font.size.lg,
+									fontFamily: styles.font.family,
+									fontWeight: styles.font.weight.regular,
+									color: styles.theme.colors[activeTheme].text,
+									textDecorationLine: 'underline'
 								}}
 							>
 								Sign Up
@@ -276,18 +354,20 @@ export default function SignIn() {
 				>
 					<View
 						style={{
-							padding: 18,
-							borderRadius: 10,
-							backgroundColor: Colors.backgroundColor,
+							padding: styles.spacing.xxl,
+							borderRadius: styles.border.radius.size.sm,
+							backgroundColor: styles.theme.colors[activeTheme].card_background,
 							alignItems: 'center',
-							rowGap: 8
+							rowGap: styles.spacing.sm
 						}}
 					>
-						<Swing size={28} color={Colors.primary} />
+						<Swing size={styles.icon.size.xl} color={styles.theme.colors.primary} />
 						<Text
 							style={{
-								fontFamily: 'Outfit',
-								fontWeight: 500
+								fontSize: styles.font.size.md,
+								fontFamily: styles.font.family,
+								fontWeight: styles.font.weight.regular,
+								color: styles.theme.colors[activeTheme].text
 							}}
 						>
 							Signing in...
@@ -301,30 +381,17 @@ export default function SignIn() {
 
 const STYLES = StyleSheet.create({
 	seperator: {
-		width: '30%',
+		width: '40%',
 		height: 0.4,
 
-		backgroundColor: Colors.textColor + '7a'
+		backgroundColor: styles.background_color._01 + '2a'
 	},
 	button: {
-		paddingVertical: 16,
-		columnGap: 6,
+		paddingVertical: styles.spacing.xxl,
 		alignItems: 'center',
 		justifyContent: 'center',
 		flexDirection: 'row',
-		backgroundColor: Colors.primary,
-		borderRadius: 10
-	},
-
-	shadow: {
-		shadowColor: '#00000082',
-		shadowOffset: {
-			width: 0,
-			height: 1
-		},
-		shadowOpacity: 0.2,
-		shadowRadius: 1.41,
-
-		elevation: 2
+		backgroundColor: styles.theme.colors.primary,
+		borderRadius: styles.border.radius.size.md
 	}
 });

@@ -1,43 +1,31 @@
+import { storage } from '@/config/mmkv';
 import { auth } from '@/services/auth';
+import { db } from '@/services/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { doc, getDoc, getFirestore, query } from '@react-native-firebase/firestore';
+import { doc, getDoc, query } from '@react-native-firebase/firestore';
 
 export async function checkProfilingCompletion() {
 	if (!auth.currentUser?.uid) return;
+	const hasProfilingBeenCompleted = checkLocal();
 
-	let hasProfilingBeenCompleted = false;
-
-	hasProfilingBeenCompleted = await checkLocal();
-
-	if (!hasProfilingBeenCompleted) {
-		hasProfilingBeenCompleted = await checkDB();
+	if (hasProfilingBeenCompleted === undefined) {
+		await checkDB();
 	}
-
-	return hasProfilingBeenCompleted;
 }
 
-async function checkLocal() {
-	let status = await AsyncStorage.getItem('hasProfilingBeenCompleted');
-	status = JSON.parse(status);
-	return status;
+function checkLocal() {
+	return storage.getBoolean('isProfilingComplete');
 }
 
 async function checkDB() {
-	let status;
-
-	const queryOption = query(doc(getFirestore(), 'users', auth.currentUser?.uid));
+	const queryOption = query(doc(db, 'users', auth.currentUser?.uid));
 	const documentSnapshot = await getDoc(queryOption);
 
 	const hasProfilingBeenCompleted = documentSnapshot.get('profiling');
 
 	if (hasProfilingBeenCompleted) {
-		status = true;
-		saveToLocal(status);
-	} else {
-		status = false;
+		storage.set('isProfilingComplete', true);
 	}
-
-	return status;
 }
 
 async function saveToLocal(status) {

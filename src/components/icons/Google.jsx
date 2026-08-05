@@ -1,13 +1,11 @@
-import * as React from 'react';
 import Svg, { Path } from 'react-native-svg';
-const Google = (props) => (
+const Google = ({ size = 24 }) => (
 	<Svg
-		width={20}
-		height={20}
+		width={size}
+		height={size}
 		viewBox='0 0 20 20'
 		fill='none'
 		xmlns='http://www.w3.org/2000/svg'
-		{...props}
 	>
 		<Path
 			d='M18.8 10.208q-.002-.975-.167-1.875H10v3.55h4.933a4.23 4.23 0 0 1-1.841 2.759v2.308h2.975C17.8 15.35 18.8 13 18.8 10.208'

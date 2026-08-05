@@ -12,7 +12,8 @@ import {
 	BottomSheetModal,
 	BottomSheetView,
 	BottomSheetBackdrop,
-	useBottomSheetModal
+	useBottomSheetModal,
+	useBottomSheetSpringConfigs
 } from '@gorhom/bottom-sheet';
 
 import { Pencil, X } from 'lucide-react-native';
@@ -24,8 +25,11 @@ import Questionnaire from '@/constants/Questionnaire';
 import { useAuthStore } from '@/stores/useAuthStore';
 import Edit from './icons/hugeicons/Edit';
 import { useProfilingStore } from '@/stores/useProfilingStore';
+import styles from '@/config/styles';
+import { storage } from '@/config/mmkv';
 
 const EditBottomSheet = ({
+	activeTheme,
 	unSaveChanges = {},
 	editSheetModalRef,
 	selectedSection,
@@ -42,7 +46,7 @@ const EditBottomSheet = ({
 	let isMultiSelect;
 	const label = formatSnakeToTitle(selectedSection);
 
-	const isProfilingComplete = useProfilingStore((state) => state.isProfilingComplete);
+	const isProfilingComplete = storage.getBoolean('isProfilingComplete');
 
 	const sectionEntries = Object.entries(profileData[selectedSection] || {});
 	const sectionSchema = Questionnaire?.find(
@@ -69,24 +73,37 @@ const EditBottomSheet = ({
 		(props) => (
 			<BottomSheetBackdrop
 				{...props}
-				opacity={0.7}
+				opacity={1}
 				disappearsOnIndex={-1}
 				pressBehavior='none'
 			/>
 		),
 		[]
 	);
+
+	const animationConfigs = useBottomSheetSpringConfigs({
+		damping: 120,
+		stiffness: 920
+	});
+
+	console.log(sectionSchema);
+
 	return (
 		<>
 			<BottomSheetModal
+				animationConfigs={animationConfigs}
 				handleComponent={null}
 				enablePanDownToClose={false}
 				enableOverDrag={false}
 				ref={editSheetModalRef}
+				backgroundStyle={{
+					borderRadius: styles.border.radius.size.sm,
+					backgroundColor: styles.theme.colors[activeTheme].screen_background
+				}}
 				backdropComponent={renderBackdrop}
 			>
 				<BottomSheetView
-					style={[styles.contentContainer, { paddingBottom: bottom + 12 }]}
+					style={[STYLES.contentContainer, { paddingBottom: bottom + 12 }]}
 				>
 					<View
 						style={{
@@ -94,7 +111,6 @@ const EditBottomSheet = ({
 							flexDirection: 'row',
 							justifyContent: 'flex-start',
 							alignItems: 'center',
-							width: '100%',
 							marginBottom: 30
 						}}
 					>
@@ -106,24 +122,27 @@ const EditBottomSheet = ({
 								columnGap: 14
 							}}
 						>
-							<Edit color={Colors.textColor} />
+							<Edit
+								color={styles.theme.colors[activeTheme].icon}
+								size={styles.icon.size.xl * 1.2}
+							/>
 
 							<View>
 								<Text
 									style={{
-										color: Colors.textColor,
-										fontSize: 16,
-										fontWeight: 600,
-										fontFamily: 'Outfit'
+										color: styles.theme.colors[activeTheme].text,
+										fontSize: styles.font.size.lg,
+										fontWeight: styles.font.weight.semi_bold,
+										fontFamily: styles.font.family
 									}}
 								>
 									Edit {label}
 								</Text>
 								<Text
 									style={{
-										fontSize: 10,
-										color: Colors.textColor + '9a',
-										fontFamily: 'Outfit'
+										fontSize: styles.font.size.md,
+										color: styles.theme.colors[activeTheme].text_secondary,
+										fontFamily: styles.font.family
 									}}
 								>
 									Tap the badge / chips to change them
@@ -142,51 +161,60 @@ const EditBottomSheet = ({
 					</View>
 
 					<View style={{ display: 'flex', flexDirection: 'column', rowGap: 22 }}>
-						{sectionEntries?.map(([key, value]) => (
-							<View key={key}>
-								<Text
-									style={{
-										fontSize: 14,
-										fontWeight: 600,
-										color: '#252525c3',
-										fontFamily: 'Outfit'
-									}}
-								>
-									{formatSnakeToTitle(key)}
-								</Text>
-								<View
-									style={{
-										display: 'flex',
-										flexDirection: 'row',
-										flexWrap: 'wrap',
-										gap: 10,
-										marginTop: 8
-									}}
-								>
-									{sectionSchema
-										?.find((item) => {
-											if (item.identifier === key) {
-												isMultiSelect = item?.multiSelect;
-												return true;
-											}
-										})
-										?.options.map((option) => {
-											return (
-												<PressableBadge
-													key={`${key}-${option.value}`}
-													label={option?.label}
-													activeCondition={
-														isMultiSelect
-															? profileData[selectedSection][key].includes(option?.value)
-															: value === option?.value
-													}
-													handlePress={handleUpdateProfile(key, option?.value)}
-												/>
-											);
-										})}
+						{sectionEntries?.map(([key, value]) => {
+							const question = sectionSchema.find(
+								({ identifier }) => identifier === key
+							).label;
+
+							return (
+								<View key={key}>
+									<Text
+										style={{
+											fontSize: styles.font.size.md,
+											fontWeight: styles.font.weight.semi_bold,
+											color: styles.theme.colors[activeTheme].text,
+											fontFamily: styles.font.family
+										}}
+									>
+										{question}
+									</Text>
+									<View
+										style={{
+											display: 'flex',
+											flexDirection: 'row',
+											flexWrap: 'wrap',
+											gap: 10,
+											marginTop: 8
+										}}
+									>
+										{sectionSchema
+											?.find((item) => {
+												if (item.identifier === key) {
+													isMultiSelect = item?.multiSelect;
+													return true;
+												}
+											})
+											?.options.map((option) => {
+												return (
+													<PressableBadge
+														activeTheme={activeTheme}
+														key={`${key}-${option.value}`}
+														label={option?.label}
+														activeCondition={
+															isMultiSelect
+																? profileData[selectedSection][key].includes(
+																		option?.value
+																	)
+																: value === option?.value
+														}
+														handlePress={handleUpdateProfile(key, option?.value)}
+													/>
+												);
+											})}
+									</View>
 								</View>
-							</View>
-						))}
+							);
+						})}
 					</View>
 
 					{isProfilingComplete && (
@@ -194,9 +222,17 @@ const EditBottomSheet = ({
 							<TouchableOpacity
 								onPress={() => onClose(dismiss)}
 								activeOpacity={0.7}
-								style={[styles.button, { backgroundColor: '#3341551a' }]}
+								style={[
+									STYLES.button,
+									{ backgroundColor: activeTheme === 'light' ? '#3341551a' : '#908f8f1a' }
+								]}
 							>
-								<Text style={[styles.buttonText, { color: Colors.textColor }]}>
+								<Text
+									style={[
+										STYLES.buttonText,
+										{ color: styles.theme.colors[activeTheme].text }
+									]}
+								>
 									Cancel
 								</Text>
 							</TouchableOpacity>
@@ -205,14 +241,16 @@ const EditBottomSheet = ({
 								onPress={onSaveToDB}
 								activeOpacity={0.7}
 								style={[
-									styles.button,
+									STYLES.button,
 									{
 										backgroundColor: Colors.primary,
 										opacity: saveButtonDisabled ? 0.4 : 1
 									}
 								]}
 							>
-								<Text style={[styles.buttonText, { color: '#fff' }]}>Save Changes</Text>
+								<Text style={[STYLES.buttonText, { color: styles.font.colors._04 }]}>
+									Save Changes
+								</Text>
 							</TouchableOpacity>
 						</View>
 					)}
@@ -222,7 +260,7 @@ const EditBottomSheet = ({
 	);
 };
 
-const styles = StyleSheet.create({
+const STYLES = StyleSheet.create({
 	// container: {
 	// 	flex: 1,
 	// 	padding: 24,
@@ -238,7 +276,7 @@ const styles = StyleSheet.create({
 	},
 
 	buttonText: {
-		fontFamily: 'Outfit'
+		fontFamily: styles.font.family
 	},
 
 	contentContainer: {

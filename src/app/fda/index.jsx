@@ -1,261 +1,573 @@
-import BatchHeader from '@/components/batch/Header';
-import SearchBar from '@/components/SearchBar';
-import Fda from '@/components/icons/Fda';
-import Colors from '@/constants/Colors';
 import { useRouter } from 'expo-router';
-import { CircleCheck } from 'lucide-react-native';
-import {
-	Keyboard,
-	Pressable,
-	StyleSheet,
-	Text,
-	TouchableOpacity,
-	TouchableWithoutFeedback,
-	View
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Shadow } from 'react-native-shadow-2';
+import { ChevronLeft, Circle, X } from 'lucide-react-native';
+import { StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
 
-import { useState } from 'react';
-import Info from '@/components/icons/Info';
-import AnimatedTabs from '@/components/AnimatedTabs';
+import { Modal, Portal } from 'react-native-paper';
+import styles from '@/config/styles';
+import { useThemeStore } from '@/stores/useThemeStore';
 
-import { verifyProductByName, verifyProductByNN } from '@/services/fdaApiService';
-import { saveHistory, saveFdaHistory } from '@/services/historyService';
-
-import { useAuthStore } from '@/stores/useAuthStore';
-import { getFirestore, Timestamp, arrayUnion, doc, updateDoc } from '@react-native-firebase/firestore';
-import { auth } from '@/services/auth';
-import { fdaVerification } from '@/services/cloudFunctions';
+import Animated, { FadeIn } from 'react-native-reanimated';
+import QuestionMark from '@/components/icons/hugeicons/QuestionMark';
+import { storage } from '@/config/mmkv';
+import { useDebouncedCallback } from 'use-debounce';
+import InitialPage from '@/components/fda/InitialPage';
+import ResultPage from '@/components/fda/ResultPage';
+import LottieView from 'lottie-react-native';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import InfiniteFade from '@/components/InfiniteFade';
+import { useBackHandler } from '@react-native-community/hooks';
 import Toast from 'react-native-toast-message';
-import { ActivityIndicator } from 'react-native-paper';
+import { fdaService } from '@/services/fdaService';
 
-const fdaSchema = [
-    {
-        name: 'Product Name',
-        placeholder: 'Enter product name or brand...'
-    },
-    {
-        name: 'Notification No.',
-        placeholder: 'Enter NN - code (e.g. NN-12678...)'
-    }
+const fdaLoader = require('assets/lottie/fda-loader.json');
+
+const disclaimerSchema = [
+	{
+		name: 'Data Source',
+		contents: [
+			'The FDA Product Verifier cross-references publicly available data from the Food and Drug Administration Verification Portal. While we strive to maintain accurate and up-to-date information, recent updates to the official database may take time to appear in verification results.'
+		]
+	},
+
+	{
+		name: 'Affiliation & Endorsement',
+		contents: [
+			'This tool is provided for informational purposes only and is not affiliated with, endorsed by, or officially connected to the FDA Philippines.'
+		]
+	},
+
+	{
+		name: 'Scope of Verification',
+		contents: [
+			'Verification results confirm FDA notification or registration status only and do not certify product safety, authenticity, effectiveness, quality, or dermatological suitability.',
+			'Consumers are encouraged to consult qualified healthcare professionals or licensed dermatologists for personalized medical, skincare, or treatment-related advice.'
+		]
+	}
 ];
 
-const status = ['safe', 'warn', 'unsafe'];
+const productSchema = z.object({
+	product: z.string().min(2, { error: 'Please enter a valid product' })
+});
+
+const notificationNumberSchema = z.object({
+	notificationNumber: z
+		.string()
+		.min(4, { error: 'Please enter a valid notification number' })
+		.startsWith('NN-', {
+			error: 'Please make sure the format is correct (e.g., NN-xxxxxx)'
+		})
+});
 
 export default function BatchScreen() {
-    const [activeTab, setActiveTab] = useState(0);
-    const [query, setQuery] = useState('');
-    const router = useRouter();
-    const { bottom, top } = useSafeAreaInsets();
+	const queryClient = useQueryClient();
+	const [activeTab, setActiveTab] = useState(1);
+	const [indexLoading, setIndexLoading] = useState(0);
+	const formSchema = activeTab === 1 ? productSchema : notificationNumberSchema;
+	const { control, handleSubmit, reset } = useForm({
+		resolver: zodResolver(formSchema),
+		mode: 'onSubmit',
+		reValidateMode: 'onChange',
+		defaultValues: {
+			notificationNumber: '',
+			product: ''
+		}
+	});
 
-    const handleTabChange = (index) => {
-        setActiveTab(index);
-    };
-    const handleQuery = (value) => {
-        setQuery(value);
-    };
+	const isShownDisclaimer = storage.getBoolean('fda-disclaimer-shown');
 
-    const handlePress = async () => {
-        if (!query || query.trim() === "") return;
+	const systemTheme = useColorScheme() ?? 'light';
+	const themeMode = useThemeStore((state) => state.themeMode);
+	const activeTheme = themeMode === 'system' ? systemTheme : themeMode;
 
-        let resultData = null;
-        let resultType = 'warn';
+	const router = useRouter();
 
-        const cleanQuery = query.trim();
-        console.log(cleanQuery);
+	// fdaVerification
+	const { mutate, data, isPending, isSuccess } = useMutation({
+		mutationFn: async ({ data, clientTimeZone }) => {
+			const response = await fdaService(data, clientTimeZone);
 
-        try {
-            // 🔍 CALL API
-            if (activeTab === 0) {
-                resultData = await verifyProductByName(cleanQuery);
-            } else {
-                resultData = await verifyProductByNN(cleanQuery.toUpperCase());
-            }
+			return response;
+		},
+		onSuccess: (result) => {
+			if (result.status.code >= 500) {
+				throw new Error('Something went wrong. Please try again');
+			}
 
-            // 🛑 NO RESULT
-            if (!resultData) {
-                console.log("NO RESULT FROM API");
-                resultType = 'warn';
-            }
+			setIndexLoading(0);
+			setActiveTab(1);
+			reset();
+			showResultPage();
+			queryClient.invalidateQueries({ queryKey: ['fda_history'] });
+			queryClient.invalidateQueries({ queryKey: ['metrics'] });
+		},
+		onError: (err) => {
+			Toast.show({
+				type: 'errorToast',
+				text1: err.message
+			});
+			showInitialPage();
+		}
+	});
 
-        } catch (err) {
-            console.log("API ERROR:", err);
-            resultData = null;
-            resultType = 'warn';
-        }
+	const [modalVisible, setModalVisible] = useState(false);
 
-        // ✅ HANDLE ARRAY RESPONSE (some APIs return array)
-        if (Array.isArray(resultData)) {
-            resultData = resultData[0];
-        }
+	const [isDisplayInitialPage, setIsDisplayInitialPage] = useState(true);
+	const [disclaimerVisible, setDisclaimerVisible] = useState(false);
+	const [resultVisible, setResultVisible] = useState(false);
 
-        // ✅ DETECT VALID / EXPIRED
-        if (resultData) {
-            const expiry =
-                resultData.NOTIFICATION_VALIDITY ||
-                resultData.expiration_date ||
-                resultData.validityPeriod;
+	const loaderRef = useRef(null);
 
-            if (expiry) {
-                const today = new Date();
-                const expiryDate = new Date(expiry);
+	const showDisclaimer = () => setDisclaimerVisible(true);
+	const hideDisclaimer = () => setDisclaimerVisible(false);
 
-                resultType = expiryDate < today ? 'unsafe' : 'safe';
-            } else {
-                resultType = 'safe';
-            }
-        }
+	const showInitialPage = () => setIsDisplayInitialPage(true);
+	const hideInitialPage = () => setIsDisplayInitialPage(false);
 
-        const newHistoryObj = {
-            createdAt: Timestamp.now(),
-            query: {
-                text: cleanQuery,
-                type: activeTab === 0 ? 'name' : 'nn'
-            },
-            results: {
-                result: resultType || 'warn',
-                data: resultData ?? {}
-            },
-            resultType: resultType || 'warn'
-        }
+	const showResultPage = () => setResultVisible(true);
+	const hideResultPage = () => setResultVisible(false);
 
-        const db = getFirestore();
-        const docRef = doc(db, "users", auth.currentUser.uid);
-        updateDoc(docRef, {
-            fdaHistory: arrayUnion(newHistoryObj)
-        })
+	const playLoader = () => loaderRef.current?.play();
 
-        // 🚀 NAVIGATE
-        router.push({
-            pathname: '/fda/results',
-            params: {
-                result: resultType || 'warn',
-                data: JSON.stringify(resultData)
-            }
-        });
-    };
+	const delayShowDisclaimer = useDebouncedCallback(showDisclaimer, 300);
 
-    return (
-        <TouchableWithoutFeedback
-            touchSoundDisabled={true}
-            onPress={Keyboard.dismiss}
-            accessible={false}
-        >
-            <View style={styles.container}>
-                <BatchHeader title='FDA Product Verifier' />
+	const onVerify = async (data) => {
+		hideInitialPage();
+		playLoader();
+		mutate({
+			data,
+			clientTimeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+		});
+	};
 
-                <View
-                    style={{
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        flex: 1,
-                        rowGap: 40,
+	const onVerifyAnotheProduct = async () => {
+		hideResultPage();
+		showInitialPage();
+	};
 
-                        paddingHorizontal: 24,
-                        marginBottom: bottom + 20
-                    }}
-                >
-                    <Text
-                        style={{
-                            paddingTop: top + 10,
-                            color: Colors.textColor + '7a',
-                            fontWeight: 400,
-                            fontSize: 14,
-                            textAlign: 'center',
-                            width: 300
-                        }}
-                    >
-                        Check the FDA Philippines Database to ensure your cosmetics are notified and
-                        safe to use.
-                    </Text>
+	const onTabChanged = (tab) => {
+		setActiveTab(tab);
 
-                    <View>
-                        <Fda size={250} />
-                    </View>
+		reset();
+	};
 
-                    <Shadow
-                        stretch={true}
-                        distance={2}
-                        startColor='#00000010'
-                        offset={[0, 1]}
-                        containerStyle={{
-                            width: '100%'
-                        }}
-                    >
-                        <View
-                            style={{
-                                backgroundColor: Colors.backgroundColor,
-                                padding: 16,
-                                borderRadius: 24,
-                                rowGap: 24
-                            }}
-                        >
-                            <AnimatedTabs
-                                tabs={[fdaSchema[0].name, fdaSchema[1].name]}
-                                currentIndex={activeTab}
-                                handleTabChange={handleTabChange}
-                            />
+	const loadingTexts = [
+		'Please wait',
+		'Checking database',
+		'Searching in FDA database',
+		'Verifying'
+	];
 
-                            <SearchBar
-                                handleQuery={handleQuery}
-                                placeholder={fdaSchema[activeTab].placeholder}
-                            />
-                            <View style={{ flexDirection: 'row' }}>
-                                <View style={{ marginTop: 3, marginRight: 4 }}>
-                                    <Info size={11} color={Colors.primary} />
-                                </View>
+	useEffect(() => {
+		if (isSuccess) return;
 
-                                <Text
-                                    style={{
-                                        fontSize: 12,
-                                        color: Colors.textColor + '7a',
-                                        width: 260
-                                    }}
-                                >
-                                    Tip: Enter the exact product name as it appears on the packaging for
-                                    better results.
-                                </Text>
-                            </View>
+		const timer = setInterval(() => {
+			setIndexLoading((prev) => {
+				if (prev >= loadingTexts.length - 1) {
+					clearInterval(timer);
+					return prev;
+				}
 
-                            {/* This should be a primary button component */}
+				return prev + 1;
+			});
+		}, 3500);
 
-                            <Shadow stretch={true} distance={1} startColor='#0000002f' offset={[0, 1]}>
-                                <Pressable
-                                    onPress={handlePress}
-                                    style={{
-                                        columnGap: 12,
-                                        flexDirection: 'row',
-                                        justifyContent: 'center',
-                                        alignItems: 'center',
-                                        backgroundColor: Colors.primary,
-                                        padding: 16,
-                                        borderRadius: 16
-                                    }}
-                                >
-                                    <Text
-                                        style={{
-                                            fontSize: 16,
-                                            fontWeight: 600,
-                                            color: Colors.backgroundColor
-                                        }}
-                                    >
-                                        Verify Product
-                                    </Text>
-                                    <CircleCheck size={16} color={Colors.backgroundColor} />
-                                </Pressable>
-                            </Shadow>
-                        </View>
-                    </Shadow>
-                </View>
-            </View>
-        </TouchableWithoutFeedback>
-    );
+		return () => clearInterval(timer);
+	}, [isPending, isSuccess, loadingTexts.length]);
+
+	useBackHandler(() => {
+		if (isPending) {
+			setModalVisible(true);
+			return true;
+		}
+	}, [isPending, modalVisible]);
+
+	useEffect(() => {
+		if (!isShownDisclaimer) {
+			delayShowDisclaimer();
+		}
+	}, []);
+
+	useEffect(() => {
+		if (!isPending && modalVisible) {
+			setModalVisible(false);
+		}
+	}, [isPending, modalVisible]);
+
+	return (
+		<>
+			<View style={STYLES.container}>
+				<View
+					style={{
+						backgroundColor: styles.theme.colors.primary,
+						paddingHorizontal: 15,
+						paddingTop: 62,
+						paddingBottom: styles.spacing.double_xxl,
+						flexDirection: 'row',
+						alignItems: 'center'
+					}}
+				>
+					<TouchableOpacity
+						onPress={router.back}
+						style={{
+							paddingRight: styles.spacing.xxl
+						}}
+					>
+						<ChevronLeft color={styles.icon.colors._05} size={styles.icon.size.xl} />
+					</TouchableOpacity>
+
+					<View>
+						<Text
+							style={{
+								fontFamily: styles.font.family,
+								fontSize: styles.font.size.xl,
+								fontWeight: styles.font.weight.bold,
+								color: styles.font.colors._04
+							}}
+						>
+							FDA Product Verifier
+						</Text>
+
+						<Text
+							style={{
+								fontFamily: styles.font.family,
+								fontSize: styles.font.size.sm,
+								fontWeight: styles.font.weight.light,
+								color: styles.font.colors._04
+							}}
+						>
+							Verify FDA Compliance Status
+						</Text>
+					</View>
+
+					<TouchableOpacity
+						onPress={showDisclaimer}
+						activeOpacity={0.7}
+						style={{ alignSelf: 'center', marginLeft: 'auto' }}
+					>
+						<QuestionMark
+							size={styles.icon.size.xl * 1.4}
+							color={styles.background_color._04}
+						/>
+					</TouchableOpacity>
+				</View>
+
+				{isDisplayInitialPage && (
+					<InitialPage
+						activeTheme={activeTheme}
+						onSubmit={handleSubmit(onVerify)}
+						controllerName={activeTab === 1 ? 'product' : 'notificationNumber'}
+						control={control}
+						activeTab={activeTab}
+						onTabChanged={onTabChanged}
+					/>
+				)}
+
+				{resultVisible && (
+					<ResultPage
+						results={data}
+						onPress={onVerifyAnotheProduct}
+						activeTheme={activeTheme}
+					/>
+				)}
+			</View>
+
+			{isPending && (
+				<Animated.View
+					entering={FadeIn}
+					style={[
+						{
+							...StyleSheet.absoluteFillObject,
+							alignItems: 'center',
+							justifyContent: 'center',
+							zIndex: -1
+						}
+					]}
+				>
+					<LottieView
+						ref={loaderRef}
+						speed={1.4}
+						source={fdaLoader}
+						autoPlay={true}
+						style={{ width: '90%', height: '90%' }}
+					/>
+					<View
+						style={{ transform: [{ translateY: 90 }], position: 'absolute', zIndex: 5 }}
+					>
+						<InfiniteFade>
+							<Text
+								style={{
+									padding: 90,
+									fontWeight: styles.font.weight.semi_bold,
+									fontFamily: styles.font.family,
+									fontSize: styles.font.size.md,
+									color: styles.theme.colors[activeTheme].text,
+									textAlign: 'center'
+								}}
+							>
+								{loadingTexts[indexLoading]}...
+							</Text>
+						</InfiniteFade>
+					</View>
+				</Animated.View>
+			)}
+
+			<Portal>
+				<Modal
+					theme={activeTheme}
+					visible={disclaimerVisible}
+					style={{
+						marginHorizontal: styles.spacing.one_xl
+					}}
+				>
+					<View
+						style={{
+							borderWidth: 1,
+							borderColor: styles.theme.colors[activeTheme].card_border,
+							backgroundColor: styles.theme.colors[activeTheme].card_background,
+							borderRadius: styles.border.radius.size.sm
+						}}
+					>
+						<View
+							style={{
+								flexDirection: 'row',
+								alignItems: 'center',
+								padding: styles.spacing.one_xxl
+							}}
+						>
+							<Text
+								style={{
+									fontSize: styles.font.size.lg,
+									fontWeight: styles.font.weight.semi_bold,
+									fontFamily: styles.font.family,
+									color: styles.theme.colors[activeTheme].text
+								}}
+							>
+								Disclaimer
+							</Text>
+						</View>
+
+						<View
+							style={{
+								padding: styles.spacing.one_xxl,
+								borderTopWidth: 1,
+								borderBottomWidth: 1,
+								borderTopColor: styles.theme.colors[activeTheme].card_border,
+								borderBottomColor: styles.theme.colors[activeTheme].card_border,
+								rowGap: styles.spacing.one_xxl
+							}}
+						>
+							{disclaimerSchema.map((item) => (
+								<View key={item.name}>
+									<Text
+										style={{
+											fontWeight: styles.font.weight.bold,
+											fontSize: styles.font.size.md,
+											fontFamily: styles.font.family,
+											color: styles.theme.colors[activeTheme].text
+										}}
+									>
+										{item.name}
+									</Text>
+
+									<View style={{ rowGap: styles.spacing.lg }}>
+										{item.contents.map((content) => (
+											<Text
+												key={content}
+												style={{
+													fontSize: styles.font.size.md,
+													fontFamily: styles.font.family,
+													color: styles.theme.colors[activeTheme].text_secondary
+												}}
+											>
+												{content}
+											</Text>
+										))}
+									</View>
+								</View>
+							))}
+						</View>
+
+						<TouchableOpacity
+							onPress={() => {
+								hideDisclaimer();
+
+								if (!isShownDisclaimer) {
+									storage.set('fda-disclaimer-shown', true);
+								}
+							}}
+							activeOpacity={0.7}
+							style={{
+								margin: styles.spacing.double_xxl,
+								backgroundColor: styles.theme.colors.fda,
+								alignItems: 'center',
+								borderRadius: styles.border.radius.size.sm,
+								paddingVertical: styles.spacing.one_xl
+							}}
+						>
+							<Text
+								style={{
+									fontWeight: styles.font.weight.bold,
+									fontFamily: styles.font.family,
+									fontSize: styles.font.size.md,
+									color: styles.font.colors._04
+								}}
+							>
+								I understand
+							</Text>
+						</TouchableOpacity>
+					</View>
+				</Modal>
+			</Portal>
+
+			<Portal>
+				<Modal visible={modalVisible}>
+					<View
+						style={{
+							rowGap: styles.spacing.one_xl,
+							padding: styles.spacing.one_xxl,
+							alignSelf: 'center',
+							backgroundColor: styles.theme.colors[activeTheme].screen_background,
+							borderRadius: styles.border.radius.size.sm
+						}}
+					>
+						<Text
+							style={{
+								fontFamily: styles.font.family,
+								color: styles.theme.colors[activeTheme].text
+							}}
+						>
+							Are you sure you want to cancel?
+						</Text>
+
+						<View style={{ flexDirection: 'row', alignSelf: 'flex-end' }}>
+							<TouchableOpacity
+								onPress={() => setModalVisible(false)}
+								activeOpacity={0.7}
+								style={{
+									paddingVertical: styles.spacing.lg,
+									paddingHorizontal: styles.spacing.three_xxl,
+									borderRadius: styles.border.radius.size.sm
+								}}
+							>
+								<Text style={{ color: styles.theme.colors[activeTheme].text }}>No</Text>
+							</TouchableOpacity>
+							<TouchableOpacity
+								onPress={router.back}
+								activeOpacity={0.7}
+								style={{
+									paddingVertical: styles.spacing.lg,
+									backgroundColor: styles.theme.colors.fda,
+									paddingHorizontal: styles.spacing.one_xxl,
+									borderRadius: styles.border.radius.size.sm
+								}}
+							>
+								<Text
+									style={{
+										fontFamily: styles.font.family,
+										color: styles.font.colors._04
+									}}
+								>
+									Yes
+								</Text>
+							</TouchableOpacity>
+						</View>
+					</View>
+				</Modal>
+			</Portal>
+		</>
+	);
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#f8fafc'
-    }
+const STYLES = StyleSheet.create({
+	container: {
+		flex: 1
+	}
 });
+
+// <View
+// 	style={{
+// 		justifyContent: 'center',
+// 		alignItems: 'center',
+// 		flex: 1,
+// 		rowGap: 40,
+
+// 		paddingHorizontal: 24,
+// 		marginBottom: bottom + 20
+// 	}}
+// >
+// 	<Shadow
+// 		stretch={true}
+// 		distance={2}
+// 		startColor='#00000010'
+// 		offset={[0, 1]}
+// 		containerStyle={{
+// 			width: '100%'
+// 		}}
+// 	>
+// 		<View
+// 			style={{
+// 				backgroundColor: Colors.backgroundColor,
+// 				padding: 16,
+// 				borderRadius: 24,
+// 				rowGap: 24
+// 			}}
+// 		>
+// 			<AnimatedTabs
+// 				tabs={[fdaSchema[0].name, fdaSchema[1].name]}
+// 				currentIndex={activeTab}
+// 				handleTabChange={handleTabChange}
+// 			/>
+
+// 			<SearchBar
+// 				handleQuery={handleQuery}
+// 				placeholder={fdaSchema[activeTab].placeholder}
+// 			/>
+// 			<View style={{ flexDirection: 'row' }}>
+// 				<View style={{ marginTop: 3, marginRight: 4 }}>
+// 					<Info size={11} color={Colors.primary} />
+// 				</View>
+
+// 				<Text
+// 					style={{
+// 						fontSize: 12,
+// 						color: Colors.textColor + '7a',
+// 						width: 260
+// 					}}
+// 				>
+// 					Tip: Enter the exact product name as it appears on the packaging for better
+// 					results.
+// 				</Text>
+// 			</View>
+
+// 			<Shadow stretch={true} distance={1} startColor='#0000002f' offset={[0, 1]}>
+// 				<Pressable
+// 					onPress={handlePress}
+// 					style={{
+// 						columnGap: 12,
+// 						flexDirection: 'row',
+// 						justifyContent: 'center',
+// 						alignItems: 'center',
+// 						backgroundColor: Colors.primary,
+// 						padding: 16,
+// 						borderRadius: 16
+// 					}}
+// 				>
+// 					<Text
+// 						style={{
+// 							fontSize: 16,
+// 							fontWeight: 600,
+// 							color: Colors.backgroundColor
+// 						}}
+// 					>
+// 						Verify Product
+// 					</Text>
+// 					<CircleCheck size={16} color={Colors.backgroundColor} />
+// 				</Pressable>
+// 			</Shadow>
+// 		</View>
+// 	</Shadow>
+// </View>

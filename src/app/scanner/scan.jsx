@@ -34,6 +34,8 @@ import { useScanStore } from '@/stores/useScanStore';
 const AnimatedTouchableOpacity = createAnimatedComponent(TouchableOpacity);
 export default function CameraScreen() {
 	const setImageBase64 = useScanStore((state) => state.setImageBase64);
+	const setImageUri = useScanStore((state) => state.setImageUri);
+
 	const [frameData, setFrameData] = useState(() => ({
 		x: 0,
 		y: 0,
@@ -91,11 +93,10 @@ export default function CameraScreen() {
 		);
 
 		setImageBase64(croppedImage.base64);
+		setImageUri(croppedImage.uri);
 		router.push({
 			pathname: 'scanner/processing'
 		});
-
-		// await saveToLibraryAsync(croppedImage.uri);
 	};
 
 	const handleFrameLayout = (event) => {
@@ -105,8 +106,6 @@ export default function CameraScreen() {
 
 	const focusCamera = useDebouncedCallback(async (x, y) => {
 		try {
-			console.log(cameraRef.current?.focus);
-
 			if (device?.supportsFocus) {
 				await cameraRef.current?.focus({ x, y });
 			}

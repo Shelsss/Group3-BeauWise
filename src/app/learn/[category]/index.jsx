@@ -1,26 +1,23 @@
 import PagePadding from '@/constants/PagePadding';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { SectionList, Text, TouchableOpacity, View } from 'react-native';
 import {
-	getFirestore,
 	collection,
 	getDocs,
 	query,
 	documentId,
 	orderBy,
 	limit,
-	startAfter,
-	where
+	startAfter
 } from '@react-native-firebase/firestore';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { LegendList } from '@legendapp/list';
-import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { Redirect, router, useLocalSearchParams } from 'expo-router';
 import Card from '@/components/learn/ingredients-glossary/Card';
 import CardMyths from '@/components/learn/myths/Card';
 import CardAwareness from '@/components/learn/awareness/Card';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import SkeletonCard from '@/components/learn/ingredients-glossary/SkeletonCard';
-import LottieView from 'lottie-react-native';
 import SearchBar from '@/components/SearchBar';
 import Colors from '@/constants/Colors';
 import Animated, {
@@ -31,8 +28,7 @@ import Animated, {
 import { searchEngine } from '@/services/cloudFunctions';
 import { Swing } from 'react-native-animated-spinkit';
 import BatchHeader from '@/components/batch/Header';
-
-const db = getFirestore();
+import { db } from '@/services/firestore';
 
 const sectionListData = [
 	{
@@ -173,6 +169,7 @@ export default function Index() {
 	const { bottom } = useSafeAreaInsets();
 
 	const currentCategory = category.match(/\[(.*?)\]/)[1];
+
 	const currentRoute = category
 		.match(/\[(.*?)\]/)[1]
 		.split('_')
@@ -202,6 +199,7 @@ export default function Index() {
 	const { data, isPending, error, hasNextPage, fetchNextPage, isFetchingNextPage } =
 		useInfiniteQuery({
 			queryKey: [currentCategory],
+			enabled: currentCategory === 'myths_facts' ? false : true,
 			staleTime: 1000 * 60 * 5,
 			gcTime: 2000 * 60 * 5,
 			queryFn: ({ pageParam }) => fetchData(pageParam),
@@ -323,6 +321,10 @@ export default function Index() {
 			zIndex: queryResultOpacity.value === 0 ? 1 : 2
 		};
 	});
+
+	if (currentCategory === 'myths_facts') {
+		return <Redirect href={'/learn/myths-facts'} />;
+	}
 
 	return (
 		<>

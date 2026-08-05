@@ -1,13 +1,41 @@
 import { useLinkBuilder } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { Focus } from 'lucide-react-native';
-import { Pressable, View, Vibration, TouchableOpacity } from 'react-native';
+import { View, TouchableOpacity, useColorScheme, Dimensions } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Colors from '../constants/Colors';
-import { Shadow } from 'react-native-shadow-2';
+import styles from '@/config/styles';
+import { useThemeStore } from '@/stores/useThemeStore';
+import AiScan from './icons/hugeicons/AiScan';
+import Svg, { Path } from 'react-native-svg';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const TAB_BAR_HEIGHT = 110;
+const MOUNTAIN_WIDTH = 80;
+const MOUNTAIN_HEIGHT = 16;
+
+const getTabPath = () => {
+	const center = SCREEN_WIDTH / 2;
+	const curveStart = center - MOUNTAIN_WIDTH / 2;
+	const curveEnd = center + MOUNTAIN_WIDTH / 2;
+
+	return `
+        M 0 ${MOUNTAIN_HEIGHT}
+        L ${curveStart} ${MOUNTAIN_HEIGHT}
+        C ${curveStart + 15} ${MOUNTAIN_HEIGHT}, ${center - 25} 0, ${center} 0
+        C ${center + 25} 0, ${curveEnd - 15} ${MOUNTAIN_HEIGHT}, ${curveEnd} ${MOUNTAIN_HEIGHT}
+        L ${SCREEN_WIDTH} ${MOUNTAIN_HEIGHT}
+        L ${SCREEN_WIDTH} ${TAB_BAR_HEIGHT}
+        L 0 ${TAB_BAR_HEIGHT}
+        Z
+    `;
+};
 
 export default function CustomTabBar({ state, descriptors, navigation, onTabPress }) {
+	const systemTheme = useColorScheme() ?? 'light';
+	const themeMode = useThemeStore((state) => state.themeMode);
+	const activeTheme = themeMode === 'system' ? systemTheme : themeMode;
 	const { buildHref } = useLinkBuilder();
 	const { bottom } = useSafeAreaInsets();
 
@@ -40,10 +68,6 @@ export default function CustomTabBar({ state, descriptors, navigation, onTabPres
 			}
 		};
 
-		if (isFocused) {
-			Vibration.vibrate(50);
-		}
-
 		const onLongPress = () => {
 			navigation.emit({
 				type: 'tabLongPress',
@@ -70,21 +94,21 @@ export default function CustomTabBar({ state, descriptors, navigation, onTabPres
 				}}
 			>
 				<View style={{ display: 'flex', alignItems: 'center' }}>
-					{options.iconProp(isFocused, Colors.primary)}
+					{options.iconProp(
+						isFocused,
+						styles.theme.colors.primary,
+						styles.theme.colors[activeTheme].icon + '7a'
+					)}
 
 					<Animated.Text
 						style={{
 							marginTop: 2,
-							color: isFocused ? Colors.primary : '#000000a6',
-							fontWeight: 900,
-							fontSize: 10,
-							opacity: isFocused ? 1 : 0,
+							color: isFocused
+								? styles.theme.colors.primary
+								: styles.theme.colors[activeTheme].text + '7a',
+							fontWeight: styles.font.weight.bold,
+							fontSize: styles.font.size.xs,
 
-							transform: [
-								{
-									translateY: isFocused ? 0 : 5
-								}
-							],
 							transitionDuration: 150
 						}}
 					>
@@ -99,9 +123,9 @@ export default function CustomTabBar({ state, descriptors, navigation, onTabPres
 		<View
 			style={{
 				position: 'absolute',
-				width: '100%',
-				bottom: '55%',
-
+				top: 8,
+				left: 0,
+				right: 0,
 				alignItems: 'center',
 				justifyContent: 'center'
 			}}
@@ -109,27 +133,16 @@ export default function CustomTabBar({ state, descriptors, navigation, onTabPres
 			<TouchableOpacity
 				activeOpacity={0.7}
 				key='scanner-button'
-				onPress={() => router.push('scanner')}
+				onPress={() => router.push('scanner/initial_page')}
 				style={{
-					alignItems: 'center',
-					justifyContent: 'center',
-					backgroundColor: Colors.backgroundColor,
-					paddingTop: 5,
-					paddingLeft: 5,
-					paddingRight: 5,
-					borderRadius: 100
+					padding: 16,
+					borderRadius: 40,
+					backgroundColor: Colors.primary,
+
+					...styles.shadow.md
 				}}
 			>
-				<View
-					style={{
-						padding: 16,
-						borderRadius: 40,
-
-						backgroundColor: Colors.primary
-					}}
-				>
-					<Focus color='#fffefe' size={28} />
-				</View>
+				<AiScan color='#fffefe' size={styles.icon.size.xl} />
 			</TouchableOpacity>
 		</View>
 	);
@@ -142,23 +155,29 @@ export default function CustomTabBar({ state, descriptors, navigation, onTabPres
 
 	return (
 		<View
-			style={{
-				backgroundColor: 'transparent'
-				// position: 'absolute',
-				// bottom: 0,
-				// left: 0,
-				// right: 0
-			}}
+			style={{ height: TAB_BAR_HEIGHT, position: 'absolute', width: '100%', bottom: 0 }}
 		>
+			<View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
+				<Svg width={SCREEN_WIDTH} height={TAB_BAR_HEIGHT}>
+					<Path
+						d={getTabPath()}
+						fill={styles.theme.colors[activeTheme].card_background}
+						stroke={styles.theme.colors[activeTheme].card_border}
+						strokeWidth={0.8}
+					/>
+				</Svg>
+			</View>
+
+			<ScannerButton />
+
 			<View
 				style={{
 					flexDirection: 'row',
-					borderTopLeftRadius: 20,
-					borderTopRightRadius: 20,
-					backgroundColor: Colors.backgroundColor
+					flex: 1,
+
+					paddingTop: MOUNTAIN_HEIGHT
 				}}
 			>
-				<ScannerButton />
 				{tabItems}
 			</View>
 		</View>

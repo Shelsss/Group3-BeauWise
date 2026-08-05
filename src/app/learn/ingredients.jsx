@@ -26,7 +26,7 @@ import Animated, {
 	useSharedValue,
 	withTiming
 } from 'react-native-reanimated';
-import MythFactDetail from '@/components/learn/myths/Foo';
+import MythFactDetail from '@/components/learn/myths/CardList';
 import {
 	collection,
 	getDocs,

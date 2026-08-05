@@ -1,3 +1,4 @@
+import { getApp } from '@react-native-firebase/app';
 import {
 	httpsCallable,
 	getFunctions,
@@ -5,51 +6,132 @@ import {
 } from '@react-native-firebase/functions';
 
 const functions = getFunctions();
-const localIP = ['127.0.0.1', '192.168.1.16', '10.40.173.222'];
-connectFunctionsEmulator(functions, localIP[1], 5001);
-const setCallableFunction = (name) => httpsCallable(functions, name);
-export async function scanIngredient(imageData) {
-	const callable = setCallableFunction('scanIngredients');
 
-	const response = await callable({ imageBase64: imageData });
+if (__DEV__) {
+	const localIP = ['127.0.0.1', '192.168.0.100', '10.141.21.222'];
+	connectFunctionsEmulator(functions, localIP[1], 5001);
+}
+const setCallableFunction = (name) => httpsCallable(functions, name);
+export async function ingredientScan(imageBase64) {
+	const callable = setCallableFunction('client-ingredientScan');
+
+	const response = await callable({ imageBase64 });
 
 	return response.data;
 }
 
-export async function searchEngine(query) {
-	const callable = setCallableFunction('searchEngine');
+export async function searchEngine({ query, collectionKey }) {
+	const callable = setCallableFunction('client-searchEngine');
 
-	const response = await callable({ query });
+	const response = await callable({ query, collectionKey });
 
 	return response.data;
 }
 
 export async function fdaVerification(query) {
-	const callable = setCallableFunction('fdaVerification');
+	const callable = setCallableFunction('client-fdaVerification');
 
-	if (query[0].toLowerCase().startsWith('n')) {
-		query = query
-			.trim()
-			.toUpperCase()
-			.split('')
-			.filter((item) => item.trim() !== '')
-			.join('');
-	} else {
-		query = query.trim();
+	const response = await callable({
+		query: { ...query.data },
+		clientTimeZone: query.clientTimeZone
+	});
+
+	if (response.data?.error) {
+		throw new Error(response.data?.error);
 	}
+
+	return response.data;
+}
+
+export async function batchCodeLookup(query) {
+	const callable = setCallableFunction('client-batchCode');
 
 	const response = await callable({ query });
 
 	return response.data;
 }
-export async function verifyEmail(email) {
-	console.log('Verify email');
+
+export async function sendEmailVerification(userInfo) {
+	const callable = setCallableFunction('client-auth-sendEmailVerificationCode');
+
+	const response = await callable(userInfo);
+
+	return response.data;
 }
 
-export async function checkIfEmailExist(email) {
-	const callable = setCallableFunction('auth-checkEmail');
+export async function verifyEmail({ code, userInfo }) {
+	const callable = setCallableFunction('client-auth-verifyEmail');
 
-	const response = await callable({ email });
+	const response = await callable({ code, userInfo });
+
+	return response.data ?? null;
+}
+
+export async function sendPasswordReset(userInfo) {
+	const callable = setCallableFunction('client-auth-passwordReset');
+
+	const response = await callable(userInfo);
+
+	return response.data;
+}
+
+export async function verifyPasswordReset({ code, userInfo }) {
+	const callable = setCallableFunction('client-auth-verifyPasswordReset');
+
+	const response = await callable({ code, userInfo });
+
+	return response.data;
+}
+
+export async function changePassword({ email, password }) {
+	const callable = setCallableFunction('client-auth-changeUserPassword');
+
+	const response = await callable({ email, password });
+
+	return response.data;
+}
+
+export async function checkIfUserAlreadyExist(email) {
+	let response;
+
+	try {
+		const callable = setCallableFunction('client-auth-checkIfUserAlreadyExist');
+		response = await callable({ email });
+	} catch (error) {
+		console.trace(error);
+	}
+
+	return response.data;
+}
+
+export async function analyzeIngredients({ ingredients, product, clientTimeZone }) {
+	const callable = setCallableFunction('client-ingredientAnalysisController');
+
+	const response = await callable({
+		ingredients,
+		product,
+		clientTimeZone
+	});
+
+	if (response.data?.error) {
+		throw new Error(response.data?.error);
+	}
+
+	return response.data;
+}
+
+export async function cancelAccountDeletion() {
+	const callable = setCallableFunction('client-auth-cancelAccountDeletion');
+
+	const response = await callable();
+
+	return response.data;
+}
+
+export async function requestAccountDeletion() {
+	const callable = setCallableFunction('client-auth-requestAccountDeletion');
+
+	const response = await callable();
 
 	return response.data;
 }

@@ -9,29 +9,24 @@ import {
 	signInWithCredential,
 	getAuth,
 	GoogleAuthProvider,
-	createUserWithEmailAndPassword,
 	signInWithEmailAndPassword,
-	updateProfile,
-	signOut
+	signOut,
+	connectAuthEmulator
 } from '@react-native-firebase/auth';
 
 import Toast from 'react-native-toast-message';
-import {
-	doc,
-	getDoc,
-	getFirestore,
-	query,
-	setDoc
-} from '@react-native-firebase/firestore';
-import { checkIfEmailExist } from './cloudFunctions';
+import { checkIfUserAlreadyExist } from './cloudFunctions';
 
 GoogleSignin.configure({
-	webClientId: '423229615499-fie2t2v348rs914ahbjppev5vjokuier.apps.googleusercontent.com'
+	webClientId: process.env.EXPO_PUBLIC_WEB_CLIENT_ID
 });
 
 export const auth = getAuth();
 
-const db = getFirestore();
+if (__DEV__) {
+	const localIP = ['127.0.0.1', '192.168.0.100', '10.141.21.222'];
+	connectAuthEmulator(auth, `http://${localIP[1]}:9099`);
+}
 
 export const googleSignIn =
 	(isSigningUp = false, showModal, hideModal) =>
@@ -46,17 +41,36 @@ export const googleSignIn =
 
 				const userEmail = userInfo.user.email;
 
-				const hasEmailAlreadyRegistered = await checkIfEmailExist(userEmail);
+				const result = await checkIfUserAlreadyExist(userEmail);
 
-				if (hasEmailAlreadyRegistered && isSigningUp) {
-					throw Object.assign(new Error('This email is already registered.'), {
+				if (result.exists && !!isSigningUp) {
+					throw Object.assign(new Error('Invalid login credentials. Please try again.'), {
 						code: 'USER_ALREADY_EXIST'
 					});
 				}
 
-				if (!hasEmailAlreadyRegistered && !isSigningUp) {
-					throw Object.assign(new Error('Please sign up first.'), {
+				if (!result.exists && isSigningUp) {
+					await logOut();
+					return {
+						isSignedIn: false,
+						isEmailVerificationRequired: true,
+						userInfo: {
+							credential: GoogleAuthProvider.credential(userInfo.idToken),
+							email: userInfo.user.email,
+							name: userInfo.user.name
+						}
+					};
+				}
+
+				if (!result.exists && !isSigningUp) {
+					throw Object.assign(new Error('Invalid login credentials. Please try again.'), {
 						code: 'USER_NOT_FOUND'
+					});
+				}
+
+				if (result.provider_id !== 'google.com') {
+					throw Object.assign(new Error('Invalid login credentials. Please try again.'), {
+						code: 'INVALID_PROVIDER'
 					});
 				}
 
@@ -64,17 +78,12 @@ export const googleSignIn =
 
 				await signInWithCredential(auth, credential);
 
-				if (isSigningUp) {
-					await setDoc(doc(db, 'users', auth.currentUser.uid), {
-						scanHistory: [],
-						fdaHistory: []
-					});
-				}
-
-				return true;
+				return { isSignedIn: true };
 			}
 		} catch (error) {
 			let errorMessage;
+
+			console.log(error);
 
 			if (isErrorWithCode(error)) {
 				switch (error.code) {
@@ -92,6 +101,9 @@ export const googleSignIn =
 					case 'USER_NOT_FOUND':
 						errorMessage = error.message;
 						break;
+					case 'INVALID_PROVIDER':
+						errorMessage = error.message;
+						break;
 					default:
 						errorMessage = 'An error occured, please try again.';
 				}
@@ -102,37 +114,32 @@ export const googleSignIn =
 				type: 'errorToast'
 			});
 
-			return false;
+			return { isSignedIn: false };
 		} finally {
 			hideModal();
 		}
 	};
 
-export const signUp = async (email, password, userName, showModal, hideModal) => {
+export const signUp = async (email, password, name, showModal, hideModal) => {
 	try {
 		showModal();
-		const hasEmailAlreadyRegistered = await checkIfEmailExist(email);
+		const result = await checkIfUserAlreadyExist(email);
 
-		if (hasEmailAlreadyRegistered) {
+		if (result.exists) {
 			throw Object.assign(new Error('This email is already registered.'), {
 				code: 'USER_ALREADY_EXIST'
 			});
 		}
 
-		const user = await createUserWithEmailAndPassword(auth, email, password);
-
-		await updateProfile(user.user, {
-			displayName: userName
-		});
-
-		await setDoc(doc(db, 'users', user.user.uid), {
-			scanHistory: [],
-			fdaHistory: []
-		});
-
-		await signInWithEmailAndPassword(auth, email, password);
-
-		return true;
+		return {
+			isSignedIn: false,
+			isEmailVerificationRequired: true,
+			userInfo: {
+				email,
+				password,
+				name
+			}
+		};
 	} catch (error) {
 		let errorMessage;
 
@@ -155,7 +162,7 @@ export const signUp = async (email, password, userName, showModal, hideModal) =>
 			text1: errorMessage,
 			type: 'errorToast'
 		});
-		return false;
+		return { isSignedIn: false };
 	} finally {
 		hideModal();
 	}
@@ -164,7 +171,7 @@ export const signUp = async (email, password, userName, showModal, hideModal) =>
 export const signIn = async (email, password, showModal, hideModal) => {
 	try {
 		showModal();
-		const hasEmailAlreadyRegistered = await checkIfEmailExist(email);
+		const hasEmailAlreadyRegistered = await checkIfUserAlreadyExist(email);
 
 		if (!hasEmailAlreadyRegistered) {
 			throw Object.assign(new Error('Please sign up first.'), {
@@ -177,8 +184,13 @@ export const signIn = async (email, password, showModal, hideModal) => {
 	} catch (error) {
 		let errorMessage;
 
+		console.log(error);
 		switch (error.code) {
 			case 'auth/invalid-credential':
+				errorMessage = 'Incorrect password or email';
+				break;
+
+			case 'auth/wrong-password':
 				errorMessage = 'Incorrect password or email';
 				break;
 
@@ -215,10 +227,3 @@ export const logOut = async () => {
 		console.log(error);
 	}
 };
-
-async function checkUserExistInDB() {
-	const queryOption = query(doc(getFirestore(), 'users', auth.currentUser?.uid));
-
-	const documentSnapshot = await getDoc(queryOption);
-	return documentSnapshot.exists();
-}

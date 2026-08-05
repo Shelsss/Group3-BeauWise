@@ -96,7 +96,7 @@ export default function PageOne({ isActive }) {
 	}, []);
 
 	return (
-		<View style={{ position: 'relative', backgroundColor: 'red', marginBottom: 200 }}>
+		<View style={{ position: 'relative', backgroundColor: 'red', marginBottom: 120 }}>
 			<Animated.View>
 				<Animated.View
 					style={[

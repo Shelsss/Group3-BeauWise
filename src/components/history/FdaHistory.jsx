@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { RefreshControl, Text, useColorScheme, View } from 'react-native';
 import Card from '@/components/history/Card';
 import styles from '@/config/styles';
-import { isToday, isYesterday, parse } from 'date-fns';
+import { fromUnixTime, isToday, isYesterday, parse } from 'date-fns';
 import { useThemeStore } from '@/stores/useThemeStore';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { router } from 'expo-router';
@@ -43,7 +43,7 @@ export default function ScanHistory() {
 	const queryFn = historyQuery.find(({ field }) => field === filter).queryFn;
 	const enabled = currentIndex === indexOfFda;
 
-	const { data, isPending, isError, refetch, isRefetchError } = useQuery({
+	const { data, isFetching, isError, refetch, isRefetchError } = useQuery({
 		queryKey: ['fda_history', `fda_history_${filter}`],
 		queryFn: queryFn('fda_history'),
 		enabled
@@ -58,11 +58,7 @@ export default function ScanHistory() {
 			acc.push(cur);
 
 			data?.forEach((item) => {
-				const itemDate = parse(
-					item.verification_check_date,
-					"MMMM d',' yyyy 'at' p",
-					new Date()
-				);
+				const itemDate = fromUnixTime(item.createdAt.seconds);
 
 				if (cur === 'today' && isToday(itemDate)) {
 					acc.push(item);
@@ -157,7 +153,7 @@ export default function ScanHistory() {
 							: emptyHistoryStates.default.description}
 					</Text>
 				</Animated.View>
-			) : isPending ? (
+			) : isFetching ? (
 				<View
 					style={{
 						padding: styles.spacing.one_xl,
@@ -178,8 +174,8 @@ export default function ScanHistory() {
 				<FlashList
 					refreshControl={
 						<RefreshControl
-							refreshing={isPending}
-							onRefresh={() => refetch()}
+							refreshing={isFetching}
+							onRefresh={() => refetch({ throwOnError: true })}
 							progressBackgroundColor={styles.theme.colors[activeTheme].card_background}
 							colors={[styles.theme.colors.primary]}
 						/>

@@ -11,7 +11,7 @@ import {
 import Animated, { FadeIn, FadeInDown, LinearTransition } from 'react-native-reanimated';
 import Card from '@/components/learn/myths/CardThree';
 import { LegendList } from '@legendapp/list';
-import { Image } from 'expo-image';
+import { Image, useImage } from 'expo-image';
 import { useThemeStore } from '@/stores/useThemeStore';
 import { ChevronRight, X } from 'lucide-react-native';
 import Document from '@/components/icons/hugeicons/Document';
@@ -27,6 +27,7 @@ import {
 import { useCallback, useRef } from 'react';
 import { ResumableZoom } from 'react-native-zoom-toolkit';
 import { useVideoPlayer, VideoView } from 'expo-video';
+import Skeleton from '@/components/Skeleton';
 const data = [
 	{
 		title: 'Pore Myths & Facts',
@@ -96,15 +97,18 @@ export default function MythFactDetail({ selectedItem, onBack }) {
 	const parentName = selectedItem.name;
 	const parentDescription = selectedItem?.description;
 	const numberOfTopics = selectedItem.topics.length;
-
+	const cacheImageTag = selectedItem.displayImage?.fileHash;
+	const cacheVideoTag = selectedItem.videoGuide?.fileHash;
 	const sources = [...selectedItem.sources, 'video'];
 
 	const sheetRef = useRef(null);
 
-	// https://cdn.beauwise.tech/learn/${parentId}/video_guide.mp4
-	const player = useVideoPlayer(``, (player) => {
-		player.loop = true;
-	});
+	const player = useVideoPlayer(
+		`https://cdn.beauwise.tech/learn/${selectedItem.baseImagePath}/video_guide.mp4?q=${cacheVideoTag}`,
+		(player) => {
+			player.loop = true;
+		}
+	);
 
 	const renderBackdrop = useCallback(
 		(props) => (
@@ -160,7 +164,7 @@ export default function MythFactDetail({ selectedItem, onBack }) {
 							height: SCREEN_HEIGHT,
 							alignItems: 'center',
 							justifyContent: 'center',
-							rowGap: styles.spacing.md
+							rowGap: styles.spacing.xxl
 						}}
 					>
 						<Text
@@ -169,7 +173,7 @@ export default function MythFactDetail({ selectedItem, onBack }) {
 								fontFamily: styles.font.family
 							}}
 						>
-							More Educational Content
+							{selectedItem.name} Video Overview
 						</Text>
 
 						<VideoView
@@ -202,15 +206,20 @@ export default function MythFactDetail({ selectedItem, onBack }) {
 								>
 									{index === 0 ? (
 										<Initial
+											baseImagePath={selectedItem.baseImagePath}
 											name={parentName}
 											id={parentId}
 											description={parentDescription}
+											cacheImageTag={cacheImageTag}
 											numberOfTopics={numberOfTopics}
 										/>
 									) : (
 										<Card
+											baseImagePath={selectedItem.baseImagePath}
 											title={item.topic}
 											myth={item.myth}
+											imageId={item.imageId}
+											cacheImageTag={item?.fileHash}
 											fact={item.fact}
 											id={item.id}
 											parentId={parentId}
@@ -277,39 +286,42 @@ export default function MythFactDetail({ selectedItem, onBack }) {
 							References
 						</Text>
 
-						{sources.map((source, index) => (
-							<TouchableOpacity
-								onPress={() => {
-									openBrowserAsync(source.source, {
-										showInRecents: false,
-										toolbarColor: styles.theme.colors.primary,
-										controlsColor: styles.theme.colors.primary,
-										showTitle: false
-									});
-								}}
-								key={source.name}
-								style={{
-									justifyContent: 'center',
-									alignItems: 'center',
-									flexDirection: 'row',
-									paddingVertical: styles.spacing.one_xl,
-									columnGap: styles.spacing.sm
-								}}
-							>
-								<Text
-									style={{
-										fontSize: styles.font.size.md,
-										textAlign: 'center',
-										fontFamily: styles.font.family,
-										color: '#3B82F6'
-									}}
-								>
-									{source.name}
-								</Text>
+						{sources.map(
+							(source, index) =>
+								typeof source !== 'string' && (
+									<TouchableOpacity
+										onPress={() => {
+											openBrowserAsync(source.link, {
+												showInRecents: false,
+												toolbarColor: styles.theme.colors.primary,
+												controlsColor: styles.theme.colors.primary,
+												showTitle: false
+											});
+										}}
+										key={source.name}
+										style={{
+											justifyContent: 'center',
+											alignItems: 'center',
+											flexDirection: 'row',
+											paddingVertical: styles.spacing.one_xl,
+											columnGap: styles.spacing.sm
+										}}
+									>
+										<Text
+											style={{
+												fontSize: styles.font.size.md,
+												textAlign: 'center',
+												fontFamily: styles.font.family,
+												color: '#3B82F6'
+											}}
+										>
+											{source.name}
+										</Text>
 
-								<LinkCircle color='#3B82F6' size={styles.icon.size.lg} />
-							</TouchableOpacity>
-						))}
+										<LinkCircle color='#3B82F6' size={styles.icon.size.lg} />
+									</TouchableOpacity>
+								)
+						)}
 					</View>
 				</BottomSheetView>
 			</BottomSheetModal>
@@ -354,11 +366,26 @@ function Source({ sheetRef }) {
 	);
 }
 
-function Initial({ name, id, description, numberOfTopics }) {
+function Initial({
+	name,
+	id,
+	description,
+	numberOfTopics,
+	cacheImageTag,
+	baseImagePath
+}) {
 	const systemTheme = useColorScheme() ?? 'light';
 	const themeMode = useThemeStore((state) => state.themeMode);
 	const activeTheme = themeMode === 'system' ? systemTheme : themeMode;
 
+	const image = useImage(
+		`https://${process.env.EXPO_PUBLIC_BEAUWISE_CDN}/learn/${baseImagePath}/display_image.webp?q=${cacheImageTag}`,
+		{
+			onError: (_, retry) => {
+				retry();
+			}
+		}
+	);
 	return (
 		<View style={{ alignItems: 'center', rowGap: styles.spacing.xl }}>
 			<Text
@@ -373,25 +400,33 @@ function Initial({ name, id, description, numberOfTopics }) {
 			</Text>
 			<View style={{ aspectRatio: 16 / 9, width: 300 }}>
 				<ResumableZoom maxScale={1.6}>
-					<Image
-						source={`https://cdn.beauwise.tech/learn/${id}/display_image.webp`}
-						contentFit='contain'
-						transition={{
-							duration: 200,
-							effect: 'cross-dissolve'
-						}}
-						recyclingKey={id}
-						cachePolicy='memory-disk'
-						style={{
-							zIndex: 2,
-							backgroundColor: styles.background_color._04,
-							borderWidth: 1,
-							borderColor: activeTheme === 'light' ? '#E8E5F2' : 'transparent',
-							borderRadius: styles.border.radius.size.sm,
-							aspectRatio: 16 / 9,
-							width: 300
-						}}
-					/>
+					{!image ? (
+						<Skeleton
+							width={300}
+							height={166}
+							style={{ borderRadius: styles.border.radius.size.sm }}
+						/>
+					) : (
+						<Image
+							source={image}
+							contentFit='contain'
+							transition={{
+								duration: 200,
+								effect: 'cross-dissolve'
+							}}
+							recyclingKey={id}
+							cachePolicy='memory-disk'
+							style={{
+								zIndex: 2,
+								backgroundColor: styles.background_color._04,
+								borderWidth: 1,
+								borderColor: activeTheme === 'light' ? '#E8E5F2' : 'transparent',
+								borderRadius: styles.border.radius.size.sm,
+								aspectRatio: 16 / 9,
+								width: 300
+							}}
+						/>
+					)}
 				</ResumableZoom>
 			</View>
 

@@ -34,9 +34,19 @@ export default function Processing() {
 		},
 
 		onError: (err) => {
+			let errMessage = 'Something went wrong. Please try again';
+
+			if (err.code === 'deadline-exceeded') {
+				errMessage = `Things are loading a bit slow. Let's try again!`;
+			}
+
+			if (err.code === 'cancelled') {
+				errMessage = err.message;
+			}
+
 			Toast.show({
 				type: 'errorToast',
-				text1: 'Something went wrong. Please try again',
+				text1: errMessage,
 				visibilityTime: 8000
 			});
 

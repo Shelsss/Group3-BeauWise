@@ -88,6 +88,7 @@ export default function ScannerDetails() {
 				throw new Error('Something went wrong.');
 			}
 
+			resetIngredients();
 			queryClient.invalidateQueries({ queryKey: ['analysis_history'] });
 			queryClient.invalidateQueries({ queryKey: ['metrics'] });
 			queryClient.invalidateQueries({ queryKey: ['recent-analysis'] });
@@ -119,6 +120,8 @@ export default function ScannerDetails() {
 
 	const ingredients = useScanStore((state) => state.ingredients);
 	const setIngredients = useScanStore((state) => state.setIngredients);
+	const resetIngredients = useScanStore((state) => state.resetIngredients);
+
 	const searchRef = useRef(null);
 	const brandInputRef = useRef(null);
 	const notesInputRef = useRef(null);

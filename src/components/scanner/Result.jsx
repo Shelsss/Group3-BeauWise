@@ -77,7 +77,7 @@ const ingredientsData = [
 	// }
 ];
 
-export default function Results({ analyzedIngredients, product, hideHeader }) {
+export default function Results({ analyzedIngredients, product, isHistoryView = false }) {
 	const systemTheme = useColorScheme() ?? 'light';
 	const themeMode = useThemeStore((state) => state.themeMode);
 	const activeTheme = themeMode === 'system' ? systemTheme : themeMode;
@@ -225,7 +225,7 @@ export default function Results({ analyzedIngredients, product, hideHeader }) {
 								color: styles.font.colors._04
 							}}
 						>
-							back
+							{isHistoryView ? 'Back' : 'Analyze Another Product'}
 						</Text>
 					</TouchableOpacity>
 				</View>

@@ -50,7 +50,15 @@ const disclaimerSchema = [
 ];
 
 const productSchema = z.object({
-	product: z.string().min(2, { error: 'Please enter a valid product' })
+	product: z
+		.string()
+		.min(4, { error: 'Please enter a valid product' })
+		.refine(
+			(val) => {
+				return !val.toLowerCase().includes('nn-');
+			},
+			{ message: 'Product name cannot contain the "nn-" prefix anywhere' }
+		)
 });
 
 const notificationNumberSchema = z.object({

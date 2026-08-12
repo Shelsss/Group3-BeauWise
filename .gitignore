@@ -44,3 +44,7 @@ sign-keys.txt
 test.js
 .env
 checklist-before-deployments.txt
+
+*.keystore
+.sdkmanrc
+android-prebuild-files

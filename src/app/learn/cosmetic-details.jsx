@@ -135,7 +135,7 @@ export default function CosmeticDetails() {
 						}}
 						recyclingKey={item.id}
 						cachePolicy='memory-disk'
-						source={`https://cdn.beauwise.tech/learn/cosmetic_guides/${item.id}.webp`}
+						source={`https://cdn.beauwise.tech/learn/cosmetic_guides/${item.imageId}.webp`}
 					/>
 				</View>
 

@@ -56,6 +56,7 @@ export default function GuessModeView() {
 		<View
 			style={{
 				flex: 1,
+				paddingBottom: 80,
 				rowGap: 20
 			}}
 		>

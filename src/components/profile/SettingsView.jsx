@@ -7,7 +7,14 @@ import { router } from 'expo-router';
 import { ChevronRight } from 'lucide-react-native';
 import { useCallback, useRef, useState } from 'react';
 
-import { View, Text, StyleSheet, TouchableOpacity, useColorScheme } from 'react-native';
+import {
+	View,
+	Text,
+	StyleSheet,
+	TouchableOpacity,
+	useColorScheme,
+	ScrollView
+} from 'react-native';
 import { Modal, Portal } from 'react-native-paper';
 import Lock2 from '../icons/hugeicons/Lock2';
 import { useProfilingStore } from '@/stores/useProfilingStore';
@@ -34,6 +41,7 @@ import PasswordChange from '../icons/hugeicons/PasswordChange';
 import Email from '../icons/hugeicons/Email';
 import Logout from '../icons/hugeicons/Logout';
 import Remove from '../icons/hugeicons/Remove';
+import { onScroll } from '@/utility/scrollView';
 
 const themes = [
 	{
@@ -155,6 +163,7 @@ export default function SettingsView({ isVisible }) {
 	const activeTheme = themeMode === 'system' ? systemTheme : themeMode;
 
 	const themeModalRef = useRef(null);
+	const scrollRef = useRef(null);
 
 	const renderBackdropComponent = useCallback(
 		(props) => <BottomSheetBackdrop {...props} opacity={0.9} disappearsOnIndex={-1} />,
@@ -189,9 +198,11 @@ export default function SettingsView({ isVisible }) {
 
 	return (
 		<>
-			<View
-				style={{
-					flex: 1,
+			<ScrollView
+				ref={scrollRef}
+				showsVerticalScrollIndicator={false}
+				onScroll={onScroll(scrollRef)}
+				contentContainerStyle={{
 					paddingTop: PagePadding.config.paddingTop,
 					paddingBottom: PagePadding.config.paddingBottom,
 					paddingHorizontal: PagePadding.config.paddingHorizontal + 10,
@@ -326,7 +337,7 @@ export default function SettingsView({ isVisible }) {
 
 				<Text
 					style={{
-						color: styles.font.colors._01 + '7a',
+						color: styles.theme.colors[activeTheme].text_secondary,
 						textAlign: 'center',
 						fontSize: styles.font.size.md,
 						fontFamily: styles.font.family
@@ -334,7 +345,7 @@ export default function SettingsView({ isVisible }) {
 				>
 					BeauWise Version 1.0.0 {!isAuthenticated && '(Guest Mode)'}
 				</Text>
-			</View>
+			</ScrollView>
 			<Portal>
 				<Modal
 					style={{

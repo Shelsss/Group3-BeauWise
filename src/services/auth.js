@@ -9,13 +9,13 @@ import {
 	signInWithCredential,
 	getAuth,
 	GoogleAuthProvider,
-	signInWithEmailAndPassword,
 	signOut,
-	connectAuthEmulator
+	connectAuthEmulator,
+	signInWithCustomToken
 } from '@react-native-firebase/auth';
 
 import Toast from 'react-native-toast-message';
-import { checkIfUserAlreadyExist } from './cloudFunctions';
+import { checkIfUserAlreadyExist, secureLogin } from './cloudFunctions';
 
 GoogleSignin.configure({
 	webClientId: process.env.EXPO_PUBLIC_WEB_CLIENT_ID
@@ -82,8 +82,6 @@ export const googleSignIn =
 			}
 		} catch (error) {
 			let errorMessage;
-
-			console.log(error);
 
 			if (isErrorWithCode(error)) {
 				switch (error.code) {
@@ -179,19 +177,44 @@ export const signIn = async (email, password, showModal, hideModal) => {
 			});
 		}
 
-		await signInWithEmailAndPassword(auth, email, password);
-		return true;
+		const response = await secureLogin({ email, password });
+
+		if (response?.success) {
+			await signInWithCustomToken(auth, response.token);
+		} else {
+			throw Object.assign(new Error(response.message), {
+				code: response.code,
+				lockedUntil: response.lockedUntil,
+				remainingAttempts: response.remainingAttempts
+			});
+		}
+
+		return { success: true };
 	} catch (error) {
 		let errorMessage;
 
-		console.log(error);
+		let isAccountLock = false,
+			lockedUntil = null,
+			remainingAttempts = null;
+
 		switch (error.code) {
-			case 'auth/invalid-credential':
-				errorMessage = 'Incorrect password or email';
+			case 'account-locked':
+				isAccountLock = true;
+				lockedUntil = error.lockedUntil;
+				errorMessage = error.message;
 				break;
 
-			case 'auth/wrong-password':
-				errorMessage = 'Incorrect password or email';
+			case 'invalid-credentials':
+				remainingAttempts = error.remainingAttempts;
+				errorMessage = error.message;
+				break;
+
+			case 'permission-denied':
+				errorMessage = error.message;
+				break;
+
+			case 'cancelled':
+				errorMessage = error.message;
 				break;
 
 			case 'USER_NOT_FOUND':
@@ -205,10 +228,11 @@ export const signIn = async (email, password, showModal, hideModal) => {
 
 		Toast.show({
 			type: 'errorToast',
-			text1: errorMessage
+			text1: errorMessage,
+			visibilityTime: 12000
 		});
 
-		return false;
+		return { success: false, isAccountLock, lockedUntil, remainingAttempts };
 	} finally {
 		hideModal();
 	}

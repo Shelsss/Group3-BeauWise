@@ -1,19 +1,36 @@
+import Skeleton from '@/components/Skeleton';
 import styles from '@/config/styles';
 import { useThemeStore } from '@/stores/useThemeStore';
-import { Image } from 'expo-image';
+import { Image, useImage } from 'expo-image';
 import { Check, ChevronRight, X } from 'lucide-react-native';
 import { useState } from 'react';
 import { Text, TouchableOpacity, useColorScheme, View } from 'react-native';
 import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
 import { ResumableZoom } from 'react-native-zoom-toolkit';
 
-export default function CardThree({ title, myth, fact, parentId, id }) {
+export default function CardThree({
+	title,
+	myth,
+	fact,
+	imageId,
+	id,
+	cacheImageTag,
+	baseImagePath
+}) {
 	const systemTheme = useColorScheme() ?? 'light';
 	const themeMode = useThemeStore((state) => state.themeMode);
 	const activeTheme = themeMode === 'system' ? systemTheme : themeMode;
 
 	const [visible, setVisible] = useState(false);
 
+	const image = useImage(
+		`https://${process.env.EXPO_PUBLIC_BEAUWISE_CDN}/learn/${baseImagePath}/${imageId}.webp?q=${cacheImageTag}`,
+		{
+			onError: (_, retry) => {
+				// retry();
+			}
+		}
+	);
 	return (
 		<Animated.View
 			layout={LinearTransition.springify().damping(200)}
@@ -41,26 +58,33 @@ export default function CardThree({ title, myth, fact, parentId, id }) {
 
 			<View style={{ aspectRatio: 16 / 9, width: 300 }}>
 				<ResumableZoom maxScale={1.6}>
-					{/* https://cdn.beauwise.tech/learn/${parentId}/${id}.webp */}
-					<Image
-						source={``}
-						contentFit='contain'
-						transition={{
-							duration: 200,
-							effect: 'cross-dissolve'
-						}}
-						recyclingKey={id}
-						cachePolicy='memory-disk'
-						style={{
-							alignSelf: 'center',
-							backgroundColor: styles.background_color._04,
-							borderRadius: styles.border.radius.size.sm,
-							borderWidth: 0.5,
-							borderColor: activeTheme === 'light' ? '#E8E5F2' : 'transparent',
-							width: 260,
-							aspectRatio: 16 / 9
-						}}
-					/>
+					{!image ? (
+						<Skeleton
+							width={260}
+							height={150}
+							style={{ borderRadius: styles.border.radius.size.sm }}
+						/>
+					) : (
+						<Image
+							source={image}
+							contentFit='contain'
+							transition={{
+								duration: 200,
+								effect: 'cross-dissolve'
+							}}
+							recyclingKey={id}
+							cachePolicy='memory-disk'
+							style={{
+								alignSelf: 'center',
+								backgroundColor: styles.background_color._04,
+								borderRadius: styles.border.radius.size.sm,
+								borderWidth: 0.5,
+								borderColor: activeTheme === 'light' ? '#E8E5F2' : 'transparent',
+								width: 260,
+								aspectRatio: 16 / 9
+							}}
+						/>
+					)}
 				</ResumableZoom>
 			</View>
 

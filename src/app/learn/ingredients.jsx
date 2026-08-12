@@ -6,6 +6,7 @@ import { ChevronLeft, Search } from 'lucide-react-native';
 import {
 	FlatList,
 	RefreshControl,
+	ScrollView,
 	Text,
 	TextInput,
 	TouchableOpacity,
@@ -101,6 +102,7 @@ export default function IngredientsGlossary() {
 		hasNextPage,
 		isFetchingNextPage,
 		isLoading,
+		isRefetching,
 		isError,
 		isRefetchError,
 		refetch
@@ -125,7 +127,7 @@ export default function IngredientsGlossary() {
 	const [resultVisible, setResultVisible] = useState(false);
 
 	const scrollRef = useRef(null);
-
+	const scrollLoaderRef = useRef(null);
 	const systemTheme = useColorScheme() ?? 'light';
 	const themeMode = useThemeStore((state) => state.themeMode);
 	const activeTheme = themeMode === 'system' ? systemTheme : themeMode;
@@ -330,16 +332,26 @@ export default function IngredientsGlossary() {
 				)}
 			</View>
 
-			{isLoading ? (
-				<View
-					style={{
-						flex: 1,
+			{isRefetching ? (
+				<ScrollView
+					ref={scrollLoaderRef}
+					refreshControl={
+						<RefreshControl
+							refreshing={isRefetching}
+							onRefresh={() => refetch({ throwOnError: true })}
+							progressBackgroundColor={styles.theme.colors[activeTheme].card_background}
+							colors={[styles.theme.colors.primary]}
+						/>
+					}
+					showsVerticalScrollIndicator={false}
+					onScroll={onScroll(scrollLoaderRef)}
+					contentContainerStyle={{
 						marginTop: styles.spacing.double_xl,
 						paddingHorizontal: styles.spacing.double_xxl,
 						rowGap: styles.spacing.one_xl
 					}}
 				>
-					{[...Array(8)].map((_, index) => {
+					{[...Array(10)].map((_, index) => {
 						return (
 							<Skeleton
 								key={index}
@@ -349,7 +361,7 @@ export default function IngredientsGlossary() {
 							/>
 						);
 					})}
-				</View>
+				</ScrollView>
 			) : isError || isRefetchError ? (
 				<View style={{ flex: 1 }}>
 					<RetryError refetch={refetch} />
@@ -378,8 +390,8 @@ export default function IngredientsGlossary() {
 						}}
 						refreshControl={
 							<RefreshControl
-								refreshing={isLoading}
-								onRefresh={() => refetch()}
+								refreshing={isRefetching}
+								onRefresh={() => refetch({ throwOnError: true })}
 								progressBackgroundColor={styles.theme.colors[activeTheme].card_background}
 								colors={[styles.theme.colors.primary]}
 							/>

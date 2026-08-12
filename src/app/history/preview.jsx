@@ -100,7 +100,7 @@ export default function Preview() {
 					}}
 				>
 					<AnalysisHistoryView
-						hideHeader={true}
+						isHistoryView={true}
 						analyzedIngredients={data?.ingredients}
 						product={{ ...data?.product }}
 					/>

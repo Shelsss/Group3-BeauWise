@@ -1,7 +1,14 @@
 import Colors from '@/constants/Colors';
 import PagePadding from '@/constants/PagePadding';
 import { useProfilingStore } from '@/stores/useProfilingStore';
-import { View, Text, TouchableOpacity, useColorScheme } from 'react-native';
+import {
+	View,
+	Text,
+	TouchableOpacity,
+	useColorScheme,
+	ScrollView,
+	RefreshControl
+} from 'react-native';
 import { Shadow } from 'react-native-shadow-2';
 import EditBottomSheet from '@/components/EditBottomSheet';
 import EditCard from '@/components/EditCard';
@@ -32,6 +39,7 @@ import Profile2Solid from '../icons/hugeicons/Profile2Solid';
 import { storage } from '@/config/mmkv';
 import Skeleton from '../Skeleton';
 import RetryError from '../RetryError';
+import { onScroll } from '@/utility/scrollView';
 
 const fetchData = async () => {
 	const queryOption = query(doc(db, 'users', auth.currentUser.uid));
@@ -100,6 +108,7 @@ export default function ProfileView({ isVisible }) {
 	const populateProfile = useProfilingStore((state) => state.populateProfile);
 	const isProfilingComplete = storage.getBoolean('isProfilingComplete');
 
+	const scrollRef = useRef(null);
 	const [unSaveChanges, setUnSaveChanges] = useState({});
 
 	const [visible, setVisible] = useState(false);
@@ -108,14 +117,12 @@ export default function ProfileView({ isVisible }) {
 	const showModal = () => setVisible(true);
 	const closeModal = () => setVisible(false);
 
-	const { data, refetch, isLoading, isError, isRefetchError, isRefetching, isSuccess } =
+	const { data, refetch, isFetching, isError, isRefetchError, isRefetching, isSuccess } =
 		useQuery({
 			queryKey: [`${auth.currentUser?.uid}-profile`],
 			queryFn: fetchData,
 			enabled: !!isAuthenticated && isProfilingComplete
 		});
-
-	console.log(isLoading);
 
 	const profileMutation = useMutation({
 		mutationFn: async (newChanges) => {
@@ -282,171 +289,154 @@ export default function ProfileView({ isVisible }) {
 	}, [isSuccess, isAuthenticated]);
 
 	return (
-		<View
-			style={{
-				flex: 1,
-				paddingHorizontal: PagePadding.config.paddingHorizontal,
-				rowGap: 25,
-				paddingTop: PagePadding.config.paddingTop + 10,
-				paddingBottom: 40,
-				zIndex: -999,
-				display: isVisible ? 'flex' : 'none'
-			}}
-		>
-			{isError && isAuthenticated && (
-				<View style={{ flex: 1, marginTop: '68%' }}>
-					<RetryError refetch={refetch} />
-				</View>
-			)}
-
-			{!isAuthenticated && <GuessModeView />}
-			{isLoading && isAuthenticated ? (
-				<>
-					<Skeleton
-						width={'100%'}
-						height={160}
-						borderRadius={styles.border.radius.size.md}
-					/>
-
-					<View style={{ rowGap: styles.spacing.xxl }}>
-						{[...Array(7)].map((_, index) => (
-							<Skeleton
-								key={index}
-								width={'100%'}
-								height={12}
-								borderRadius={styles.border.radius.size.sm}
-							/>
-						))}
+		<>
+			<ScrollView
+				ref={scrollRef}
+				showsVerticalScrollIndicator={false}
+				refreshControl={
+					isAuthenticated ? (
+						<RefreshControl
+							refreshing={isFetching}
+							onRefresh={retry}
+							progressBackgroundColor={styles.theme.colors[activeTheme].card_background}
+							colors={[styles.theme.colors.primary]}
+						/>
+					) : null
+				}
+				onScroll={onScroll(scrollRef)}
+				contentContainerStyle={{
+					paddingHorizontal: PagePadding.config.paddingHorizontal,
+					rowGap: 25,
+					paddingTop: PagePadding.config.paddingTop + 10,
+					paddingBottom: 40,
+					zIndex: -999,
+					display: isVisible ? 'flex' : 'none'
+				}}
+			>
+				{isError && isAuthenticated && (
+					<View style={{ flex: 1, marginTop: '68%' }}>
+						<RetryError refetch={refetch} />
 					</View>
-				</>
-			) : (
-				<View
-					style={{
-						rowGap: 20
-					}}
-				>
-					{isAuthenticated && (
-						<>
-							<View
-								style={{
-									padding: 24,
-									backgroundColor: styles.theme.colors[activeTheme].card_background,
-									borderRadius: styles.border.radius.size.sm,
-									borderWidth: 1,
-									borderColor: styles.theme.colors[activeTheme].card_border,
-									alignItems: 'center'
-								}}
-							>
-								{auth?.currentUser?.photoURL ? (
-									<Image
-										cachePolicy='disk'
+				)}
+
+				{!isAuthenticated && <GuessModeView />}
+				{isFetching && isAuthenticated ? (
+					<>
+						<Skeleton
+							width={'100%'}
+							height={160}
+							borderRadius={styles.border.radius.size.md}
+						/>
+
+						<View style={{ rowGap: styles.spacing.xxl }}>
+							{[...Array(7)].map((_, index) => (
+								<Skeleton
+									key={index}
+									width={'100%'}
+									height={12}
+									borderRadius={styles.border.radius.size.sm}
+								/>
+							))}
+						</View>
+					</>
+				) : (
+					<View
+						style={{
+							rowGap: 20
+						}}
+					>
+						{isAuthenticated && (
+							<>
+								<View
+									style={{
+										padding: 24,
+										backgroundColor: styles.theme.colors[activeTheme].card_background,
+										borderRadius: styles.border.radius.size.sm,
+										borderWidth: 1,
+										borderColor: styles.theme.colors[activeTheme].card_border,
+										alignItems: 'center'
+									}}
+								>
+									{auth?.currentUser?.photoURL ? (
+										<Image
+											cachePolicy='disk'
+											style={{
+												aspectRatio: 1,
+												width: 60,
+												marginBottom: 16,
+												borderRadius: 30
+											}}
+											source={auth?.currentUser?.photoURL}
+										/>
+									) : (
+										<View
+											style={{
+												backgroundColor: styles.theme.colors[activeTheme].card_background,
+												borderWidth: 1,
+												borderColor: styles.theme.colors[activeTheme].card_border,
+												padding: 16,
+												borderRadius: styles.border.radius.size.pill,
+												marginBottom: 16,
+												overflow: 'hidden'
+											}}
+										>
+											<Profile2Solid size={28} color={Colors.primary} />
+										</View>
+									)}
+
+									<Text
 										style={{
-											aspectRatio: 1,
-											width: 60,
-											marginBottom: 16,
-											borderRadius: 30
-										}}
-										source={auth?.currentUser?.photoURL}
-									/>
-								) : (
-									<View
-										style={{
-											backgroundColor: styles.theme.colors[activeTheme].card_background,
-											borderWidth: 1,
-											borderColor: styles.theme.colors[activeTheme].card_border,
-											padding: 16,
-											borderRadius: styles.border.radius.size.pill,
-											marginBottom: 16,
-											overflow: 'hidden'
+											fontFamily: styles.font.family,
+
+											fontWeight: styles.font.weight.bold,
+											fontSize: styles.font.size.lg,
+											color: styles.theme.colors[activeTheme].text
 										}}
 									>
-										<Profile2Solid size={28} color={Colors.primary} />
-									</View>
-								)}
+										{auth?.currentUser?.displayName}
+									</Text>
+									<Text
+										style={{
+											fontSize: styles.font.size.md,
+											color: styles.theme.colors[activeTheme].text_secondary,
+											fontFamily: styles.font.family
+										}}
+									>
+										{auth?.currentUser?.email}
+									</Text>
+								</View>
 
-								<Text
-									style={{
-										fontFamily: styles.font.family,
-
-										fontWeight: styles.font.weight.bold,
-										fontSize: styles.font.size.lg,
-										color: styles.theme.colors[activeTheme].text
-									}}
-								>
-									{auth?.currentUser?.displayName}
-								</Text>
-								<Text
-									style={{
-										fontSize: styles.font.size.md,
-										color: styles.theme.colors[activeTheme].text_secondary,
-										fontFamily: styles.font.family
-									}}
-								>
-									{auth?.currentUser?.email}
-								</Text>
-							</View>
-
-							<View>
-								<Text
-									style={{
-										color: styles.theme.colors[activeTheme].text,
-										marginTop: styles.spacing.xxl,
-										fontFamily: styles.font.family,
-										textAlign: 'center',
-										fontWeight: styles.font.weight.bold
-									}}
-								>
-									Profiling
-								</Text>
-							</View>
-							{data?.profiling &&
-								Object.keys(profileData).map((section, index) => (
-									<EditCard
-										activeTheme={activeTheme}
-										profileData={profileData}
-										label={formatSnakeToTitle(section)}
-										questions={Questions}
-										section={section}
-										key={section}
-										onEdit={onEdit(section)}
-										iconProp={getIcon(section)}
-									/>
-								))}
-						</>
-					)}
-
-					{/* {isAuthenticated && (
-						<View
-							style={{
-								backgroundColor: '#e8f5e9',
-								padding: 16,
-								borderRadius: 16
-							}}
-						>
-							<Text
-								style={{
-									fontWeight: 600,
-									color: Colors.textColor,
-									fontFamily: styles.font.family
-								}}
-							>
-								Profile Notice
-							</Text>
-							<Text
-								style={{
-									fontFamily: styles.font.family,
-									fontSize: 12,
-									color: Colors.textColor + '9a'
-								}}
-							>
-								Your self-reported profile is used strictly for educational ingredient
-								matching. It is not a medical diagnosis. Always consult a licensed
-								dermatologist for skin conditions or medical concerns.
-							</Text>
-						</View>
-					)} */}
-				</View>
-			)}
+								<View>
+									<Text
+										style={{
+											color: styles.theme.colors[activeTheme].text,
+											marginTop: styles.spacing.xxl,
+											fontFamily: styles.font.family,
+											textAlign: 'center',
+											fontWeight: styles.font.weight.bold
+										}}
+									>
+										Profiling
+									</Text>
+								</View>
+								{data?.profiling &&
+									Object.keys(profileData).map((section, index) => (
+										<EditCard
+											activeTheme={activeTheme}
+											profileData={profileData}
+											label={formatSnakeToTitle(section)}
+											questions={Questions}
+											section={section}
+											key={section}
+											onEdit={onEdit(section)}
+											iconProp={getIcon(section)}
+										/>
+									))}
+							</>
+						)}
+					</View>
+				)}
+			</ScrollView>
 
 			{data?.profiling && (
 				<EditBottomSheet
@@ -595,6 +585,6 @@ export default function ProfileView({ isVisible }) {
 					</View>
 				</Modal>
 			</Portal>
-		</View>
+		</>
 	);
 }

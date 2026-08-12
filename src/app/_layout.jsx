@@ -40,7 +40,6 @@ export default function RootLayout() {
 	const themeMode = useThemeStore((state) => state.themeMode);
 	const activeTheme = themeMode === 'system' ? systemTheme : themeMode;
 
-	const { hasPermission, requestPermission } = useCameraPermission();
 	const setIsAuthenticated = useAuthStore((state) => state.setIsAuthenticated);
 	const setRevokeVisible = useAuthStore((state) => state.setRevokeVisible);
 	const setCancelDeletionVisible = useAuthStore(
@@ -50,38 +49,24 @@ export default function RootLayout() {
 	const [isReady, setIsReady] = useState(false);
 
 	useEffect(() => {
-		const requestPermissions = async () => {
-			if (!hasPermission) {
-				await requestPermission();
-			}
-		};
-
-		requestPermissions();
-	}, []);
-
-	useEffect(() => {
-		let unsubscribeSnapshot;
 		onAuthStateChanged(auth, async () => {
 			if (!!auth.currentUser) {
-				unsubscribeSnapshot = onSnapshot(
-					doc(db, 'users', auth.currentUser?.uid),
-					async (snapshot) => {
-						const data = snapshot.data();
-						if (data?.tokensValidAfterTime) {
-							const tokenResult = await auth.currentUser?.getIdTokenResult();
+				onSnapshot(doc(db, 'users', auth.currentUser?.uid), async (snapshot) => {
+					const data = snapshot.data();
+					if (data?.tokensValidAfterTime) {
+						const tokenResult = await auth.currentUser?.getIdTokenResult();
 
-							const authTimeInSeconds = Math.floor(
-								new Date(tokenResult.authTime).getTime() / 1000
-							);
-							if (authTimeInSeconds < data.tokensValidAfterTime) {
-								await logOut();
-								router.dismissAll();
+						const authTimeInSeconds = Math.floor(
+							new Date(tokenResult.authTime).getTime() / 1000
+						);
+						if (authTimeInSeconds < data.tokensValidAfterTime) {
+							await logOut();
+							router.dismissAll();
 
-								setRevokeVisible(true);
-							}
+							setRevokeVisible(true);
 						}
 					}
-				);
+				});
 
 				const userRef = doc(db, 'users', auth.currentUser.uid);
 				const userSnap = await getDoc(userRef);

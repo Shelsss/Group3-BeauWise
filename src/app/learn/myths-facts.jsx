@@ -41,6 +41,7 @@ import { useSearch } from '@/hooks/useSearch';
 import { useDebouncedCallback } from 'use-debounce';
 import RetryError from '@/components/RetryError';
 import Skeleton from '@/components/Skeleton';
+import { ActivityIndicator } from 'react-native-paper';
 
 const fetchMyths = async ({ pageParam }) => {
 	let q = query(
@@ -68,6 +69,7 @@ export default function MythsFacts() {
 		hasNextPage,
 		isFetchingNextPage,
 		isLoading,
+		isRefetching,
 		isError,
 		isRefetchError,
 		refetch
@@ -112,6 +114,8 @@ export default function MythsFacts() {
 	const hideList = () => (listAnimationDriver.value = withTiming(0, { duration: 200 }));
 
 	const onPressModule = (item) => () => {
+		console.log(item);
+
 		setSelectedItem(item);
 		showModule();
 		hideList();
@@ -237,7 +241,7 @@ export default function MythsFacts() {
 				/>
 			)}
 
-			{isLoading ? (
+			{isRefetching ? (
 				<View
 					style={{
 						flex: 1,
@@ -278,6 +282,7 @@ export default function MythsFacts() {
 				<Animated.View
 					style={[
 						{
+							marginTop: '54%',
 							zIndex: -1,
 							position: 'absolute',
 							width: '100%',
@@ -299,7 +304,7 @@ export default function MythsFacts() {
 						data={formatData()}
 						refreshControl={
 							<RefreshControl
-								refreshing={isLoading}
+								refreshing={isRefetching}
 								onRefresh={() => refetch()}
 								progressBackgroundColor={styles.theme.colors[activeTheme].card_background}
 								colors={[styles.theme.colors.primary]}
@@ -310,6 +315,8 @@ export default function MythsFacts() {
 								id={item?.id}
 								onPress={onPressModule(item)}
 								title={item?.name}
+								baseImagePath={item.baseImagePath}
+								cacheImageTag={item?.displayImage?.fileHash}
 								numberOfTopics={item?.topics?.length}
 							/>
 						)}
@@ -318,15 +325,14 @@ export default function MythsFacts() {
 						}}
 						numColumns={2}
 						contentContainerStyle={{
-							marginTop: '52%',
 							gap: styles.spacing.one_xl,
 							paddingBottom: 250,
 							paddingHorizontal: styles.spacing.double_xxl
 						}}
 						ListHeaderComponentStyle={{ marginBottom: styles.spacing.double_xl }}
-						// ListHeaderComponent={() => {
-						// 	return ();
-						// }}
+						ListFooterComponent={() => {
+							return isFetchingNextPage && <ActivityIndicator />;
+						}}
 					/>
 				</Animated.View>
 			)}

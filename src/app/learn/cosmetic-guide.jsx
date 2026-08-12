@@ -68,12 +68,13 @@ export default function CosmeticGuide() {
 		data,
 		fetchNextPage,
 		hasNextPage,
+		isRefetching,
 		isLoading,
 		isError,
 		isRefetchError,
 		refetch
 	} = useInfiniteQuery({
-		queryKey: ['myths-facts'],
+		queryKey: ['cosmetic-guide'],
 		queryFn: fetchGuides,
 		initialPageParam: null,
 		getNextPageParam: (lastPage) => {
@@ -186,7 +187,7 @@ export default function CosmeticGuide() {
 				</View>
 			</View>
 
-			{isLoading ? (
+			{isRefetching ? (
 				<View
 					style={{
 						flex: 1,
@@ -230,7 +231,7 @@ export default function CosmeticGuide() {
 					)}
 					refreshControl={
 						<RefreshControl
-							refreshing={isLoading}
+							refreshing={isRefetching}
 							onRefresh={() => refetch()}
 							progressBackgroundColor={styles.theme.colors[activeTheme].card_background}
 							colors={[styles.theme.colors.primary]}
@@ -251,8 +252,10 @@ export default function CosmeticGuide() {
 							<Card
 								name={item.name}
 								description={item.definition}
+								imageId={item.imageId}
 								id={item.id}
 								onPress={onPress}
+								cacheImageTag={item?.fileHash}
 							/>
 						);
 					}}

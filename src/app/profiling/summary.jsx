@@ -51,9 +51,13 @@ export default function ProfilingSummary() {
 
 	const profileMutation = useMutation({
 		mutationFn: async (data) => {
-			await setDoc(doc(db, 'users', auth.currentUser.uid), {
-				profiling: data
-			});
+			await setDoc(
+				doc(db, 'users', auth.currentUser.uid),
+				{
+					profiling: data
+				},
+				{ merge: true }
+			);
 		},
 
 		onMutate: () => showModal(),

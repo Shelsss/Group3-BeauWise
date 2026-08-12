@@ -10,13 +10,21 @@ import { googleSignIn, signIn } from '@/services/auth';
 import { useThemeStore } from '@/stores/useThemeStore';
 import { checkProfilingCompletion } from '@/utility/checkProfilingCompletion';
 import { zodResolver } from '@hookform/resolvers/zod';
+import {
+	differenceInSeconds,
+	fromUnixTime,
+	getMinutes,
+	intervalToDuration,
+	setMinutes
+} from 'date-fns';
 import { router } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
-import { useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { View, Text, TouchableOpacity, StyleSheet, useColorScheme } from 'react-native';
 import { Swing } from 'react-native-animated-spinkit';
 import { Modal, Portal } from 'react-native-paper';
+import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { z } from 'zod';
 
@@ -29,6 +37,9 @@ export default function SignIn() {
 	const systemTheme = useColorScheme() ?? 'light';
 	const themeMode = useThemeStore((state) => state.themeMode);
 	const activeTheme = themeMode === 'system' ? systemTheme : themeMode;
+	const [remainingTimeAccountLock, setRemainingTimeAccountLock] = useState(null);
+	const [remainingAttempts, setRemainingAttempts] = useState(null);
+	const [countDown, setCountDown] = useState(null);
 
 	const { control, handleSubmit } = useForm({
 		resolver: zodResolver(formSchema),
@@ -52,11 +63,22 @@ export default function SignIn() {
 		inputRef?.current?.focus();
 	};
 	const onSubmit = async (data) => {
-		const isSignIn = await signIn(data.email, data.password, showModal, hideModal);
+		const result = await signIn(data.email, data.password, showModal, hideModal);
 		await checkProfilingCompletion();
 		const isProfilingCompleted = storage.getBoolean('isProfilingComplete');
 
-		if (!isSignIn) {
+		if (!result.success && result.isAccountLock) {
+			const lockedUntil = fromUnixTime(result.lockedUntil);
+
+			setRemainingAttempts(null);
+			setRemainingTimeAccountLock(lockedUntil);
+			return;
+		}
+
+		if (!result.success) {
+			console.log(result.remainingAttempts);
+
+			setRemainingAttempts(result.remainingAttempts);
 			return;
 		}
 
@@ -88,8 +110,37 @@ export default function SignIn() {
 
 	const onResetPassword = () => {
 		router.push('/authentication/password-reset');
-		// router.push('authentication/password-reset-verified');
 	};
+
+	const getCountDown = useCallback(() => {
+		const now = new Date();
+		const target = remainingTimeAccountLock;
+
+		if (differenceInSeconds(target, now) <= 0) {
+			return null;
+		}
+
+		const { minutes, seconds } = intervalToDuration({ start: now, end: target });
+
+		return `${minutes ?? 0}:${seconds < 10 ? 0 : ''}${seconds ?? 0}`;
+	}, [remainingTimeAccountLock]);
+
+	useEffect(() => {
+		if (!remainingTimeAccountLock) return;
+
+		const timer = setInterval(() => {
+			const cd = getCountDown();
+
+			if (cd) {
+				setCountDown(cd);
+			} else {
+				setCountDown(null);
+				clearInterval(timer);
+			}
+		}, 1000);
+
+		return () => clearInterval(timer);
+	}, [remainingTimeAccountLock, countDown]);
 
 	return (
 		<>
@@ -126,6 +177,40 @@ export default function SignIn() {
 				</View>
 
 				<View style={{ rowGap: styles.spacing.lg }}>
+					<Animated.View>
+						<Animated.Text
+							style={{
+								opacity: countDown ? 1 : 0,
+								position: 'absolute',
+								transitionDuration: 300,
+								fontFamily: styles.font.family,
+								fontSize: styles.font.size.sm,
+								fontWeight: styles.font.weight.bold,
+								color: styles.theme.colors.status.red
+							}}
+						>
+							The account have been locked.{' '}
+							<Text style={{ color: styles.theme.colors[activeTheme].text }}>
+								Try to sign in after {countDown}
+							</Text>
+						</Animated.Text>
+
+						<Animated.Text
+							style={{
+								opacity: remainingAttempts > 0 ? 1 : 0,
+								transitionDuration: 300,
+								fontFamily: styles.font.family,
+								fontSize: styles.font.size.sm,
+								fontWeight: styles.font.weight.bold,
+								color: styles.theme.colors[activeTheme].text
+							}}
+						>
+							Remaining Attempts:{' '}
+							<Text style={{ color: styles.theme.colors.primary }}>
+								{remainingAttempts}
+							</Text>
+						</Animated.Text>
+					</Animated.View>
 					<Controller
 						control={control}
 						render={({ field: { onChange, onBlur, value }, fieldState: { error } }) => (

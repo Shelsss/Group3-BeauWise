@@ -1,8 +1,13 @@
 import CodeInput from '@/components/CodeInput';
+import Info from '@/components/icons/hugeicons/Info';
 import styles from '@/config/styles';
 import Colors from '@/constants/Colors';
-import { auth } from '@/services/auth';
-import { sendEmailVerification, verifyEmail } from '@/services/cloudFunctions';
+import { auth, logOut } from '@/services/auth';
+import {
+	changeEmail,
+	sendEmailVerification,
+	verifyEmail
+} from '@/services/cloudFunctions';
 import { useThemeStore } from '@/stores/useThemeStore';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -12,10 +17,10 @@ import {
 	updateEmail,
 	updateProfile
 } from '@react-native-firebase/auth';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { router, useGlobalSearchParams, useLocalSearchParams } from 'expo-router';
 import LottieView from 'lottie-react-native';
-import { ChevronLeft } from 'lucide-react-native';
+import { ChevronLeft, X } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { View, Text, TouchableOpacity, useColorScheme } from 'react-native';
@@ -33,10 +38,12 @@ const formSchema = z.object({
 		.regex(/^\d+$/, { error: 'Please use numbers only.' })
 });
 export default function EmailVerification() {
+	const queryClient = useQueryClient();
 	let { userInfo } = useLocalSearchParams();
 	const [timeLeft, setTimeLeft] = useState(0);
 	const [isClick, setIsClick] = useState(false);
 	const [modalVisible, setModalVisible] = useState(false);
+	const [modalVerification, setModalVerification] = useState(false);
 	userInfo = userInfo ? JSON.parse(userInfo) : null;
 
 	const { control, handleSubmit, watch, setError, clearErrors } = useForm({
@@ -61,21 +68,29 @@ export default function EmailVerification() {
 
 	const verifyEmailMutation = useMutation({
 		mutationFn: verifyEmail,
+
 		onSuccess: async ({ result }) => {
 			if (!result?.success) {
 				throw new Error(result?.message);
 			}
 
-			await updateEmail(auth.currentUser, userInfo.email);
-
-			router.back();
-			Toast.show({
-				type: 'successToast',
-				text1: 'Email is successfully changed!'
+			const { updatedEmail } = await changeEmail({
+				previousEmail: auth.currentUser.email,
+				newEmail: userInfo.email
 			});
+
+			await logOut();
+
+			setModalVisible(true);
 		},
 
 		onError: (err) => {
+			let errMessage = 'Something went wrong. Please try again.';
+
+			if (err.code === 'cancelled') {
+				errMessage = err.message;
+			}
+
 			if (err?.code === 'auth/email-already-in-use') {
 				router.back();
 				Toast.show({
@@ -89,7 +104,7 @@ export default function EmailVerification() {
 				return;
 			}
 
-			setError('code', { message: err.message });
+			setError('code', { message: errMessage });
 		}
 	});
 
@@ -100,7 +115,12 @@ export default function EmailVerification() {
 	const animationRef = useRef(null);
 	const requiredInput = 6;
 
-	const onSubmit = ({ code }) => {
+	const onSubmit = () => {
+		setModalVerification(true);
+	};
+
+	const handleSubmitConfirm = () => {
+		const code = codeInput;
 		verifyEmailMutation.mutate({
 			code,
 			userInfo: {
@@ -108,6 +128,8 @@ export default function EmailVerification() {
 				name: userInfo.name
 			}
 		});
+
+		setModalVerification(false);
 	};
 
 	const startTimer = () => {
@@ -345,6 +367,100 @@ export default function EmailVerification() {
 
 			<Portal>
 				<Modal
+					visible={modalVerification}
+					dismissable={false}
+					dismissableBackButton={false}
+					contentContainerStyle={{
+						alignItems: 'center'
+					}}
+				>
+					<View
+						style={{
+							padding: styles.spacing.double_xl,
+							borderRadius: styles.border.radius.size.sm,
+							backgroundColor: styles.theme.colors[activeTheme].card_background,
+							justifyContent: 'center',
+							alignItems: 'center',
+							width: '80%',
+							rowGap: styles.spacing.sm
+						}}
+					>
+						<Text
+							style={{
+								fontSize: styles.font.size.xl,
+								fontFamily: styles.font.family,
+								fontWeight: styles.font.weight.regular,
+								color: styles.theme.colors[activeTheme].text
+							}}
+						>
+							Confirm email change
+						</Text>
+						<Text
+							style={{
+								fontSize: styles.font.size.md,
+								fontFamily: styles.font.family,
+								fontWeight: styles.font.weight.regular,
+								color: styles.theme.colors[activeTheme].text
+							}}
+						>
+							You will be logged out. You must then log in with your new email address.
+						</Text>
+						<View
+							style={{
+								flexDirection: 'row',
+								columnGap: styles.spacing.md,
+								marginTop: styles.spacing.xxl,
+								alignSelf: 'flex-end'
+							}}
+						>
+							<TouchableOpacity
+								onPress={() => setModalVerification(false)}
+								style={{
+									paddingVertical: styles.spacing.xl,
+
+									borderRadius: styles.border.radius.size.sm,
+									paddingHorizontal: styles.spacing.xxl
+								}}
+							>
+								<Text
+									style={{
+										fontSize: styles.font.size.lg,
+										fontFamily: styles.font.family,
+										fontWeight: styles.font.weight.regular,
+										color: styles.theme.colors[activeTheme].text
+									}}
+								>
+									Cancel
+								</Text>
+							</TouchableOpacity>
+
+							<TouchableOpacity
+								onPress={handleSubmitConfirm}
+								style={{
+									paddingVertical: styles.spacing.xl,
+									backgroundColor: styles.theme.colors.primary,
+									borderRadius: styles.border.radius.size.sm,
+									paddingHorizontal: styles.spacing.xxl
+								}}
+							>
+								<Text
+									style={{
+										fontSize: styles.font.size.lg,
+										fontFamily: styles.font.family,
+										fontWeight: styles.font.weight.regular,
+										color: styles.font.colors._04
+									}}
+								>
+									Confirm
+								</Text>
+							</TouchableOpacity>
+						</View>
+					</View>
+				</Modal>
+			</Portal>
+
+			<Portal>
+				<Modal
 					visible={modalVisible}
 					dismissable={false}
 					dismissableBackButton={false}
@@ -354,6 +470,7 @@ export default function EmailVerification() {
 				>
 					<View
 						style={{
+							width: 270,
 							padding: styles.spacing.xxl,
 							borderRadius: styles.border.radius.size.sm,
 							backgroundColor: styles.theme.colors[activeTheme].card_background,
@@ -361,18 +478,46 @@ export default function EmailVerification() {
 							rowGap: styles.spacing.sm
 						}}
 					>
-						<Swing size={styles.icon.size.xl} color={styles.theme.colors.primary} />
+						<Info size={styles.icon.size.xl * 2} color={styles.theme.colors.primary} />
 						<Text
 							style={{
+								textAlign: 'center',
 								fontSize: styles.font.size.md,
 								fontFamily: styles.font.family,
 								fontWeight: styles.font.weight.regular,
 								color: styles.theme.colors[activeTheme].text
 							}}
 						>
-							Updating email...
+							Your email is successfully updated to {userInfo.email}
 						</Text>
 					</View>
+
+					<TouchableOpacity
+						onPress={() => {
+							router.dismissAll();
+							router.push('authentication/sign-in');
+						}}
+						style={{
+							position: 'absolute',
+							bottom: -50,
+							backgroundColor: styles.theme.colors[activeTheme].screen_background,
+							borderRadius: styles.border.radius.size.pill,
+							alignSelf: 'center',
+							flexDirection: 'row',
+							padding: styles.spacing.lg
+						}}
+					>
+						<Text
+							style={{
+								fontSize: styles.font.size.lg,
+								fontFamily: styles.font.family,
+								fontWeight: styles.font.weight.regular,
+								color: styles.font.colors._04
+							}}
+						>
+							<X size={styles.icon.size.xl} />
+						</Text>
+					</TouchableOpacity>
 				</Modal>
 			</Portal>
 		</View>

@@ -1,14 +1,31 @@
 import DocumentIcon from '@/components/icons/hugeicons/Document';
 import Notepad from '@/components/icons/hugeicons/Notepad';
+import Skeleton from '@/components/Skeleton';
 import styles from '@/config/styles';
 import { useThemeStore } from '@/stores/useThemeStore';
-import { Image } from 'expo-image';
+import { Image, useImage } from 'expo-image';
 import { Text, TouchableOpacity, useColorScheme, View } from 'react-native';
 
-export default function Card({ title, numberOfTopics, onPress, id }) {
+export default function Card({
+	title,
+	numberOfTopics,
+	onPress,
+	id,
+	cacheImageTag,
+	baseImagePath
+}) {
 	const systemTheme = useColorScheme() ?? 'light';
 	const themeMode = useThemeStore((state) => state.themeMode);
 	const activeTheme = themeMode === 'system' ? systemTheme : themeMode;
+
+	const image = useImage(
+		`https://${process.env.EXPO_PUBLIC_BEAUWISE_CDN}/learn/${baseImagePath}/display_image.webp?q=${cacheImageTag}`,
+		{
+			onError: (_, retry) => {
+				retry();
+			}
+		}
+	);
 
 	return (
 		<TouchableOpacity
@@ -26,21 +43,24 @@ export default function Card({ title, numberOfTopics, onPress, id }) {
 			}}
 		>
 			<View style={{ flexGrow: 1, overflow: 'hidden' }}>
-				{/* https://cdn.beauwise.tech/learn/${id}/display_image.webp */}
-				<Image
-					source={``}
-					contentFit='cover'
-					transition={{
-						duration: 200,
-						effect: 'cross-dissolve'
-					}}
-					recyclingKey={id}
-					cachePolicy='memory-disk'
-					style={{
-						width: 180,
-						aspectRatio: 16 / 9
-					}}
-				/>
+				{!image ? (
+					<Skeleton width={180} height={100} />
+				) : (
+					<Image
+						source={image}
+						contentFit='cover'
+						transition={{
+							duration: 200,
+							effect: 'cross-dissolve'
+						}}
+						recyclingKey={id}
+						cachePolicy='memory-disk'
+						style={{
+							width: 180,
+							aspectRatio: 16 / 9
+						}}
+					/>
+				)}
 			</View>
 
 			<View

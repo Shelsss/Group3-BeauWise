@@ -1,18 +1,27 @@
+import Skeleton from '@/components/Skeleton';
 import styles from '@/config/styles';
 import Colors from '@/constants/Colors';
 import { useThemeStore } from '@/stores/useThemeStore';
 
-import { Image } from 'expo-image';
+import { Image, useImage } from 'expo-image';
 import { router } from 'expo-router';
 import { ChevronRight } from 'lucide-react-native';
 import { Text, View, TouchableOpacity, useColorScheme } from 'react-native';
 import { Shadow } from 'react-native-shadow-2';
 
-export default function Card({ name, description, id, onPress }) {
+export default function Card({ name, description, id, onPress, cacheImageTag, imageId }) {
 	const systemTheme = useColorScheme() ?? 'light';
 	const themeMode = useThemeStore((state) => state.themeMode);
 	const activeTheme = themeMode === 'system' ? systemTheme : themeMode;
 
+	const image = useImage(
+		`https://${process.env.EXPO_PUBLIC_BEAUWISE_CDN}/learn/cosmetic_guides/${imageId}.webp?q=${cacheImageTag}`,
+		{
+			onError: (_, retry) => {
+				retry();
+			}
+		}
+	);
 	return (
 		<TouchableOpacity
 			onPress={onPress}
@@ -29,20 +38,24 @@ export default function Card({ name, description, id, onPress }) {
 				padding: styles.spacing.xxl
 			}}
 		>
-			<Image
-				style={{
-					aspectRatio: 1,
-					width: 30
-				}}
-				contentFit='contain'
-				transition={{
-					duration: 200,
-					effect: 'cross-dissolve'
-				}}
-				recyclingKey={id}
-				cachePolicy='memory-disk'
-				source={`https://cdn.beauwise.tech/learn/cosmetic_guides/${id}.webp`}
-			/>
+			{!image ? (
+				<Skeleton width={30} height={30} />
+			) : (
+				<Image
+					style={{
+						aspectRatio: 1,
+						width: 30
+					}}
+					contentFit='contain'
+					transition={{
+						duration: 200,
+						effect: 'cross-dissolve'
+					}}
+					recyclingKey={id}
+					cachePolicy='memory-disk'
+					source={image}
+				/>
+			)}
 
 			<View>
 				<Text

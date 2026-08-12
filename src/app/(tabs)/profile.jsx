@@ -40,21 +40,8 @@ export default function ProfileScreen() {
 				</TouchableOpacity>
 			</View>
 
-			<ScrollView
-				ref={scrollViewRef}
-				showsVerticalScrollIndicator={false}
-				onScroll={({ nativeEvent }) => {
-					if (nativeEvent.contentOffset.y < 0) {
-						scrollViewRef.current?.scrollTo({ x: 0, y: 0 });
-					}
-				}}
-				contentContainerStyle={{
-					paddingBottom: 80
-				}}
-			>
-				<ProfileView key={'profile-view'} isVisible={activeTab === 0} />
-				<SettingsView key={'settings-view'} isVisible={activeTab === 1} />
-			</ScrollView>
+			<ProfileView key={'profile-view'} isVisible={activeTab === 0} />
+			<SettingsView key={'settings-view'} isVisible={activeTab === 1} />
 		</View>
 	);
 }

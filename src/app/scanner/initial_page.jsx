@@ -27,27 +27,21 @@ import { useDebouncedCallback } from 'use-debounce';
 import { Modal, Portal } from 'react-native-paper';
 import { onScroll } from '@/utility/scrollView';
 import Disclaimer from '@/components/Disclaimer';
-// import { usecamera } from 'react-native-vision-camera';
-import Toast from 'react-native-toast-message';
+import ExpoImageCropTool from '@bsky.app/expo-image-crop-tool';
+import { File } from 'expo-file-system';
+
 const schema = [
 	{
 		name: 'Camera Scan',
 		description:
 			'Point your camera at any product label to instantly identify and analyze ingredients.',
 		action_title: 'Open Camera',
-		action: (status, requestPermission) => async () => {
+		action: (status, requestPermission, showModal) => async () => {
 			if (!status?.granted) {
 				const permission = await requestPermission();
 
 				if (!permission?.granted) {
-					Alert.alert(
-						'Camera Permission Blocked',
-						'You have denied camera permissions. Please enable them in your device settings to use this feature.',
-						[
-							{ text: 'Cancel', style: 'cancel' },
-							{ text: 'Open Settings', onPress: () => Linking.openSettings() }
-						]
-					);
+					showModal();
 				}
 				return;
 			}
@@ -66,17 +60,26 @@ const schema = [
 				mediaTypes: ['images'],
 				base64: true,
 				selectionLimit: 1,
-				allowsEditing: true,
 				allowsMultipleSelection: false,
-				aspect: [3, 4],
 				quality: 1
 			});
 
 			if (result.canceled) return;
 
-			setImageBase64(result.assets[0].base64);
+			const croppedImage = await ExpoImageCropTool.openCropperAsync({
+				imageUri: result.assets[0].uri,
+				format: 'png',
+				shape: 'rectangle',
+				rotationControlEnabled: true,
+				rotationEnabled: true
+			});
 
-			router.replace({
+			const image = new File(croppedImage.path);
+
+			const base64 = await image.base64();
+
+			setImageBase64(base64);
+			router.push({
 				pathname: 'scanner/processing'
 			});
 		},
@@ -154,6 +157,11 @@ export default function ScannerScreen() {
 	const [disclaimerVisible, setDisclaimerVisible] = useState(false);
 	const isShownDisclaimer = storage.getBoolean('analysis-disclaimer-shown');
 
+	const [modalVisible, setModalVisible] = useState(false);
+
+	const showModal = () => setModalVisible(true);
+	const hideModal = () => setModalVisible(false);
+
 	const showDisclaimer = () => setDisclaimerVisible(true);
 	const hideDisclaimer = () => setDisclaimerVisible(false);
 	const delayShowDisclaimer = useDebouncedCallback(showDisclaimer, 300);
@@ -200,7 +208,7 @@ export default function ScannerScreen() {
 							color: styles.font.colors._04
 						}}
 					>
-						FDA Product Verifier
+						Inredient Analysis
 					</Text>
 
 					<Text
@@ -211,7 +219,7 @@ export default function ScannerScreen() {
 							color: styles.font.colors._04
 						}}
 					>
-						Verify FDA Compliance Status
+						Select Extraction Method
 					</Text>
 				</View>
 
@@ -288,7 +296,7 @@ export default function ScannerScreen() {
 									name === 'Image Gallery'
 										? action(setImageBase64, setImageUri)
 										: name === 'Camera Scan'
-											? action(status, requestPermission)
+											? action(status, requestPermission, showModal)
 											: action()
 								}
 								activeOpacity={0.7}
@@ -323,41 +331,89 @@ export default function ScannerScreen() {
 				backgroundColor={styles.theme.colors.primary}
 				setDisclaimerButtonActive={setDisclaimerButtonActive}
 			/>
-			<View
-				style={{
-					position: 'absolute',
-					alignSelf: 'center',
-					justifyContent: 'center',
-					top: 710
-				}}
-			>
-				<View
-					style={{
-						alignItems: 'center',
-						justifyContent: 'center',
-						rowGap: styles.spacing.md
-					}}
-				>
-					<View>
-						<ArrowDoubleUp
-							size={styles.icon.size.xl}
-							color={styles.theme.colors[activeTheme].icon}
-						/>
-					</View>
-					<Text
-						style={{
-							fontFamily: styles.font.family,
-							color: styles.theme.colors[activeTheme].text,
-							fontSize: styles.font.size.md,
-							textTransform: 'capitalize',
 
-							textAlign: 'center'
+			<Portal>
+				<Modal visible={modalVisible}>
+					<View
+						style={{
+							padding: styles.spacing.three_xl,
+							marginHorizontal: styles.spacing.double_xl,
+							backgroundColor: styles.theme.colors[activeTheme].screen_background,
+							borderRadius: styles.border.radius.size.sm
 						}}
 					>
-						Swipe up here to close
-					</Text>
-				</View>
-			</View>
+						<Text
+							style={{
+								fontWeight: styles.font.weight.semi_bold,
+								fontSize: styles.font.size.xxl,
+								fontFamily: styles.font.family,
+								color: styles.theme.colors[activeTheme].text
+							}}
+						>
+							Camera Permission Blocked
+						</Text>
+						<Text
+							style={{
+								fontFamily: styles.font.family,
+								color: styles.theme.colors[activeTheme].text
+							}}
+						>
+							You have denied camera permissions. Please enable them in your device
+							settings to use this feature.
+						</Text>
+
+						<View
+							style={{
+								marginTop: styles.spacing.xxl,
+								flexDirection: 'row',
+								alignSelf: 'flex-end',
+								columnGap: styles.spacing.md
+							}}
+						>
+							<TouchableOpacity
+								onPress={hideModal}
+								activeOpacity={0.7}
+								style={{
+									fontFamily: styles.font.family,
+									backgroundColor: activeTheme === 'light' ? '#3341551a' : 'transparent',
+									paddingHorizontal: styles.spacing.xl,
+									paddingVertical: styles.spacing.lg,
+									borderRadius: styles.border.radius.size.sm
+								}}
+							>
+								<Text
+									style={{
+										fontFamily: styles.font.family,
+										color: styles.theme.colors[activeTheme].text
+									}}
+								>
+									Cancel
+								</Text>
+							</TouchableOpacity>
+
+							<TouchableOpacity
+								activeOpacity={0.7}
+								onPress={Linking.openSettings}
+								style={{
+									backgroundColor: styles.theme.colors.primary,
+									paddingHorizontal: styles.spacing.xl,
+									paddingVertical: styles.spacing.lg,
+									borderRadius: styles.border.radius.size.sm
+								}}
+							>
+								<Text
+									style={{
+										fontFamily: styles.font.family,
+										color: styles.font.colors._04
+									}}
+								>
+									Open Settings
+								</Text>
+							</TouchableOpacity>
+						</View>
+					</View>
+				</Modal>
+			</Portal>
 		</View>
 	);
 }

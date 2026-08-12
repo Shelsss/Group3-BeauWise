@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
 	StyleSheet,
 	Text,
@@ -31,6 +31,9 @@ import { useIsFocused } from '@react-navigation/native';
 import { ImageManipulator } from 'expo-image-manipulator';
 import { scanIngredient } from '@/services/cloudFunctions';
 import { useScanStore } from '@/stores/useScanStore';
+import ExpoImageCropTool from '@bsky.app/expo-image-crop-tool';
+import { File } from 'expo-file-system';
+
 const AnimatedTouchableOpacity = createAnimatedComponent(TouchableOpacity);
 export default function CameraScreen() {
 	const setImageBase64 = useScanStore((state) => state.setImageBase64);
@@ -79,24 +82,48 @@ export default function CameraScreen() {
 		imageEntry.value = withTiming(1, { duration: 200 });
 	};
 
+	const isCapturing = useRef(false);
+	const [disableShutter, setDisableShutter] = useState(false);
+
 	const [photo, setPhoto] = useState(null);
 	const handleCapturePhoto = async () => {
-		const capturedImage = await cameraRef.current.takePhoto();
-		shutteredView.value = 1;
-		shutteredView.value = withDelay(100, withTiming(0));
-		Vibration.vibrate(50);
-		const croppedImage = await cropImage(
-			capturedImage,
-			frameData,
-			cameraFrameData.width,
-			cameraFrameData.height
-		);
+		setDisableShutter((prev) => !prev);
 
-		setImageBase64(croppedImage.base64);
-		setImageUri(croppedImage.uri);
-		router.push({
-			pathname: 'scanner/processing'
-		});
+		try {
+			const capturedImage = await cameraRef.current.takePhoto();
+			shutteredView.value = 1;
+			shutteredView.value = withDelay(100, withTiming(0));
+			Vibration.vibrate(50);
+
+			const croppedImage = await cropImage(
+				capturedImage,
+				frameData,
+				cameraFrameData.width,
+				cameraFrameData.height
+			);
+
+			const manualCroppedImage = await ExpoImageCropTool.openCropperAsync({
+				imageUri: croppedImage.uri,
+				format: 'png',
+				shape: 'rectangle',
+				rotationControlEnabled: true,
+				rotationEnabled: true
+			});
+
+			const image = new File(manualCroppedImage.path);
+
+			const base64 = await image.base64();
+			const uri = image.uri;
+
+			setImageUri(uri);
+			setImageBase64(base64);
+			router.replace({
+				pathname: 'scanner/processing'
+			});
+		} catch (err) {
+			isCapturing.current = false;
+			setDisableShutter(false);
+		}
 	};
 
 	const handleFrameLayout = (event) => {
@@ -162,6 +189,7 @@ export default function CameraScreen() {
 	});
 
 	if (device == null) return <View style={styles.container} />;
+
 	return (
 		<View
 			style={styles.container}
@@ -213,7 +241,7 @@ export default function CameraScreen() {
 						</Text>
 					</View>
 
-					<TouchableOpacity style={[styles.button]} activeOpacity={0.9}>
+					<TouchableOpacity style={[styles.button, { opacity: 0 }]} activeOpacity={0.9}>
 						<CircleQuestionMark size={20} color={'#fff'} />
 					</TouchableOpacity>
 				</View>
@@ -262,6 +290,7 @@ export default function CameraScreen() {
 						}}
 					>
 						<AnimatedTouchableOpacity
+							disabled={disableShutter}
 							onPressIn={() => {
 								shutterScale.value = 0.95;
 							}}

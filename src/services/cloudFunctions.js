@@ -91,6 +91,22 @@ export async function changePassword({ email, password }) {
 	return response.data;
 }
 
+export async function changeEmail({ newEmail, previousEmail }) {
+	const callable = setCallableFunction('client-auth-changeUserEmail');
+
+	const response = await callable({ newEmail, previousEmail });
+
+	return response.data;
+}
+
+export async function secureLogin({ email, password }) {
+	const callable = setCallableFunction('client-auth-secureLogin');
+
+	const response = await callable({ email, password });
+
+	return response.data;
+}
+
 export async function checkIfUserAlreadyExist(email) {
 	let response;
 

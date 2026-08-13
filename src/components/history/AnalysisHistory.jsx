@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { RefreshControl, Text, useColorScheme, View } from 'react-native';
 import Card from '@/components/history/Card';
 import styles from '@/config/styles';
-import { fromUnixTime, isToday, isYesterday, parse } from 'date-fns';
+import { format, fromUnixTime, isToday, isYesterday } from 'date-fns';
 import { useThemeStore } from '@/stores/useThemeStore';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { router } from 'expo-router';
@@ -76,6 +76,14 @@ export default function AnalysisHistory() {
 				}
 			});
 
+			acc.sort((a, b) => {
+				if (a.createdAt?.seconds > b.createdAt?.seconds) {
+					return -1;
+				}
+
+				return 1;
+			});
+
 			return acc;
 		}, []);
 
@@ -112,7 +120,7 @@ export default function AnalysisHistory() {
 
 	return (
 		<View style={{ flex: 1 }}>
-			{isError || isRefetchError ? (
+			{isError || isRefetchError || true ? (
 				<View style={{ flex: 1 }}>
 					<RetryError refetch={refetch} />
 				</View>
@@ -208,7 +216,12 @@ export default function AnalysisHistory() {
 
 						const isSticky = target === 'StickyHeader';
 
-						const secondaryText = item.analysis_check_date;
+						let secondaryText = '';
+
+						if (item.createdAt) {
+							const createdAt = fromUnixTime(item.createdAt.seconds);
+							secondaryText = format(createdAt, 'MMM d, yyyy • p');
+						}
 
 						return typeof item === 'string' ? (
 							<Animated.View

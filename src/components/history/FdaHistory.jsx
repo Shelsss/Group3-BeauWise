@@ -76,6 +76,14 @@ export default function ScanHistory() {
 				}
 			});
 
+			acc.sort((a, b) => {
+				if (a.createdAt?.seconds > b.createdAt?.seconds) {
+					return -1;
+				}
+
+				return 1;
+			});
+
 			return acc;
 		}, []);
 

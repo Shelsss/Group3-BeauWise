@@ -21,7 +21,17 @@ export function getDocumentFilterToday(collectionReference) {
 	return async () => {
 		const documentSnapshot = await getDocs(documentQuery);
 
-		return documentSnapshot.docs.map((doc) => doc.data()) ?? [];
+		const items = documentSnapshot.docs.map((doc) => doc.data());
+
+		items.sort((a, b) => {
+			if (a.createdAt?.seconds > b.createdAt?.seconds) {
+				return 1;
+			}
+
+			return -1;
+		});
+
+		return [...items] ?? [];
 	};
 }
 
@@ -46,7 +56,18 @@ export function getDocumentFilterYesterday(collectionReference) {
 
 	return async () => {
 		const documentSnapshot = await getDocs(documentQuery);
-		return documentSnapshot.docs.map((doc) => doc.data()) ?? [];
+
+		const items = documentSnapshot.docs.map((doc) => doc.data());
+
+		items.sort((a, b) => {
+			if (a.createdAt?.seconds > b.createdAt?.seconds) {
+				return 1;
+			}
+
+			return -1;
+		});
+
+		return [...items] ?? [];
 	};
 }
 
@@ -65,6 +86,16 @@ export function getDocumentFilterMonth(collectionReference) {
 	return async () => {
 		const documentSnapshot = await getDocs(documentQuery);
 
-		return documentSnapshot.docs.map((doc) => doc.data()) ?? [];
+		const items = documentSnapshot.docs.map((doc) => doc.data());
+
+		items.sort((a, b) => {
+			if (a.createdAt?.seconds > b.createdAt?.seconds) {
+				return 1;
+			}
+
+			return -1;
+		});
+
+		return [...items] ?? [];
 	};
 }

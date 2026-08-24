@@ -24,7 +24,7 @@ GoogleSignin.configure({
 export const auth = getAuth();
 
 if (__DEV__) {
-	const localIP = ['127.0.0.1', '192.168.0.100', '10.141.21.222'];
+	const localIP = ['127.0.0.1', '192.168.0.102', '10.141.21.222'];
 	connectAuthEmulator(auth, `http://${localIP[1]}:9099`);
 }
 

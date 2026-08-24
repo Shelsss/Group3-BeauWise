@@ -24,7 +24,7 @@ export function getDocumentFilterToday(collectionReference) {
 		const items = documentSnapshot.docs.map((doc) => doc.data());
 
 		items.sort((a, b) => {
-			if (a.createdAt?.seconds > b.createdAt?.seconds) {
+			if (a.createdAt?.seconds < b.createdAt?.seconds) {
 				return 1;
 			}
 
@@ -60,7 +60,7 @@ export function getDocumentFilterYesterday(collectionReference) {
 		const items = documentSnapshot.docs.map((doc) => doc.data());
 
 		items.sort((a, b) => {
-			if (a.createdAt?.seconds > b.createdAt?.seconds) {
+			if (a.createdAt?.seconds < b.createdAt?.seconds) {
 				return 1;
 			}
 
@@ -89,7 +89,7 @@ export function getDocumentFilterMonth(collectionReference) {
 		const items = documentSnapshot.docs.map((doc) => doc.data());
 
 		items.sort((a, b) => {
-			if (a.createdAt?.seconds > b.createdAt?.seconds) {
+			if (a.createdAt?.seconds < b.createdAt?.seconds) {
 				return 1;
 			}
 

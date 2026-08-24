@@ -57,7 +57,7 @@ export default function RootLayout() {
 						const tokenResult = await auth.currentUser?.getIdTokenResult();
 
 						const authTimeInSeconds = Math.floor(
-							new Date(tokenResult.authTime).getTime() / 1000
+							new Date(tokenResult?.authTime).getTime() / 1000
 						);
 						if (authTimeInSeconds < data.tokensValidAfterTime) {
 							await logOut();

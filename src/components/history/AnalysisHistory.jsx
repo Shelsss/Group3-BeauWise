@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { RefreshControl, Text, useColorScheme, View } from 'react-native';
 import Card from '@/components/history/Card';
 import styles from '@/config/styles';
-import { format, fromUnixTime, isToday, isYesterday } from 'date-fns';
+import { format, fromUnixTime, isEqual, isPast, isToday, isYesterday } from 'date-fns';
 import { useThemeStore } from '@/stores/useThemeStore';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { router } from 'expo-router';
@@ -15,7 +15,7 @@ import historyTabs from '@/utility/historyTabs';
 import Skeleton from '../Skeleton';
 import Archive from '../icons/hugeicons/Archive';
 import RetryError from '../RetryError';
-
+import { TZDate } from '@date-fns/tz';
 const emptyHistoryStates = {
 	all_time: {
 		title: 'No Analysis History Recorded Yet',
@@ -52,13 +52,13 @@ export default function AnalysisHistory() {
 	const search = useSearch(data, ['product.name'], query, enabled);
 
 	const formatToSection = () => {
-		const sections = ['today', 'yesterday', 'past months'];
+		const sections = ['today', 'yesterday', 'older than yesterday'];
 
 		const sectionFormat = sections.reduce((acc, cur) => {
 			acc.push(cur);
 
 			data?.forEach((item) => {
-				const itemDate = fromUnixTime(item.createdAt.seconds);
+				const itemDate = item.createdAt.toDate();
 
 				if (cur === 'today' && isToday(itemDate)) {
 					acc.push(item);
@@ -70,13 +70,21 @@ export default function AnalysisHistory() {
 					return;
 				}
 
-				if (cur === 'past months' && !isYesterday(itemDate) && !isToday(itemDate)) {
+				if (
+					cur === 'older than yesterday' &&
+					!isYesterday(itemDate) &&
+					!isToday(itemDate)
+				) {
 					acc.push(item);
 					return;
 				}
 			});
 
 			acc.sort((a, b) => {
+				if (typeof a === 'string' || typeof b === 'string') {
+					return 0;
+				}
+
 				if (a.createdAt?.seconds > b.createdAt?.seconds) {
 					return -1;
 				}

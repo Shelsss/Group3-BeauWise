@@ -34,6 +34,8 @@ export default function Processing() {
 		},
 
 		onError: (err) => {
+			console.log(err);
+
 			let errMessage = 'Something went wrong. Please try again';
 
 			if (err.code === 'deadline-exceeded') {

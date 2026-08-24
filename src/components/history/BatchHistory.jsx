@@ -52,7 +52,7 @@ export default function BatchHistory() {
 	const search = useSearch(data, ['brand'], query, enabled);
 
 	const formatToSection = () => {
-		const sections = ['today', 'yesterday', 'past months'];
+		const sections = ['today', 'yesterday', 'older than yesterday'];
 
 		const sectionFormat = sections.reduce((acc, cur) => {
 			acc.push(cur);
@@ -70,13 +70,21 @@ export default function BatchHistory() {
 					return;
 				}
 
-				if (cur === 'past months' && !isYesterday(itemDate) && !isToday(itemDate)) {
+				if (
+					cur === 'older than yesterday' &&
+					!isYesterday(itemDate) &&
+					!isToday(itemDate)
+				) {
 					acc.push(item);
 					return;
 				}
 			});
 
 			acc.sort((a, b) => {
+				if (typeof a === 'string' || typeof b === 'string') {
+					return 0;
+				}
+
 				if (a.createdAt?.seconds > b.createdAt?.seconds) {
 					return -1;
 				}

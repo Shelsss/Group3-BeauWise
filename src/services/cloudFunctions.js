@@ -5,15 +5,18 @@ import {
 	connectFunctionsEmulator
 } from '@react-native-firebase/functions';
 
-const functions = getFunctions();
+let functions;
+functions = getFunctions(getApp(), 'asia-east2');
 
 if (__DEV__) {
-	const localIP = ['127.0.0.1', '192.168.0.100', '10.141.21.222'];
+	functions = getFunctions();
+	const localIP = ['127.0.0.1', '192.168.0.102', '10.141.21.222'];
 	connectFunctionsEmulator(functions, localIP[1], 5001);
 }
 const setCallableFunction = (name) => httpsCallable(functions, name);
 export async function ingredientScan(imageBase64) {
-	const callable = setCallableFunction('client-ingredientScan');
+	const ingredentScanFunction = getFunctions(getApp(), 'asia-southeast1');
+	const callable = httpsCallable(ingredentScanFunction, 'client-ingredientScan');
 
 	const response = await callable({ imageBase64 });
 
@@ -121,7 +124,11 @@ export async function checkIfUserAlreadyExist(email) {
 }
 
 export async function analyzeIngredients({ ingredients, product, clientTimeZone }) {
-	const callable = setCallableFunction('client-ingredientAnalysisController');
+	const analyzeIngredientsFunction = getFunctions(getApp(), 'asia-southeast1');
+	const callable = httpsCallable(
+		analyzeIngredientsFunction,
+		'client-ingredientAnalysisController'
+	);
 
 	const response = await callable({
 		ingredients,

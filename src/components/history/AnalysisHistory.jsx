@@ -128,7 +128,7 @@ export default function AnalysisHistory() {
 
 	return (
 		<View style={{ flex: 1 }}>
-			{isError || isRefetchError ? (
+			{isError || isRefetchError || true ? (
 				<View style={{ flex: 1 }}>
 					<RetryError refetch={refetch} />
 				</View>

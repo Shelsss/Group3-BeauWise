@@ -28,6 +28,8 @@ import InfiniteFade from '@/components/InfiniteFade';
 import { batchCodeLookup } from '@/services/cloudFunctions';
 import { useDebouncedCallback } from 'use-debounce';
 import { useBackHandler } from '@react-native-community/hooks';
+import { batchCodeService } from '@/services/batchCodeService';
+import Toast from 'react-native-toast-message';
 
 const disclaimerSchema = [
 	{
@@ -116,20 +118,54 @@ export default function BatchScreen() {
 	const isShownDisclaimer = storage.getBoolean('batch-disclaimer-shown');
 
 	const scrollRef = useRef(null);
-
+	const cancelController = useRef(null);
 	const router = useRouter();
 
 	const { mutate, data, isPending } = useMutation({
-		mutationFn: batchCodeLookup,
+		mutationFn: async (query) => {
+			cancelController.current = new AbortController();
+
+			const timeoutId = setTimeout(() => cancelController.current.abort(), 10000);
+
+			let response = null;
+
+			try {
+				response = await batchCodeService(
+					query.brand,
+					query.code,
+					query.clientTimeZone,
+					cancelController.current.signal
+				);
+			} finally {
+				clearTimeout(timeoutId);
+			}
+
+			return response;
+		},
 		onSuccess: () => {
 			reset();
 			showResultPage();
 			queryClient.invalidateQueries({ queryKey: ['batch_history'] });
 		},
 		onError: (err) => {
+			let message = 'Something went wrong. Please try again.';
+
+			if (err.message) {
+				message = err.message;
+			}
+
+			Toast.show({
+				type: 'errorToast',
+				text1: message
+			});
+
 			showInitialPage();
 		}
 	});
+
+	const handleCancel = () => {
+		cancelController.current.abort();
+	};
 
 	const onVerify = async (data) => {
 		hideInitialPage();
@@ -442,7 +478,7 @@ export default function BatchScreen() {
 								<Text style={{ color: styles.theme.colors[activeTheme].text }}>No</Text>
 							</TouchableOpacity>
 							<TouchableOpacity
-								onPress={router.back}
+								onPress={handleCancel}
 								activeOpacity={0.7}
 								style={{
 									paddingVertical: styles.spacing.lg,

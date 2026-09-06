@@ -2,13 +2,14 @@ import Info from '@/components/icons/Info';
 import styles from '@/config/styles';
 import Colors from '@/constants/Colors';
 import { ingredientScan } from '@/services/cloudFunctions';
+import { ingredientScanService } from '@/services/ingredientScanService';
 import { useScanStore } from '@/stores/useScanStore';
 import { useThemeStore } from '@/stores/useThemeStore';
 import { useBackHandler } from '@react-native-community/hooks';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useGlobalSearchParams } from 'expo-router';
 import LottieView from 'lottie-react-native';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Text, TouchableOpacity, useColorScheme, View } from 'react-native';
 import { Modal, Portal } from 'react-native-paper';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
@@ -25,8 +26,26 @@ export default function Processing() {
 
 	const [visible, setVisible] = useState(false);
 
+	const cancelController = useRef(null);
 	const { mutate } = useMutation({
-		mutationFn: ingredientScan,
+		mutationFn: async (imageBase64) => {
+			cancelController.current = new AbortController();
+
+			const timeoutId = setTimeout(() => cancelController.current.abort(), 30000);
+
+			let response = null;
+
+			try {
+				response = await ingredientScanService(
+					imageBase64,
+					cancelController.current.signal
+				);
+			} finally {
+				clearTimeout(timeoutId);
+			}
+
+			return response;
+		},
 		mutationKey: ['ocr-processing'],
 		onSuccess: ({ data }) => {
 			setIngredients([...data]);
@@ -34,15 +53,9 @@ export default function Processing() {
 		},
 
 		onError: (err) => {
-			console.log(err);
-
 			let errMessage = 'Something went wrong. Please try again';
 
-			if (err.code === 'deadline-exceeded') {
-				errMessage = `Things are loading a bit slow. Let's try again!`;
-			}
-
-			if (err.code === 'cancelled') {
+			if (err.message) {
 				errMessage = err.message;
 			}
 
@@ -65,6 +78,9 @@ export default function Processing() {
 		mutate(imageBase64);
 	}, []);
 
+	const handleCancel = () => {
+		cancelController.current.abort();
+	};
 	return (
 		<>
 			<View
@@ -120,7 +136,7 @@ export default function Processing() {
 								<Text style={{ color: styles.theme.colors[activeTheme].text }}>No</Text>
 							</TouchableOpacity>
 							<TouchableOpacity
-								onPress={router.back}
+								onPress={handleCancel}
 								activeOpacity={0.7}
 								style={{
 									paddingVertical: styles.spacing.lg,

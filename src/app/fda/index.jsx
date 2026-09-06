@@ -93,16 +93,35 @@ export default function BatchScreen() {
 
 	const router = useRouter();
 
+	const cancelController = useRef(null);
+
 	// fdaVerification
 	const { mutate, data, isPending, isSuccess } = useMutation({
 		mutationFn: async ({ data, clientTimeZone }) => {
-			const response = await fdaService(data, clientTimeZone);
+			cancelController.current = new AbortController();
+
+			const timeoutId = setTimeout(
+				() => cancelController.current.abort('timeout'),
+				30000
+			);
+
+			let response = null;
+
+			try {
+				response = await fdaService(
+					data,
+					clientTimeZone,
+					cancelController.current.signal
+				);
+			} finally {
+				clearTimeout(timeoutId);
+			}
 
 			return response;
 		},
 		onSuccess: (result) => {
 			if (result.status.code >= 500) {
-				throw new Error('Something went wrong. Please try again');
+				throw new Error(result.status.text);
 			}
 
 			setIndexLoading(0);
@@ -141,6 +160,10 @@ export default function BatchScreen() {
 	const playLoader = () => loaderRef.current?.play();
 
 	const delayShowDisclaimer = useDebouncedCallback(showDisclaimer, 300);
+
+	const handleCancel = () => {
+		cancelController.current.abort('cancel');
+	};
 
 	const onVerify = async (data) => {
 		hideInitialPage();
@@ -464,7 +487,7 @@ export default function BatchScreen() {
 								<Text style={{ color: styles.theme.colors[activeTheme].text }}>No</Text>
 							</TouchableOpacity>
 							<TouchableOpacity
-								onPress={router.back}
+								onPress={handleCancel}
 								activeOpacity={0.7}
 								style={{
 									paddingVertical: styles.spacing.lg,

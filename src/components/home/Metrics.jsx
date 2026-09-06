@@ -55,7 +55,7 @@ const dashboardSchema = [
 	},
 	{
 		field: 'total_fda_notified',
-		label: 'FDA-Notified Products Verified',
+		label: 'Total FDA Checks',
 		color: styles.theme.colors.fda,
 		count: 0,
 		icon: (size, color) => <ShieldCheck color={color} size={size} />

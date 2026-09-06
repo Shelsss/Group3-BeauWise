@@ -80,7 +80,7 @@ const statusSchema = [
 	{
 		name: 'not_found',
 		title: 'Invalid Code or Not Found',
-		description: `We could not decode this batch code. It may be invalid, incorrectly entered, or not yet supported in our database.`,
+		description: `We could not decode this batch code. It may be invalid, incorrectly entered, or not yet supported.`,
 		advice_message: [
 			'Make sure you selected the correct brand from the dropdown and entered the batch code instead of the barcode number.',
 			'Batch codes are usually short alphanumeric sequences such as “23C05A” or “1A92”, commonly printed on the bottom of the container, near the barcode, or on the crimped edge of tubes.',

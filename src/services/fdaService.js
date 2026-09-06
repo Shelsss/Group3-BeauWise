@@ -10,7 +10,7 @@ import { format, isAfter, parse } from 'date-fns';
 import { tz } from '@date-fns/tz';
 import { auth } from './auth';
 import { db } from './firestore';
-export async function fdaService(query, clientTimeZone) {
+export async function fdaService(query, clientTimeZone, signal) {
 	query = query.product?.trim() ?? query.notificationNumber?.trim();
 
 	const url = new URL('https://verification.fda.gov.ph/api/search');
@@ -23,12 +23,6 @@ export async function fdaService(query, clientTimeZone) {
 
 	let data = null,
 		status;
-
-	const controller = new AbortController();
-	const { signal } = controller;
-
-	// 2. Set your manual timeout (e.g., 5000ms)
-	const timeoutId = setTimeout(() => controller.abort(), 30000);
 
 	try {
 		const response = await fetch(url, {
@@ -103,17 +97,17 @@ export async function fdaService(query, clientTimeZone) {
 
 		console.log(data);
 	} catch (error) {
-		console.log(error);
+		console.log(error.name);
 
 		status = {
 			code: 500,
 			text: 'Something went wrong. Please try again later.'
 		};
 
-		if (error.name === 'TimeoutError') {
+		if (error.name === 'AbortError') {
 			status = {
 				code: 500,
-				text: 'Things are running a bit slow. Please try again'
+				text: 'The operation was discontinued. Please try again if needed.'
 			};
 		}
 
@@ -136,11 +130,9 @@ export async function fdaService(query, clientTimeZone) {
 				text: 'FDA servers are unavailable. Please try again later.'
 			};
 		}
-	} finally {
-		clearTimeout(timeoutId);
 	}
 
-	if (auth.currentUser) {
+	if (auth.currentUser && status.code !== 500) {
 		await saveToDB(auth.currentUser.uid, data);
 	}
 
